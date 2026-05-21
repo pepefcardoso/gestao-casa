@@ -1,0 +1,99 @@
+# `mvp-spec.md` (Product Requirement Document - MVP)
+
+## 1. Visão Geral do Produto
+
+O aplicativo visa ajudar proprietários de imóveis a gerenciar as finanças, cronogramas e informações estruturais de sua casa nova. O foco deste MVP é dar controle total sobre o fluxo de caixa (gastos imediatos, parcelados e orçamentos) e centralizar os dados do financiamento imobiliário em uma única interface cross-platform.
+
+## 2. Escopo do MVP (Fase 1)
+
+### Módulo 1: Informações da Casa e Cômodos (Estrutura Base)
+
+* **Objetivo:** Permitir o cadastro da propriedade e seus ambientes para criar um vínculo relacional com os gastos.
+* **Campos Principais:** Nome da casa, localização, metragem total. Cômodos (Nome, metragem, cor/observações).
+
+### Módulo 2: Gestão Dinâmica de Gastos e Orçamentos
+
+* **Objetivo:** Registrar saídas de caixa categorizadas por prioridade e estado de execução.
+* **Regras de Negócio:**
+* **Status do Gasto:** Deve aceitar `Orçamento` (planejado/não confirmado) ou `Despesa` (confirmado/pago).
+* **Tipo de Pagamento:** À vista ou Parcelado (gerando recorrência automática baseada no número de parcelas).
+* **Vínculos:** Cada gasto pode (opcionalmente) estar atrelado a um cômodo específico.
+* **Metadados:** Categorias (Impostos, Móveis, Reformas, Serviços, Eletros) e Prioridades (Alta, Média, Baixa).
+
+
+
+### Módulo 3: Motor de Financiamento Flexível
+
+* **Objetivo:** Simular e acompanhar a evolução do saldo devedor de forma matemática, mas ajustável à realidade bancária.
+* **Regras de Negócio:**
+* **Inputs Iniciais:** Valor total do imóvel, valor da entrada (calculando automaticamente o valor financiado), prazo (em meses), taxa de juros anual/mensal e sistema de amortização (SAC ou PRICE).
+* **Geração da Tabela:** O sistema gera a tabela de projeção (Juros + Amortização = Parcela) mês a mês.
+* **Ajustes Manuais (Overriding):** O usuário pode editar manualmente o valor total da **1ª parcela** e da **última parcela**. O sistema deve recalcular as parcelas intermediárias se houver amortização, mas respeitar os limites estipulados se travados pelo usuário.
+
+
+
+---
+
+## 3. Casos de Uso (Use Cases para Engenharia e IA)
+
+### UC01: Configuração do Financiamento Dinâmico
+
+* **Atores:** Usuário.
+* **Pré-condições:** Nenhuma (Primeiro acesso ou aba de configurações).
+* **Fluxo Principal (Web - Next.js):**
+1. O usuário acessa a tela de configurações da casa.
+
+
+2. Insere os dados: Valor do Imóvel (R$ 500.000), Entrada (R$ 100.000), Prazo (360 meses), Taxa (10% a.a.), Sistema (SAC).
+3. O sistema calcula o Valor Financiado (R$ 400.000) e gera a projeção matemática de 360 linhas.
+4. O usuário clica em "Ajustar Valores Reais" e edita o campo `valor_primeira_parcela` e `valor_ultima_parcela`.
+5. O sistema salva e trava essas duas pontas, exibindo o fluxo corrigido.
+
+
+
+### UC02: Lançamento de Gasto / Orçamento com Parcelas
+
+* **Atores:** Usuário.
+* **Pré-condições:** Ter pelo menos um cômodo cadastrado (se quiser vincular).
+* **Fluxo Principal (Mobile - Expo):**
+1. Na rua, o usuário recebe o orçamento de um sofá (R$ 3.000 em 10x de R$ 300).
+2. Abre o app, clica no botão "+" rápido.
+3. Preenche: Descrição ("Sofá Retrátil"), Valor Total (3000), Parcelas (10), Status ("Orçamento"), Categoria ("Móveis"), Cômodo ("Sala de Estar").
+4. Ao salvar, o sistema projeta R$ 300/mês nos próximos 10 meses na aba de previsões como "Não Confirmado".
+5. Quando o usuário efetivamente comprar, ele altera o status para "Despesa" com um clique.
+
+
+
+---
+
+## 4. Arquitetura de Telas (UX/UI Wireframe Concept)
+
+Web Application (`apps/web`) - Foco Analítico 
+
+* **Dashboard Financeiro Extenso:** Visão de calendário dos próximos 12 meses mostrando: Parcelas do financiamento + Parcelas de compras confirmadas + Orçamentos previstos para aquele mês.
+* **Painel do Financiamento:** Tabela completa com rolagem (Scroll) listando todas as parcelas, juros pagos e saldo devedor decrescente, com inputs diretos para edição da primeira e última parcela.
+
+Mobile Application (`apps/mobile`) - Foco Operacional 
+
+* **Home:** Atalhos rápidos ("Novo Gasto", "Ver Medidas da Casa").
+* **Lista de Compras/Gastos:** Filtro rápido por "Prioridade Alta" (o que precisa comprar urgente para mudar) e por "Cômodo".
+
+---
+
+5. Mapeamento de Entidades do Banco (Conceitual para Drizzle) 
+
+Para guiar o agente de IA sem que ele crie tipos dinâmicos errados ou use `any`, as tabelas seguirão estritamente este mapeamento lógico:
+
+```
+[House] 1 ─── 1 [Financing]
+   │
+   └─── N [Room] 1 ─── N [Expense]
+
+```
+
+* **`houses`**: `id (UUID)`, `name (text)`, `location (text)`, `total_area (numeric)`.
+* **`rooms`**: `id (UUID)`, `house_id (FK)`, `name (text)`, `area (numeric)`, `color_code (text)`.
+* **`financing`**: `id (UUID)`, `house_id (FK)`, `property_value (numeric)`, `down_payment (numeric)`, `term_months (integer)`, `interest_rate (numeric)`, `amortization_system (text: SAC/PRICE)`, `first_parcel_override (numeric)`, `last_parcel_override (numeric)`.
+* **`expenses`**: `id (UUID)`, `room_id (FK, nullable)`, `description (text)`, `total_amount (numeric)`, `installments_count (integer)`, `status (text: BUDGET/CONFIRMED)`, `category (text)`, `priority (text: HIGH/MEDIUM/LOW)`, `due_date (timestamp)`.
+
+---

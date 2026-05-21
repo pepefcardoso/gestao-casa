@@ -4,10 +4,21 @@
   "license": "MIT",
   "scripts": {},
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "@hono/zod-openapi": "^1.4.0",
+    "drizzle-orm": "^0.45.2",
+    "drizzle-zod": "^0.8.3",
+    "hono": "^4.12.21",
+    "zod": "^4.4.3"
+  },
   "devDependencies": {
-    "@nx/js": "22.7.2",
-    "@nx/workspace": "22.7.2",
-    "nx": "22.7.2"
+    "@biomejs/biome": "^2.4.15",
+    "@nx/js": "^22.6.5",
+    "@nx/workspace": "^22.6.5",
+    "@types/pg": "^8.20.0",
+    "drizzle-kit": "^0.31.10",
+    "nx": "^22.6.5",
+    "pg": "^8.21.0",
+    "typescript": "^6.0.3"
   }
 }

@@ -1,0 +1,39 @@
+### Sprint 1: Fundações & Estrutura Base (Cômodos)
+
+* 
+**Task 1.1 (Backend):** Criar a tabela `houses` e `rooms` no Drizzle ORM com esquemas Zod de inserção/seleção.
+
+
+* 
+**Task 1.2 (API):** Criar rotas Hono OpenAPI `POST /rooms` e `GET /rooms`.
+
+
+* 
+**Task 1.3 (Mobile UI):** Criar a tela de listagem e adição de cômodos usando componentes nativos do React Native.
+
+
+
+### Sprint 2: Motor de Financiamento Ajustável
+
+* 
+**Task 2.1 (Shared Logic):** Criar o utilitário puro `calculateFinancing(params)` em `libs/shared-logic` que faça as contas matemáticas da tabela SAC/PRICE e aplique as travas da 1ª e última parcela via early returns.
+
+
+* 
+**Task 2.2 (Backend/API):** Criar a tabela `financing` e endpoints para salvar/atualizar as configurações.
+
+
+* 
+**Task 2.3 (Web UI):** Criar a tela analítica no Next.js com a tabela de 360 meses e inputs de ajuste manual.
+
+
+
+### Sprint 3: O Coração Financeiro (Gastos e Orçamentos)
+
+* 
+**Task 3.1 (Backend):** Criar a tabela `expenses` com campos de enumeração estritos (`status`, `category`, `priority`) via Zod.
+
+
+* **Task 3.2 (Shared Logic):** Criar a função que recebe uma despesa parcelada e projeta as datas de vencimento futuras.
+* 
+**Task 3.3 (Mobile/Web UIs):** Desenvolver o formulário de cadastro rápido de despesa (foco mobile) e o painel de fluxo de caixa mensal unificado (foco web).

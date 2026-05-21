@@ -1,0 +1,96 @@
+// libs/backend/src/db/schema.ts
+import { pgTable, uuid, text, numeric, integer, timestamp } from "drizzle-orm/pg-core";
+import { createSelectSchema, createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// ============================================================================
+// 1. TABELA: HOUSES (Casas)
+// ============================================================================
+export const houses = pgTable("houses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  location: text("location"),
+  totalArea: numeric("total_area"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const selectHouseSchema = createSelectSchema(houses);
+export const insertHouseSchema = createInsertSchema(houses);
+export type House = z.infer<typeof selectHouseSchema>;
+
+// ============================================================================
+// 2. TABELA: ROOMS (Cômodos)
+// ============================================================================
+export const rooms = pgTable("rooms", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  houseId: uuid("house_id")
+    .notNull()
+    .references(() => houses.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  area: numeric("area"),
+  colorCode: text("color_code"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const selectRoomSchema = createSelectSchema(rooms);
+export const insertRoomSchema = createInsertSchema(rooms);
+export type Room = z.infer<typeof selectRoomSchema>;
+
+// ============================================================================
+// 3. TABELA: FINANCING (Financiamento)
+// ============================================================================
+export const financing = pgTable("financing", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  houseId: uuid("house_id")
+    .notNull()
+    .unique() // Relação 1:1 estrita com a casa
+    .references(() => houses.id, { onDelete: "cascade" }),
+  propertyValue: numeric("property_value").notNull(),
+  downPayment: numeric("down_payment").notNull(),
+  termMonths: integer("term_months").notNull(),
+  interestRate: numeric("interest_rate").notNull(), // Taxa guardada em formato numérico puro (ex: 10.5)
+  amortizationSystem: text("amortization_system").notNull(), // 'SAC' ou 'PRICE'
+  firstParcelOverride: numeric("first_parcel_override"), // Ajuste manual opcional da 1ª parcela
+  lastParcelOverride: numeric("last_parcel_override"),   // Ajuste manual opcional da última parcela
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Enums customizados via Zod para o Financiamento garantir integridade conceitual
+export const selectFinancingSchema = createSelectSchema(financing, {
+  amortizationSystem: z.enum(["SAC", "PRICE"]),
+});
+export const insertFinancingSchema = createInsertSchema(financing, {
+  amortizationSystem: z.enum(["SAC", "PRICE"]),
+});
+export type Financing = z.infer<typeof selectFinancingSchema>;
+
+// ============================================================================
+// 4. TABELA: EXPENSES (Gastos, Orçamentos e Parcelamentos)
+// ============================================================================
+export const expenses = pgTable("expenses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  roomId: uuid("room_id") // Opcional (Nullable): Pode ser uma despesa geral da casa (ex: Imposto)
+    .references(() => rooms.id, { onDelete: "set null" }),
+  description: text("description").notNull(),
+  totalAmount: numeric("total_amount").notNull(),
+  installmentsCount: integer("installments_count").default(1).notNull(), // Padroniza 1 para à vista
+  status: text("status").notNull(),     // 'BUDGET' ou 'CONFIRMED'
+  category: text("category").notNull(), // 'TAX', 'PRODUCT', 'SERVICE', 'FURNITURE', 'APPLIANCE', 'RENOVATION'
+  priority: text("priority").notNull(), // 'HIGH', 'MEDIUM', 'LOW'
+  dueDate: timestamp("due_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Enums customizados via Zod para as Despesas eliminando strings mágicas no código
+export const selectExpenseSchema = createSelectSchema(expenses, {
+  status: z.enum(["BUDGET", "CONFIRMED"]),
+  priority: z.enum(["HIGH", "MEDIUM", "LOW"]),
+  category: z.enum(["TAX", "PRODUCT", "SERVICE", "FURNITURE", "APPLIANCE", "RENOVATION"]),
+});
+
+export const insertExpenseSchema = createInsertSchema(expenses, {
+  status: z.enum(["BUDGET", "CONFIRMED"]),
+  priority: z.enum(["HIGH", "MEDIUM", "LOW"]),
+  category: z.enum(["TAX", "PRODUCT", "SERVICE", "FURNITURE", "APPLIANCE", "RENOVATION"]),
+});
+export type Expense = z.infer<typeof selectExpenseSchema>;

@@ -1,0 +1,24 @@
+### Jornada A: O Dia de Compras (Mobile - Expo)
+
+> **Contexto:** Você está andando em uma loja de móveis planejados.
+
+1. Você vê uma mesa de jantar linda para a sala.
+2. Abre o aplicativo no celular de forma ultra rápida.
+
+
+3. Na Home, você clica na aba "Cômodos", seleciona "Sala de Estar" e lê a nota que deixou gravada lá semanas atrás: *"Espaço máximo para mesa: 1.60m x 0.90m"*.
+4. Você mede a mesa da loja, vê que cabe, e pede o orçamento para o vendedor: $R\$\,3.500$ em $5\times$ no cartão.
+5. Você abre a área de gastos, clica em "+", lança como `Orçamento` parcelado em $5\times$ atrelado à "Sala de Estar" e vai para casa pensar.
+
+### Jornada B: O Fechamento do Mês (Web - Next.js)
+
+> **Contexto:** Você senta no computador no domingo à noite para organizar as contas.
+
+1. Abre a aplicação Web no navegador.
+
+
+2. O dashboard exibe uma tela ampla com o calendário financeiro dos próximos 6 meses.
+
+
+3. Você vê a linha do financiamento daquele mês e clica em "Pagar Parcela". O sistema marca como executado e abate do saldo devedor.
+4. Você analisa a lista de `Orçamentos` criados no celular. Você clica no orçamento da "Mesa de Jantar" (que resolveu comprar) e altera o botão para `Confirmado`. O sistema automaticamente transforma aquele orçamento em 5 parcelas de despesa real no seu fluxo de caixa dos próximos meses.
