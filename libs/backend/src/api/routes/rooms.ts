@@ -6,14 +6,16 @@ import { db } from "../../db";
 import { insertRoomSchema, rooms, selectRoomSchema } from "../../db/schema";
 
 const router = new OpenAPIHono({
-  defaultHook: (result, c): Response => {
-    const errorMsg = result.success ? "" : result.error.message;
-    return c.json(
-      {
-        error: errorMsg,
-      },
-      400,
-    );
+  defaultHook: (result, c): Response | undefined => {
+    if (!result.success) {
+      console.log("Validation Failed:", JSON.stringify(result.error, null, 2));
+      return c.json(
+        {
+          error: result.error.message,
+        },
+        400,
+      );
+    }
   },
 });
 

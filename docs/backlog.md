@@ -62,7 +62,7 @@
 
 | Field            | Value                                                               |
 | ---------------- | ------------------------------------------------------------------- |
-| **Status**       | `TODO`                                                              |
+| **Status**       | `DONE`                                                              |
 | **Platform**     | Mobile (`apps/mobile`)                                              |
 | **Target file**  | `apps/mobile/app/rooms/index.tsx` · `apps/mobile/app/rooms/new.tsx` |
 | **Dependencies** | Task 1.2 `DONE`                                                     |
@@ -77,10 +77,10 @@
 
 **Acceptance criteria:**
 
-- [ ] Submitting with empty name shows inline error and blocks the API call.
-- [ ] Submitting with `area = -1` shows inline error and blocks the API call.
-- [ ] Successful save navigates back and new room appears in the list.
-- [ ] `npx nx lint mobile` passes with zero errors.
+- [x] Submitting with empty name shows inline error and blocks the API call.
+- [x] Submitting with `area = -1` shows inline error and blocks the API call.
+- [x] Successful save navigates back and new room appears in the list.
+- [x] `npx nx lint mobile` passes with zero errors.
 
 ---
 
