@@ -1,84 +1,169 @@
-# `mvp-spec.md` (Product Requirement Document - MVP)
+# MVP Specification
 
 ## 1. Product Overview
 
-The application aims to help property owners manage the finances, schedules, and structural information of their new homes. The focus of this MVP is to provide full control over cash flow (immediate expenses, installment plans, and budgets) and centralize real estate financing data into a single cross-platform interface.
+Application for property owners to manage finances, schedules, and structural data of a new home. The MVP delivers full cash flow control (immediate expenses, installment plans, budgets) and real estate financing tracking in a single cross-platform interface.
 
-## 2. MVP Scope (Phase 1)
-
-### Module 1: House and Room Information (Base Structure)
-
-- **Objective:** Allow registration of the property and its environments to create a relational link with expenses.
-- **Key Fields:** House name, location, total area. Rooms (Name, area, color/notes).
-
-### Module 2: Dynamic Expense and Budget Management
-
-- **Objective:** Record cash outflows categorized by priority and execution state.
-- **Business Rules:**
-  - **Expense Status:** Must accept `Budget` (planned/unconfirmed) or `Expense` (confirmed/paid).
-  - **Payment Type:** Pay-in-full (upfront) or Installments (generating automatic recurrence based on the number of installments).
-  - **Links:** Each expense can (optionally) be linked to a specific room.
-  - **Metadata:** Categories (Taxes, Furniture, Renovations, Services, Appliances) and Priorities (High, Medium, Low).
-
-### Module 3: Flexible Financing Engine
-
-- **Objective:** Simulate and monitor the evolution of the outstanding debt mathematically, while keeping it adjustable to real banking data.
-- **Business Rules:**
-  - **Initial Inputs:** Total property value, down payment amount (automatically calculating the financed amount), term (in months), annual/monthly interest rate, and amortization system (SAC or PRICE).
-  - **Schedule Generation:** The system generates a month-by-month projection table (Interest + Amortization = Installment).
-  - **Manual Adjustments (Overriding):** The user can manually edit the total value of the **1st installment** and the **last installment**. The system must recalculate the intermediate installments if amortization changes occur, but respect the boundaries set by the user if locked.
+**Platforms:** Web (Next.js) for analytical tasks, Mobile (Expo) for operational/field tasks.
 
 ---
 
-## 3. Use Cases (Use Cases for Engineering and AI)
+## 2. MVP Modules
 
-### UC01: Dynamic Financing Configuration
+### Module 1 — House & Room Structure
 
-- **Actors:** User.
-- **Preconditions:** None (First access or settings tab).
-- **Main Flow (Web - Next.js):**
-  1. The user accesses the house settings screen.
-  2. Inputs data: Property Value ($R\$\,500,000$), Down Payment ($R\$\,100,000$), Term ($360$ months), Rate ($10\%$ p.a.), System (`SAC`).
-  3. The system calculates the Financed Value ($R\$\,400,000$) and generates the 360-row mathematical projection.
-  4. The user clicks "Adjust Real Values" and edits the `first_parcel_override` and `last_parcel_override` fields.
-  5. The system saves and locks these two ends, displaying the corrected flow.
+**Purpose:** Register the property and its environments as the relational anchor for all expenses.
 
-### UC02: Logging an Expense / Budget with Installments
-
-- **Actors:** User.
-- **Preconditions:** Having at least one room registered (if linking is desired).
-- **Main Flow (Mobile - Expo):**
-  1. Out on the street, the user receives a quote for a sofa ($R\$\,3,000$ in $10\times$ installments of $R\$\,300$).
-  2. Opens the app, clicks the quick "+" button.
-  3. Fills in: Description ("Reclining Sofa"), Total Amount (3000), Installments (10), Status ("Budget"), Category ("Furniture"), Room ("Living Room").
-  4. Upon saving, the system projects $R\$\,300$/month for the next 10 months in the forecasts tab as "Unconfirmed".
-  5. When the user actually purchases it, they change the status to "Expense" with one click.
+| Field           | Type      | Rules                                                     |
+| --------------- | --------- | --------------------------------------------------------- |
+| House name      | `text`    | required                                                  |
+| Location        | `text`    | optional                                                  |
+| Total area      | `numeric` | optional, must be > 0                                     |
+| Room name       | `text`    | required                                                  |
+| Room area       | `numeric` | optional, must be > 0 — Zod rejects zero or negative      |
+| Room color code | `text`    | hex string (e.g. `#3b82f6`), used as visual tag across UI |
 
 ---
 
-## 4. Screen Architecture (UX/UI Wireframe Concept)
+### Module 2 — Expense & Budget Management
 
-Web Application (`apps/web`) - Analytical Focus
+**Purpose:** Record all cash outflows categorized by priority and confirmation state.
 
-- **Extensive Financial Dashboard:** A calendar view of the next 12 months showing: Financing installments + Confirmed purchase installments + Budgets planned for that month.
-- **Financing Panel:** Full table with scroll listing all installments, interest paid, and decreasing outstanding debt balance, with direct inputs to edit the first and last installments.
+#### Status (enum)
 
-Mobile Application (`apps/mobile`) - Operational Focus
+| Value       | Meaning               | Chart behavior                             |
+| ----------- | --------------------- | ------------------------------------------ |
+| `BUDGET`    | Planned, unconfirmed  | Appears in Cash Forecast only              |
+| `CONFIRMED` | Purchased / committed | Appears in Actual Expenses + Cash Forecast |
 
-- **Home:** Quick shortcuts ("New Expense", "View House Measurements").
-- **Shopping/Expense List:** Quick filter by "High Priority" (items that need urgent purchasing before moving in) and by "Room".
+#### Category (enum)
+
+`TAX` · `PRODUCT` · `SERVICE` · `FURNITURE` · `APPLIANCE` · `RENOVATION`
+
+#### Priority (enum)
+
+| Value    | UI color          | Icon            |
+| -------- | ----------------- | --------------- |
+| `HIGH`   | `text-orange-600` | `AlertTriangle` |
+| `MEDIUM` | `text-blue-600`   | `Circle`        |
+| `LOW`    | `text-slate-600`  | `ArrowDown`     |
+
+#### Payment types
+
+- **Upfront:** single entry, `installments_count = 1`.
+- **Installments:** agent must project N entries forward from `due_date`, one per month, each with `total_amount / installments_count`.
+
+#### Business rules
+
+- `room_id` is optional (expense may not be linked to a room).
+- Status toggle `BUDGET → CONFIRMED` converts all projected installment entries to confirmed at once.
+- Projected installment entries share the same `description` with a suffix `(X/N)`.
 
 ---
 
-## 5. Database Entity Mapping (Conceptual for Drizzle)
+### Module 3 — Financing Engine
 
-To guide the AI agent without causing it to generate incorrect dynamic types or use `any`, the tables will strictly follow this logical mapping:
+**Purpose:** Simulate and track mortgage debt mathematically, adjustable to real bank statements.
 
-[House] 1 ─── 1 [Financing]
-│
-└─── N [Room] 1 ─── N [Expense]
+#### Inputs
 
-- **`houses`**: `id (UUID)`, `name (text)`, `location (text)`, `total_area (numeric)`.
-- **`rooms`**: `id (UUID)`, `house_id (FK)`, `name (text)`, `area (numeric)`, `color_code (text)`.
-- **`financing`**: `id (UUID)`, `house_id (FK)`, `property_value (numeric)`, `down_payment (numeric)`, `term_months (integer)`, `interest_rate (numeric)`, `amortization_system (text: SAC/PRICE)`, `first_parcel_override (numeric)`, `last_parcel_override (numeric)`.
-- **`expenses`**: `id (UUID)`, `room_id (FK, nullable)`, `description (text)`, `total_amount (numeric)`, `installments_count (integer)`, `status (text: BUDGET/CONFIRMED)`, `category (text)`, `priority (text: HIGH/MEDIUM/LOW)`, `due_date (timestamp)`.
+| Field                   | Type             | Rules                                 |
+| ----------------------- | ---------------- | ------------------------------------- |
+| `property_value`        | `numeric`        | required, > 0                         |
+| `down_payment`          | `numeric`        | required, ≥ 0, < `property_value`     |
+| `term_months`           | `integer`        | required, 1–360                       |
+| `interest_rate`         | `numeric`        | annual rate, e.g. `0.10` for 10% p.a. |
+| `amortization_system`   | `SAC` \| `PRICE` | required                              |
+| `first_parcel_override` | `numeric`        | optional — locks installment 1        |
+| `last_parcel_override`  | `numeric`        | optional — locks installment 360      |
+
+#### Derived value
+
+```
+financed_amount = property_value - down_payment
+```
+
+#### Amortization formulas
+
+**SAC (Constant Amortization):**
+
+```
+monthly_rate = (1 + annual_rate) ^ (1/12) - 1
+amortization = financed_amount / term_months          // constant
+interest[n]  = outstanding_balance[n] * monthly_rate
+installment[n] = amortization + interest[n]           // decreases each month
+```
+
+**PRICE (Constant Installment):**
+
+```
+monthly_rate   = (1 + annual_rate) ^ (1/12) - 1
+installment    = financed_amount * (monthly_rate / (1 - (1 + monthly_rate) ^ -term_months))
+interest[n]    = outstanding_balance[n] * monthly_rate
+amortization[n] = installment - interest[n]           // increases each month
+```
+
+#### Override logic
+
+The `calculateFinancing()` function in `libs/shared-logic/src/utils/calculate-financing.ts` must:
+
+1. Compute the full N-row schedule using the selected formula.
+2. If `first_parcel_override` is set → replace row 1 total; distribute the delta proportionally across rows 2…N-1.
+3. If `last_parcel_override` is set → replace row N total; distribute the delta proportionally across rows 2…N-1.
+4. Both overrides may be set simultaneously; apply them as early returns before distribution.
+5. Return type: `FinancingInstallment[]` (defined in `libs/backend/src/db/schema.ts`).
+
+---
+
+## 3. Entity Relationship
+
+```
+[House] 1 ──── 1 [Financing]
+   │
+   └──── N [Room] 1 ──── N [Expense]
+```
+
+### Field map (Drizzle schema reference)
+
+> Canonical source: `libs/backend/src/db/schema.ts`. The table below is for quick agent reference only — never define types manually from here.
+
+| Table       | Key fields                                                                                                                                                                                                               |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `houses`    | `id (uuid PK)`, `name`, `location`, `total_area`, `created_at`                                                                                                                                                           |
+| `rooms`     | `id (uuid PK)`, `house_id (FK → houses, cascade delete)`, `name`, `area`, `color_code`, `created_at`                                                                                                                     |
+| `financing` | `id (uuid PK)`, `house_id (FK → houses, unique, cascade delete)`, `property_value`, `down_payment`, `term_months`, `interest_rate`, `amortization_system`, `first_parcel_override`, `last_parcel_override`, `created_at` |
+| `expenses`  | `id (uuid PK)`, `room_id (FK → rooms, nullable, set null on delete)`, `description`, `total_amount`, `installments_count`, `status`, `category`, `priority`, `due_date`, `created_at`                                    |
+
+---
+
+## 4. Screen Architecture
+
+### Web (`apps/web`) — Analytical
+
+| Screen              | Path         | Primary data                                                    |
+| ------------------- | ------------ | --------------------------------------------------------------- |
+| Financial dashboard | `/dashboard` | 12-month calendar: financing + confirmed installments + budgets |
+| Financing panel     | `/financing` | 360-row amortization table + area chart + override inputs       |
+| Expense list        | `/expenses`  | Filter by status, category, priority, room                      |
+| House settings      | `/settings`  | House fields + room management                                  |
+
+**Financing panel layout requirements:**
+
+- Table: fixed header (`sticky top-0`), numerical columns `text-right`, monospace font (`font-mono tabular-nums`).
+- Override inputs: sticky beside first/last row boundaries.
+- Area chart above table: X = months 1→360, Y = R$ value, two layers (amortization + interest).
+
+### Mobile (`apps/mobile`) — Operational
+
+| Screen       | Route           | Primary action                                                              |
+| ------------ | --------------- | --------------------------------------------------------------------------- |
+| Home         | `/`             | Quick shortcuts to rooms and new expense                                    |
+| Room detail  | `/rooms/[id]`   | Area, color, notes, linked expenses                                         |
+| Expense form | `/expenses/new` | Status toggle, category, installment slider (1–24) + text input (up to 360) |
+| Expense list | `/expenses`     | Filter by priority + room                                                   |
+
+**Expense form requirements:**
+
+- Big toggle: `Budget` ↔ `Confirmed`.
+- Installment input: thumb slider (1–24 months) + co-located text field (up to 360).
+- Live preview above inputs: `R$ {total} ÷ {n} = R$ {per_month}/mês`.

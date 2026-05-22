@@ -1,12 +1,12 @@
 # Project Architecture Blueprint: AI-Optimized Cross-Platform Application
 
-This document defines the definitive technical stack, architectural rules, and design patterns for the codebase. This repository is explicitly designed for a hybrid developer-agent workflow. The primary objective is to maximize **AI Agent Efficiency (AX)** by reducing token consumption, eliminating architectural ambiguity, and enforcing compile-time constraints that guide LLM reasoning.
+This document defines the definitive technical stack, architectural rules, and design patterns for the codebase. This repository is designed for a hybrid developer-agent workflow. The primary objective is to maximize **AI Agent Efficiency (AX)** by reducing token consumption, eliminating architectural ambiguity, and enforcing compile-time constraints that guide LLM reasoning.
 
 ---
 
 ## 1. System Overview & Core Stack
 
-The system is a cross-platform application (Web and Mobile) managed within a unified monorepo. Every architectural choice is optimized to ensure that AI agents can read, modify, and test code with minimal context switching and zero hallucination.
+The system is a cross-platform application (Web and Mobile) managed within a unified Nx monorepo. Every architectural choice ensures that AI agents can read, modify, and test code with minimal context switching and zero hallucination.
 
 ```
                   ┌─────────────────────────────────────────┐
@@ -26,91 +26,156 @@ The system is a cross-platform application (Web and Mobile) managed within a uni
                      │           libs/backend            │
                      │  (Hono, Drizzle ORM, Zod Schema)  │
                      └───────────────────────────────────┘
-
 ```
 
 ### Core Technologies
 
-* **Monorepo Engine:** Nx (with explicit boundary constraints)
-* **Language:** TypeScript (Strict Mode + Mandatory Explicit Return Types)
-* **Web Framework:** Next.js (App Router)
-* **Mobile Framework:** Expo (React Native + Expo Router)
-* **API Layer:** Hono + `@hono/zod-openapi` (Self-documenting, typed REST)
-* **Database ORM:** Drizzle ORM (Pure TypeScript schema definitions)
-* **Data Validation:** Zod
-* **Tooling & Linter:** Biome (Format & Lint)
+| Layer            | Technology                 | Purpose                                                                |
+| ---------------- | -------------------------- | ---------------------------------------------------------------------- |
+| Monorepo         | Nx                         | Dependency graph, boundary enforcement, task orchestration             |
+| Language         | TypeScript (strict)        | Explicit types eliminate agent inference errors                        |
+| Web              | Next.js App Router         | Web-only presentation layer                                            |
+| Mobile           | Expo + Expo Router         | Mobile-only presentation layer                                         |
+| API              | Hono + `@hono/zod-openapi` | Self-documenting typed REST                                            |
+| ORM              | Drizzle ORM                | Pure TS schema — no binary engines, fully readable by agents           |
+| Validation       | Zod                        | Single validation layer shared across API and business logic           |
+| Linter/Formatter | Biome                      | Unified, zero-config formatting — agents emit logic, Biome fixes style |
 
 ---
 
-## 2. Core Language: TypeScript Engine
+## 2. Directory Architecture
 
-To eliminate token waste caused by AI agents backtracking or guessing data shapes, the `tsconfig.json` forces absolute strictness.
+The file structure dictates what context an agent needs to load to perform a task. Each directory has a single, unambiguous responsibility.
 
-### Rules for AI Agents & Engineers
+```
+├── GEMINI.md                    # Agent micro-instructions (loaded automatically)
+├── biome.json                   # Formatting and lint rules
+├── nx.json                      # Workspace dependency graph
+├── docs/
+│   ├── backlog.md               # Sprint tasks with status and acceptance criteria
+│   ├── conventions.md           # Naming, patterns, and code templates
+│   ├── design.md                # Color palette, typography, component states
+│   ├── mvp-spec.md              # Product requirements and entity mapping
+│   ├── project-architecture-blueprint.md  # This file
+│   └── use-cases.md             # Detailed UC flows with business rules
+├── apps/
+│   ├── web/                     # Next.js — web-only presentation
+│   │   └── app/
+│   └── mobile/                  # Expo — mobile-only presentation
+│       └── app/
+└── libs/
+    ├── backend/                 # Drizzle schemas, migrations, Hono routers
+    │   └── src/
+    │       ├── db/              # schema.ts — single source of truth for all types
+    │       └── api/             # Hono OpenAPI route definitions
+    └── shared-logic/            # Pure TS platform-agnostic business logic
+        └── src/
+            ├── hooks/           # Shareable React hooks (state machines, calculations)
+            └── utils/           # Pure functions (no side effects, no platform deps)
+```
 
-* **No Implicit Returns:** Every function definition *must* explicitly state its return type. This prevents the AI from needing to parse an entire function body to infer the shape of its output in subsequent prompts.
-* **Strict Null Checks:** Handled explicitly. Code must use optional chaining or explicit type guards.
-* **No `any`:** The use of `any` is strictly prohibited. Use `unknown` with a Zod type guard if types are genuinely dynamic.
+### Canonical File Paths (Agent Reference)
+
+| Artifact              | Canonical Path                              |
+| --------------------- | ------------------------------------------- |
+| DB schema + Zod types | `libs/backend/src/db/schema.ts`             |
+| API route (resource)  | `libs/backend/src/api/routes/<resource>.ts` |
+| Shared pure function  | `libs/shared-logic/src/utils/<name>.ts`     |
+| Shared React hook     | `libs/shared-logic/src/hooks/use-<name>.ts` |
+| Web page              | `apps/web/app/<route>/page.tsx`             |
+| Web component         | `apps/web/app/components/<name>.tsx`        |
+| Mobile screen         | `apps/mobile/app/<route>.tsx`               |
+| Mobile component      | `apps/mobile/components/<name>.tsx`         |
+
+---
+
+## 3. Dependency Boundary Rules
+
+Nx tags enforce compiler-level errors when boundaries are crossed. These rules are **absolute** — no exceptions.
+
+| Package             | Can import from                                                       | Cannot import from                                      |
+| ------------------- | --------------------------------------------------------------------- | ------------------------------------------------------- |
+| `apps/web`          | `libs/shared-logic`, `libs/backend` (types only, via HTTP at runtime) | `apps/mobile`, `react-native`, any RN ecosystem package |
+| `apps/mobile`       | `libs/shared-logic`, `libs/backend` (types only, via HTTP at runtime) | `apps/web`, `react-dom`, any DOM API                    |
+| `libs/backend`      | `libs/shared-logic`                                                   | `apps/*`, `react`, `react-dom`, `react-native`          |
+| `libs/shared-logic` | nothing internal                                                      | `apps/*`, `libs/backend`, platform APIs                 |
+
+**Agent rule:** before adding an import, verify the target path is within the allowed boundaries above. If not, the logic must be moved to `libs/shared-logic` or accessed via the HTTP API.
+
+---
+
+## 4. TypeScript Rules
+
+Strict mode is non-negotiable. The following rules prevent agents from emitting ambiguous or unsafe code.
+
+### Explicit Return Types (mandatory)
 
 ```typescript
-// ❌ BAD: AI has to infer the return type by reading the full body
+// ❌ BAD — agent must parse the entire body to infer the output shape
 export function fetchUserData(userId: string) {
-  return db.select().from(users).where(eq(users.id, userId)).then(res => res[0]);
+  return db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .then((r) => r[0]);
 }
 
-//  GOOD: Type boundaries are explicit at the signature line
-import type { UserSelection } from "@workspace/backend/db";
+// ✅ GOOD — type boundary is visible at the signature line
+import type { User } from "@gestao-casa/backend/db";
 
-export async function fetchUserData(userId: string): Promise<UserSelection | null> {
+export async function fetchUserData(userId: string): Promise<User | null> {
   const result = await db.select().from(users).where(eq(users.id, userId));
   return result[0] ?? null;
 }
+```
 
+### No `any` (enforced by Biome)
+
+Use `unknown` with a Zod type guard when the type is genuinely dynamic:
+
+```typescript
+// ❌ BAD
+function parsePayload(raw: any): void { ... }
+
+// ✅ GOOD
+import { z } from "zod";
+
+const PayloadSchema = z.object({ amount: z.number(), description: z.string() });
+
+function parsePayload(raw: unknown): z.infer<typeof PayloadSchema> {
+  return PayloadSchema.parse(raw);
+}
+```
+
+### Early Returns (guard clauses)
+
+```typescript
+// ❌ BAD — nested branches increase reasoning complexity for agents
+function processOrder(order) {
+  if (order) {
+    if (order.isPaid) {
+      return ship(order);
+    } else {
+      return triggerPayment(order);
+    }
+  }
+}
+
+// ✅ GOOD — flat linear execution paths
+function processOrder(order: Order | null): ProcessResult | null {
+  if (!order) return null;
+  if (!order.isPaid) return triggerPayment(order);
+  return ship(order);
+}
 ```
 
 ---
 
-## 3. Directory Architecture (Nx Workspace)
+## 5. Database & API Layer
 
-The codebase is strictly modularized. The file structure dictates what context an AI agent needs to load to perform a task.
+### Drizzle ORM — Schema as Single Source of Truth
 
-```
-├── .cursorrules             # Root AI instructions
-├── biome.json               # Code formatting rules
-├── nx.json                  # Workspace dependency constraints
-├── apps/
-│   ├── web/                 # Next.js App (Web-only presentation)
-│   │   └── app/
-│   └── mobile/              # Expo App (Mobile-only presentation)
-│       └── app/
-└── libs/
-    ├── backend/             # Drizzle schemas, migrations, Hono routers
-    │   ├── src/
-    │   │   ├── db/          # Pure TS Drizzle schemas
-    │   │   └── api/         # Hono OpenAPI routes
-    │   └── project.json
-    └── shared-logic/        # Pure TS platform-agnostic business logic
-        └── src/
-            ├── hooks/       # Sharable React Hooks (State machines, calculations)
-            └── utils/       # Pure functions
-
-```
-
-### Dependency Boundary Rules (`nx.json`)
-
-Nx tags are used to enforce compiler-level errors if an AI agent tries to cross platform boundaries:
-
-* `apps/web` can only import from `libs/shared-logic` and `libs/backend` (via network/client). It **cannot** import from `apps/mobile`.
-* `apps/mobile` can only import from `libs/shared-logic` and `libs/backend` (via network/client). It **cannot** import from `apps/web`.
-* `apps/mobile` is strictly barred from importing any package containing `react-dom` or Node.js native globals.
-
----
-
-## 4. Database & API Layer (Pure TypeScript Pipeline)
-
-### Drizzle ORM (AI-Readable Schemas)
-
-Prisma relies on a non-standard syntax `.prisma` file and hidden generated clients. Drizzle uses pure TypeScript, meaning the AI can read, manipulate, and execute schema migrations without relying on external binary engines.
+All Zod schemas and TypeScript types for the domain are **derived from the Drizzle schema**, never written by hand. This eliminates drift between DB shape and validation logic.
 
 ```typescript
 // libs/backend/src/db/schema.ts
@@ -125,22 +190,24 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Automatically export Zod schemas for validation and API documentation
 export const selectUserSchema = createSelectSchema(users);
 export const insertUserSchema = createInsertSchema(users);
 export type User = z.infer<typeof selectUserSchema>;
-
 ```
 
-### Hono OpenAPI (Self-Documenting REST)
+**Agent rule:** never define a Zod schema for a DB entity manually. Always derive it from the Drizzle table definition using `createSelectSchema` / `createInsertSchema`.
 
-Instead of relying on deep type inference strings like tRPC, the API utilizes Hono with OpenAPI schemas. This allows AI agents to read standard HTTP route definitions and interact via standard OpenAPI specs—an area where modern LLMs demonstrate maximum performance and lowest hallucination rates.
+### Hono OpenAPI — Route Structure
+
+Every route file must follow this structure. The OpenAPI spec is generated automatically from the Zod schemas — never written by hand.
 
 ```typescript
 // libs/backend/src/api/routes/users.ts
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
-import { selectUserSchema } from "../../db/schema";
+import { selectUserSchema, insertUserSchema } from "../../db/schema";
 import { z } from "zod";
+
+const router = new OpenAPIHono();
 
 const getUserRoute = createRoute({
   method: "get",
@@ -151,35 +218,38 @@ const getUserRoute = createRoute({
   responses: {
     200: {
       content: { "application/json": { schema: selectUserSchema } },
-      description: "Retrieve the user details",
+      description: "Retrieve the user",
+    },
+    404: {
+      content: { "application/json": { schema: z.object({ error: z.string() }) } },
+      description: "User not found",
     },
   },
 });
 
-export const apiRouter = new OpenAPIHono().openapi(getUserRoute, async (c) => {
+router.openapi(getUserRoute, async (c): Promise<Response> => {
   const { id } = c.req.valid("param");
-  // Database fetching logic here
-  return c.json({ id, email: "user@workspace.com", name: "John Doe", createdAt: new Date().toISOString() }, 200);
+  // db logic here
+  return c.json({ ... }, 200);
 });
 
+export { router as usersRouter };
 ```
 
 ---
 
-## 5. Design Patterns for AI Efficiency
+## 6. Design Patterns
 
-### Locality of Behavior (LoB) over Fragmented Hooks
+### Locality of Behavior
 
-While shared logic resides in `libs/shared-logic`, UI-specific state and JSX are co-located in the same file or directory. Forcing an AI to jump between a `MyComponent.tsx`, a `useMyComponent.ts` file, and a `types.ts` file doubles context token overhead and invites editing collisions.
+UI-specific state and JSX are co-located with the component. Agents should not split a component across `Component.tsx`, `useComponent.ts`, and `types.ts` unless the hook is genuinely reusable in `libs/shared-logic`.
 
 ```typescript
 // apps/web/app/components/checkout-button.tsx
-'use client';
+"use client";
 
-import React, { useState } from "react";
-import { z } from "zod";
+import { useState } from "react";
 
-// Keep localized types, states, and presentation visible in one parsing window
 type ButtonState = "idle" | "loading" | "success" | "error";
 
 export function CheckoutButton({ cartId }: { cartId: string }): React.JSX.Element {
@@ -188,7 +258,7 @@ export function CheckoutButton({ cartId }: { cartId: string }): React.JSX.Elemen
   async function handleCheckout(): Promise<void> {
     setStatus("loading");
     try {
-      // Execute checkout logic
+      // checkout logic
       setStatus("success");
     } catch {
       setStatus("error");
@@ -196,47 +266,16 @@ export function CheckoutButton({ cartId }: { cartId: string }): React.JSX.Elemen
   }
 
   return (
-    <button 
-      disabled={status === "loading"} 
-      onClick={handleCheckout}
-      className="px-4 py-2 bg-blue-600 text-white rounded"
-    >
-      {status === "loading" ? "Processing..." : "Checkout"}
+    <button disabled={status === "loading"} onClick={handleCheckout} className="px-4 py-2 bg-emerald-600 text-white rounded">
+      {status === "loading" ? "Processando..." : "Confirmar"}
     </button>
   );
 }
-
-```
-
-### Early Returns (Guard Clauses)
-
-Deeply nested code increases execution branch complexity, degrading the reasoning performance of LLMs. All logic must favor flat structures with immediate early returns.
-
-```typescript
-// ❌ BAD: Complex nested tree
-function processOrder(order) {
-  if (order) {
-    if (order.isPaid) {
-      return ship(order);
-    } else {
-      return triggerPayment(order);
-    }
-  }
-}
-
-//  GOOD: Flat linear execution paths
-function processOrder(order: Order | null): ProcessResult | null {
-  if (!order) return null;
-  if (!order.isPaid) return triggerPayment(order);
-  
-  return ship(order);
-}
-
 ```
 
 ### Explicit Dependency Injection
 
-Avoid relying on global application state or side-effect heavy modules within core business logic. Pass dependencies (clients, configs) explicitly as parameters. This allows AI agents to write isolated unit tests natively without needing complex mocking frameworks.
+Core business logic must receive all dependencies as parameters. This makes agent-generated unit tests trivially easy to write without mocking globals.
 
 ```typescript
 // libs/shared-logic/src/utils/calculate-tax.ts
@@ -245,58 +284,49 @@ export interface TaxConfig {
   exemptIds: string[];
 }
 
-// Pure function: Predictable outputs make unit-test generation effortless for AI
-export function calculateTotalWithTax(
-  subtotal: number, 
-  userId: string, 
-  config: TaxConfig
-): number {
+export function calculateTotalWithTax(subtotal: number, userId: string, config: TaxConfig): number {
   if (config.exemptIds.includes(userId)) return subtotal;
   return subtotal * (1 + config.rate);
 }
-
 ```
 
 ---
 
-## 6. Infrastructure & Guardrails
+## 7. Platform-Specific Constraints
 
-### Context Meta-Files (`.cursorrules` / `llms.txt`)
+### Web (`apps/web`)
 
-A configuration file placed at the project root acts as a constant micro-system prompt injected directly into the agent's context.
+- Styles: **Tailwind CSS atomic utilities only.** No inline `style` objects, no CSS modules, no styled-components.
+- Charts: `recharts` primitives only (unstyled wrappers). No heavy charting libraries.
+- Icons: `lucide-react`.
+- Server components by default; add `'use client'` only when the component uses state or browser APIs.
 
-```markdown
-# Repository Rules for AI Agents
-- You are working in an Nx Monorepo.
-- Core frameworks: Next.js (apps/web) and Expo (apps/mobile).
-- Web code MUST use DOM elements and Tailwind CSS.
-- Mobile code MUST use React Native components; never import react-dom or web components.
-- Database access is managed exclusively through Drizzle ORM in `libs/backend`.
-- Every function created or modified MUST include an explicit return type definition.
-- Never write code formatting fixes manually. Let Biome handle layout optimization on file save.
+### Mobile (`apps/mobile`)
 
-```
-
-### Model Context Protocol (MCP) Integration
-
-To prevent the agent from hallucinating outdated public APIs or schemas, local MCP servers are established:
-
-* **Database Schema MCP:** Grants agents read-only access to query current active database table relations directly from the running engine.
-* **API MCP:** Exposes the `/api/doc` OpenAPI JSON from the Hono server directly into the agent's context window.
-
-### Ultra-Fast Formatting Strategy: Biome
-
-The repository replaces ESLint and Prettier with **Biome**. Because Biome parses and reformats code in microseconds via a unified engine, AI agents never burn time or token counts correcting indentation, semicolon conflicts, or unused import statements. The agent emits the logical change, and the file-save mechanism automatically sanitizes structural style.
+- Layout: `<View>`, `<Text>`, `<TouchableOpacity>`, `<ScrollView>`, `<FlatList>` — no DOM elements.
+- Styles: React Native `StyleSheet.create()` or inline style objects with explicit types.
+- Icons: `@expo/vector-icons` (Lucide variant).
+- **Never import `react-dom` or any package that depends on it.**
+- Sliders: native `<Slider>` from `@react-native-community/slider`.
 
 ---
 
-## 7. Execution Architecture Checklist
+## 8. Agent Task Execution Checklist
 
-When delegating a task to an AI agent, verify compliance against this matrix:
+Before writing any code, an agent must validate compliance with this matrix:
 
-| Task Type | Context Target | Structural Rule |
-| --- | --- | --- |
-| **Database Modification** | `libs/backend/src/db/*` | Define in pure TypeScript schema files. Run migration scripts immediately via tool execution. |
-| **Core Calculations / Rules** | `libs/shared-logic/*` | Implement as pure functions or custom hooks using explicit type input/outputs. |
-| **Web UI Addition** | `apps/web/app/*` | Restrict styles to Tailwind. Group state and presentation together inside target directories. |
-| **Mobile UI Addition** | `apps/mobile/app/*` | Use React Native layout containers. Ensure zero Node.js global dependencies are introduced. |
+| Task Type           | Target Path                                 | Pre-conditions                             |
+| ------------------- | ------------------------------------------- | ------------------------------------------ |
+| Add/modify DB table | `libs/backend/src/db/schema.ts`             | Run migration after schema change          |
+| Add API route       | `libs/backend/src/api/routes/<resource>.ts` | Schema types must exist first              |
+| Add business logic  | `libs/shared-logic/src/utils/<name>.ts`     | Must be pure function, no side effects     |
+| Add shared hook     | `libs/shared-logic/src/hooks/use-<name>.ts` | Hook must be usable by both Web and Mobile |
+| Add web UI          | `apps/web/app/<route>/page.tsx`             | Tailwind only, no RN imports               |
+| Add mobile UI       | `apps/mobile/app/<route>.tsx`               | RN components only, no DOM imports         |
+
+**Before every task:**
+
+1. Read `GEMINI.md` for agent instructions.
+2. Read `docs/backlog.md` to confirm task status and acceptance criteria.
+3. Read `libs/backend/src/db/schema.ts` for current type definitions.
+4. Read `docs/conventions.md` for naming and patterns.
