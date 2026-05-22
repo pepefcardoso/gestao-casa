@@ -12,7 +12,7 @@
 
 | Field            | Value                           |
 | ---------------- | ------------------------------- |
-| **Status**       | `TODO`                          |
+| **Status**       | `DONE`                          |
 | **Platform**     | Backend                         |
 | **Target file**  | `libs/backend/src/db/schema.ts` |
 | **Dependencies** | none                            |
@@ -26,10 +26,10 @@
 
 **Acceptance criteria:**
 
-- [ ] `npx drizzle-kit generate` produces a valid migration with no errors.
-- [ ] `insertRoomSchema.parse({ name: "Sala", area: -1 })` throws a Zod error.
-- [ ] `insertRoomSchema.parse({ name: "Sala" })` succeeds (area is optional).
-- [ ] All exports are typed — no implicit `any`.
+- [x] `npx drizzle-kit generate` produces a valid migration with no errors.
+- [x] `insertRoomSchema.parse({ name: "Sala", area: -1 })` throws a Zod error.
+- [x] `insertRoomSchema.parse({ name: "Sala" })` succeeds (area is optional).
+- [x] All exports are typed — no implicit `any`.
 
 ---
 
