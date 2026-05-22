@@ -197,7 +197,7 @@
 
 | Field            | Value                                                 |
 | ---------------- | ----------------------------------------------------- |
-| **Status**       | `TODO`                                                |
+| **Status**       | `DONE`                                                |
 | **Platform**     | Shared (`libs/shared-logic`)                          |
 | **Target file**  | `libs/shared-logic/src/utils/project-installments.ts` |
 | **Dependencies** | Task 3.1 `DONE`                                       |
@@ -215,11 +215,11 @@
 
 **Acceptance criteria:**
 
-- [ ] `projectInstallments({ ..., installmentsCount: 3, dueDate: '2025-01-01' })` returns array of length 3.
-- [ ] Result[0].description ends with `"(1/3)"`, result[2] ends with `"(3/3)"`.
-- [ ] Result[1].dueDate is exactly 1 month after result[0].dueDate.
-- [ ] Each entry's `totalAmount` equals `params.totalAmount / 3`.
-- [ ] Function has explicit return type.
+- [x] `projectInstallments({ ..., installmentsCount: 3, dueDate: '2025-01-01' })` returns array of length 3.
+- [x] Result[0].description ends with `"(1/3)"`, result[2] ends with `"(3/3)"`.
+- [x] Result[1].dueDate is exactly 1 month after result[0].dueDate.
+- [x] Each entry's `totalAmount` equals `params.totalAmount / 3`.
+- [x] Function has explicit return type.
 
 ---
 
