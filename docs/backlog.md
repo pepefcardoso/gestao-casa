@@ -37,7 +37,7 @@
 
 | Field            | Value                                  |
 | ---------------- | -------------------------------------- |
-| **Status**       | `TODO`                                 |
+| **Status**       | `DONE`                                 |
 | **Platform**     | Backend                                |
 | **Target file**  | `libs/backend/src/api/routes/rooms.ts` |
 | **Dependencies** | Task 1.1 `DONE`                        |
@@ -51,10 +51,10 @@
 
 **Acceptance criteria:**
 
-- [ ] `POST /rooms` with invalid body returns `400` with `{ error: string }`.
-- [ ] `POST /rooms` with valid body returns `201` + the created room object.
-- [ ] `GET /rooms?house_id=<uuid>` returns only rooms for that house.
-- [ ] `GET /api/doc` (OpenAPI JSON) includes both routes with correct request/response schemas.
+- [x] `POST /rooms` with invalid body returns `400` with `{ error: string }`.
+- [x] `POST /rooms` with valid body returns `201` + the created room object.
+- [x] `GET /rooms?house_id=<uuid>` returns only rooms for that house.
+- [x] `GET /api/doc` (OpenAPI JSON) includes both routes with correct request/response schemas.
 
 ---
 

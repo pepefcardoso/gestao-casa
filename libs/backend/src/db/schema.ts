@@ -1,5 +1,5 @@
-import { pgTable, uuid, text, numeric, timestamp } from "drizzle-orm/pg-core";
-import { createSelectSchema, createInsertSchema } from "drizzle-zod";
+import { numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const houses = pgTable("houses", {
