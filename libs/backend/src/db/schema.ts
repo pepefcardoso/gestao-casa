@@ -152,3 +152,61 @@ export const insertFinancingSchema = createInsertSchema(financing, {
 
 export type Financing = z.infer<typeof selectFinancingSchema>;
 export type InsertFinancing = z.infer<typeof insertFinancingSchema>;
+
+export const expenses = pgTable("expenses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  roomId: uuid("room_id").references(() => rooms.id, { onDelete: "set null" }),
+  description: text("description").notNull(),
+  totalAmount: numeric("total_amount").notNull(),
+  installmentsCount: integer("installments_count").notNull(),
+  status: text("status").notNull(),
+  category: text("category").notNull(),
+  priority: text("priority").notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const selectExpenseSchema = createSelectSchema(expenses, {
+  status: z.enum(["BUDGET", "CONFIRMED"]),
+  category: z.enum(["TAX", "PRODUCT", "SERVICE", "FURNITURE", "APPLIANCE", "RENOVATION"]),
+  priority: z.enum(["HIGH", "MEDIUM", "LOW"]),
+});
+
+export const insertExpenseSchema = createInsertSchema(expenses, {
+  roomId: z.string().uuid().nullable().optional(),
+  totalAmount: z
+    .preprocess((val: unknown): number => {
+      return Number(val);
+    }, z.number())
+    .refine(
+      (val: number): boolean => {
+        return val > 0;
+      },
+      {
+        message: "Total amount must be greater than 0",
+      },
+    ),
+  installmentsCount: z
+    .preprocess((val: unknown): number => {
+      return Number(val);
+    }, z.number())
+    .refine(
+      (val: number): boolean => {
+        return Number.isInteger(val) && val >= 1 && val <= 360;
+      },
+      {
+        message: "Installments count must be between 1 and 360",
+      },
+    ),
+  status: z.enum(["BUDGET", "CONFIRMED"]),
+  category: z.enum(["TAX", "PRODUCT", "SERVICE", "FURNITURE", "APPLIANCE", "RENOVATION"]),
+  priority: z.enum(["HIGH", "MEDIUM", "LOW"]),
+  dueDate: z.preprocess((val: unknown): Date => {
+    if (val instanceof Date) return val;
+    if (typeof val === "string") return new Date(val);
+    return new Date(NaN);
+  }, z.date()),
+});
+
+export type Expense = z.infer<typeof selectExpenseSchema>;
+export type InsertExpense = z.infer<typeof insertExpenseSchema>;

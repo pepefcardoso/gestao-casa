@@ -15,6 +15,13 @@
       "when": 1779470225223,
       "tag": "0001_chunky_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779472236548,
+      "tag": "0002_early_blockbuster",
+      "breakpoints": true
     }
   ]
 }

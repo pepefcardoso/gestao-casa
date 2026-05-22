@@ -186,10 +186,10 @@
 
 **Acceptance criteria:**
 
-- [ ] `insertExpenseSchema.parse({ status: 'INVALID', ... })` throws.
-- [ ] `insertExpenseSchema.parse({ totalAmount: 0, ... })` throws.
-- [ ] `insertExpenseSchema.parse({ installmentsCount: 361, ... })` throws.
-- [ ] Migration generates with no errors.
+- [x] `insertExpenseSchema.parse({ status: 'INVALID', ... })` throws.
+- [x] `insertExpenseSchema.parse({ totalAmount: 0, ... })` throws.
+- [x] `insertExpenseSchema.parse({ installmentsCount: 361, ... })` throws.
+- [x] Migration generates with no errors.
 
 ---
 
