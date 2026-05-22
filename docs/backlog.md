@@ -242,11 +242,11 @@
 
 **Acceptance criteria:**
 
-- [ ] Selecting installments shows slider + text field; upfront hides them.
-- [ ] Live preview updates on every slider/text change.
-- [ ] Submitting with empty description blocks the API call.
-- [ ] Slider clamps at 24; text field accepts up to 360 and rejects > 360 inline.
-- [ ] `npx nx lint mobile` passes with zero errors.
+- [x] Selecting installments shows slider + text field; upfront hides them.
+- [x] Live preview updates on every slider/text change.
+- [x] Submitting with empty description blocks the API call.
+- [x] Slider clamps at 24; text field accepts up to 360 and rejects > 360 inline.
+- [x] `npx nx lint mobile` passes with zero errors.
 
 ---
 
