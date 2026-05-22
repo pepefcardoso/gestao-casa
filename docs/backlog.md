@@ -117,7 +117,7 @@
 
 | Field            | Value                                                                        |
 | ---------------- | ---------------------------------------------------------------------------- |
-| **Status**       | `TODO`                                                                       |
+| **Status**       | `DONE`                                                                       |
 | **Platform**     | Backend                                                                      |
 | **Target file**  | `libs/backend/src/db/schema.ts` · `libs/backend/src/api/routes/financing.ts` |
 | **Dependencies** | Task 1.1 `DONE` · Task 2.1 `DONE`                                            |
@@ -131,10 +131,10 @@
 
 **Acceptance criteria:**
 
-- [ ] `insertFinancingSchema.parse({ amortizationSystem: 'INVALID' })` throws.
-- [ ] `POST /financing` called twice with same `house_id` updates, not duplicates.
-- [ ] `GET /financing/:house_id` with unknown id returns `404`.
-- [ ] Migration generates with no errors.
+- [x] `insertFinancingSchema.parse({ amortizationSystem: 'INVALID' })` throws.
+- [x] `POST /financing` called twice with same `house_id` updates, not duplicates.
+- [x] `GET /financing/:house_id` with unknown id returns `404`.
+- [x] Migration generates with no errors.
 
 ---
 

@@ -1,4 +1,4 @@
-import { numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { integer, numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -65,3 +65,90 @@ export const insertRoomSchema = createInsertSchema(rooms, {
 );
 
 export type Room = z.infer<typeof selectRoomSchema>;
+
+export const financing = pgTable("financing", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  houseId: uuid("house_id")
+    .notNull()
+    .references(() => houses.id, { onDelete: "cascade" })
+    .unique(),
+  propertyValue: numeric("property_value").notNull(),
+  downPayment: numeric("down_payment").notNull(),
+  termMonths: integer("term_months").notNull(),
+  interestRate: numeric("interest_rate").notNull(),
+  amortizationSystem: text("amortization_system").notNull(),
+  firstParcelOverride: numeric("first_parcel_override"),
+  lastParcelOverride: numeric("last_parcel_override"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const selectFinancingSchema = createSelectSchema(financing, {
+  amortizationSystem: z.enum(["SAC", "PRICE"]),
+});
+
+export const insertFinancingSchema = createInsertSchema(financing, {
+  houseId: z.string().uuid(),
+  propertyValue: z
+    .preprocess((val: unknown): number => {
+      return Number(val);
+    }, z.number())
+    .refine(
+      (val: number): boolean => {
+        return val > 0;
+      },
+      {
+        message: "Property value must be greater than 0",
+      },
+    ),
+  downPayment: z
+    .preprocess((val: unknown): number => {
+      return Number(val);
+    }, z.number())
+    .refine(
+      (val: number): boolean => {
+        return val >= 0;
+      },
+      {
+        message: "Down payment must be greater than or equal to 0",
+      },
+    ),
+  termMonths: z
+    .preprocess((val: unknown): number => {
+      return Number(val);
+    }, z.number())
+    .refine(
+      (val: number): boolean => {
+        return Number.isInteger(val) && val >= 1 && val <= 360;
+      },
+      {
+        message: "Term months must be an integer between 1 and 360",
+      },
+    ),
+  interestRate: z.preprocess((val: unknown): number => {
+    return Number(val);
+  }, z.number()),
+  amortizationSystem: z.enum(["SAC", "PRICE"]),
+  firstParcelOverride: z
+    .preprocess((val: unknown): number | undefined => {
+      if (val === null || val === undefined || val === "") return undefined;
+      return Number(val);
+    }, z.number())
+    .optional(),
+  lastParcelOverride: z
+    .preprocess((val: unknown): number | undefined => {
+      if (val === null || val === undefined || val === "") return undefined;
+      return Number(val);
+    }, z.number())
+    .optional(),
+}).refine(
+  (data): boolean => {
+    return data.downPayment < data.propertyValue;
+  },
+  {
+    message: "Down payment must be less than property value",
+    path: ["downPayment"],
+  },
+);
+
+export type Financing = z.infer<typeof selectFinancingSchema>;
+export type InsertFinancing = z.infer<typeof insertFinancingSchema>;

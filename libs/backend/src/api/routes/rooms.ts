@@ -16,6 +16,7 @@ const router = new OpenAPIHono({
         400,
       );
     }
+    return undefined;
   },
 });
 
