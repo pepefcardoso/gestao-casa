@@ -90,7 +90,7 @@
 
 | Field            | Value                                                |
 | ---------------- | ---------------------------------------------------- |
-| **Status**       | `TODO`                                               |
+| **Status**       | `DONE`                                               |
 | **Platform**     | Shared (`libs/shared-logic`)                         |
 | **Target file**  | `libs/shared-logic/src/utils/calculate-financing.ts` |
 | **Dependencies** | Task 1.1 `DONE` (for type reference)                 |
@@ -104,12 +104,12 @@
 
 **Acceptance criteria:**
 
-- [ ] `calculateFinancing({ ..., amortizationSystem: 'SAC', termMonths: 360 })` returns array of length 360.
-- [ ] SAC: `installments[0].amortization === installments[359].amortization` (constant amortization).
-- [ ] PRICE: `installments[0].installment === installments[359].installment` (constant installment).
-- [ ] With `firstParcelOverride = X`: `result[0].installment === X`.
-- [ ] With `lastParcelOverride = Y`: `result[359].installment === Y`.
-- [ ] Function has explicit return type — no implicit `any`.
+- [x] `calculateFinancing({ ..., amortizationSystem: 'SAC', termMonths: 360 })` returns array of length 360.
+- [x] SAC: `installments[0].amortization === installments[359].amortization` (constant amortization).
+- [x] PRICE: `installments[0].installment === installments[359].installment` (constant installment).
+- [x] With `firstParcelOverride = X`: `result[0].installment === X`.
+- [x] With `lastParcelOverride = Y`: `result[359].installment === Y`.
+- [x] Function has explicit return type — no implicit `any`.
 
 ---
 
