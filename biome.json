@@ -35,6 +35,6 @@
     "globals": ["React"]
   },
   "files": {
-    "includes": ["**", "!**/node_modules", "!**/dist", "!**/.nx", "!**/*.generated.ts"]
+    "includes": ["**", "!**/node_modules", "!**/dist", "!**/.nx", "!**/*.generated.ts", "!**/*.css", "!**/.next"]
   }
 }

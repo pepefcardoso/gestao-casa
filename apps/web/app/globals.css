@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --color-mint-slate-100: #f0f4f4;
+  --color-mint-slate-400: #8fa3a3;
+  --color-mint-slate-900: #0e1717;
+}
+
+@layer base {
+  body {
+    @apply antialiased min-h-screen bg-mint-slate-100 text-mint-slate-900;
+  }
+}

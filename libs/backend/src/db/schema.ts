@@ -17,7 +17,7 @@ export const insertHouseSchema = createInsertSchema(houses, {
     .preprocess((val: unknown): number | undefined => {
       if (val === null || val === undefined || val === "") return undefined;
       return Number(val);
-    }, z.number())
+    }, z.number().optional())
     .optional(),
 }).refine(
   (data): boolean => {
@@ -51,7 +51,7 @@ export const insertRoomSchema = createInsertSchema(rooms, {
     .preprocess((val: unknown): number | undefined => {
       if (val === null || val === undefined || val === "") return undefined;
       return Number(val);
-    }, z.number())
+    }, z.number().optional())
     .optional(),
 }).refine(
   (data): boolean => {
@@ -132,13 +132,13 @@ export const insertFinancingSchema = createInsertSchema(financing, {
     .preprocess((val: unknown): number | undefined => {
       if (val === null || val === undefined || val === "") return undefined;
       return Number(val);
-    }, z.number())
+    }, z.number().optional())
     .optional(),
   lastParcelOverride: z
     .preprocess((val: unknown): number | undefined => {
       if (val === null || val === undefined || val === "") return undefined;
       return Number(val);
-    }, z.number())
+    }, z.number().optional())
     .optional(),
 }).refine(
   (data): boolean => {

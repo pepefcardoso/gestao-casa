@@ -158,10 +158,10 @@
 
 **Acceptance criteria:**
 
-- [ ] Changing any input updates the table and chart without page reload.
-- [ ] Row 1 and row 360 values match override inputs when set.
-- [ ] `npx nx lint web` passes with zero errors.
-- [ ] No `react-native` imports anywhere in the file.
+- [x] Changing any input updates the table and chart without page reload.
+- [x] Row 1 and row 360 values match override inputs when set.
+- [x] `npx nx lint web` passes with zero errors.
+- [x] No `react-native` imports anywhere in the file.
 
 ---
 
