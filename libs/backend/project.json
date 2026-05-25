@@ -1,0 +1,11 @@
+{
+  "name": "backend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/backend",
+  "targets": {
+    "lint": {
+      "command": "biome lint libs/backend"
+    }
+  }
+}

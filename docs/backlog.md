@@ -353,7 +353,7 @@
 
 | Field            | Value                                                                                                        |
 | ---------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Status**       | `TODO`                                                                                                       |
+| **Status**       | `DONE`                                                                                                       |
 | **Platform**     | Backend                                                                                                      |
 | **Target file**  | `libs/backend/src/api/routes/houses.ts` · `libs/backend/src/api/routes/rooms.ts` · `apps/web/app/api/[[...route]]/route.ts` |
 | **Dependencies** | Task 1.2 `DONE`                                                                                              |
@@ -370,11 +370,11 @@
 
 **Acceptance criteria:**
 
-- [ ] `GET /api/houses/:id` returns house JSON on success, `404` for non-existent IDs, and `400` on invalid UUID format.
-- [ ] `PUT /api/houses/:id` updates house details and returns the updated house object. Fails with `400` if validation checks fail (e.g., negative area).
-- [ ] `PUT /api/rooms/:id` updates room fields and returns the updated room object. Fails with `400` if room area ≤ 0.
-- [ ] `DELETE /api/rooms/:id` removes the room and unlinks it from any associated expenses (`room_id` becomes `null` on those expenses).
-- [ ] `npx nx lint backend` passes with zero errors.
+- [x] `GET /api/houses/:id` returns house JSON on success, `404` for non-existent IDs, and `400` on invalid UUID format.
+- [x] `PUT /api/houses/:id` updates house details and returns the updated house object. Fails with `400` if validation checks fail (e.g., negative area).
+- [x] `PUT /api/rooms/:id` updates room fields and returns the updated room object. Fails with `400` if room area ≤ 0.
+- [x] `DELETE /api/rooms/:id` removes the room and unlinks it from any associated expenses (`room_id` becomes `null` on those expenses).
+- [x] `npx nx lint backend` passes with zero errors.
 
 ---
 

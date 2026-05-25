@@ -4,13 +4,15 @@ import { roomsRouter } from "../../../../../libs/backend/src/api/routes/rooms";
 import { financingRouter } from "../../../../../libs/backend/src/api/routes/financing";
 import { expensesRouter } from "../../../../../libs/backend/src/api/routes/expenses";
 import { healthRouter } from "../../../../../libs/backend/src/api/routes/health";
+import { housesRouter } from "../../../../../libs/backend/src/api/routes/houses";
 
-const app = new OpenAPIHono().basePath("/api");
+export const app = new OpenAPIHono().basePath("/api");
 
 app.route("/", roomsRouter);
 app.route("/", financingRouter);
 app.route("/", expensesRouter);
 app.route("/", healthRouter);
+app.route("/", housesRouter);
 
 app.doc("/doc", {
   openapi: "3.0.0",

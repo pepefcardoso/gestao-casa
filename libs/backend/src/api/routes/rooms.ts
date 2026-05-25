@@ -198,4 +198,179 @@ router.openapi(
   },
 );
 
+const putRoomRoute = createRoute({
+  method: "put",
+  path: "/rooms/{id}",
+  request: {
+    params: z.object({
+      id: z.string().uuid(),
+    }),
+    body: {
+      content: {
+        "application/json": {
+          schema: insertRoomSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: selectRoomSchema,
+        },
+      },
+      description: "Room updated successfully",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Invalid input payload or ID parameter",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Room not found",
+    },
+  },
+});
+
+const deleteRoomRoute = createRoute({
+  method: "delete",
+  path: "/rooms/{id}",
+  request: {
+    params: z.object({
+      id: z.string().uuid(),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.boolean(),
+          }),
+        },
+      },
+      description: "Room deleted successfully",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Invalid ID parameter",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Room not found",
+    },
+  },
+});
+
+router.openapi(
+  putRoomRoute,
+  async (
+    c,
+  ): Promise<
+    Response &
+      (
+        | TypedResponse<
+            {
+              id: string;
+              houseId: string;
+              name: string;
+              area: string | null;
+              colorCode: string | null;
+              createdAt: string;
+            },
+            200,
+            "json"
+          >
+        | TypedResponse<{ error: string }, 400, "json">
+        | TypedResponse<{ error: string }, 404, "json">
+      )
+  > => {
+    try {
+      const { id } = c.req.valid("param");
+      const payload = c.req.valid("json");
+
+      const [updatedRoom] = await db
+        .update(rooms)
+        .set({
+          name: payload.name,
+          area: payload.area !== undefined && payload.area !== null ? String(payload.area) : null,
+          colorCode: payload.colorCode ?? null,
+        })
+        .where(eq(rooms.id, id))
+        .returning();
+
+      if (!updatedRoom) {
+        return c.json({ error: "Room not found" }, 404);
+      }
+
+      const responseRoom = {
+        ...updatedRoom,
+        createdAt: updatedRoom.createdAt.toISOString(),
+      };
+
+      return c.json(responseRoom, 200);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Database error";
+      return c.json({ error: message }, 400);
+    }
+  },
+);
+
+router.openapi(
+  deleteRoomRoute,
+  async (
+    c,
+  ): Promise<
+    Response &
+      (
+        | TypedResponse<{ success: boolean }, 200, "json">
+        | TypedResponse<{ error: string }, 400, "json">
+        | TypedResponse<{ error: string }, 404, "json">
+      )
+  > => {
+    try {
+      const { id } = c.req.valid("param");
+
+      const [deletedRoom] = await db
+        .delete(rooms)
+        .where(eq(rooms.id, id))
+        .returning();
+
+      if (!deletedRoom) {
+        return c.json({ error: "Room not found" }, 404);
+      }
+
+      return c.json({ success: true }, 200);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Database error";
+      return c.json({ error: message }, 400);
+    }
+  },
+);
+
 export { router as roomsRouter };
