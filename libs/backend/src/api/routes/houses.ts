@@ -190,6 +190,14 @@ router.openapi(
             payload.totalArea !== undefined && payload.totalArea !== null
               ? String(payload.totalArea)
               : null,
+          latitude:
+            payload.latitude !== undefined && payload.latitude !== null
+              ? String(payload.latitude)
+              : null,
+          longitude:
+            payload.longitude !== undefined && payload.longitude !== null
+              ? String(payload.longitude)
+              : null,
         })
         .where(eq(houses.id, id))
         .returning();

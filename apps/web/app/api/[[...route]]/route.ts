@@ -5,6 +5,7 @@ import { financingRouter } from "../../../../../libs/backend/src/api/routes/fina
 import { expensesRouter } from "../../../../../libs/backend/src/api/routes/expenses";
 import { healthRouter } from "../../../../../libs/backend/src/api/routes/health";
 import { housesRouter } from "../../../../../libs/backend/src/api/routes/houses";
+import { incomesRouter } from "../../../../../libs/backend/src/api/routes/incomes";
 
 const app = new OpenAPIHono().basePath("/api");
 
@@ -13,6 +14,7 @@ app.route("/", financingRouter);
 app.route("/", expensesRouter);
 app.route("/", healthRouter);
 app.route("/", housesRouter);
+app.route("/", incomesRouter);
 
 app.doc("/doc", {
   openapi: "3.0.0",

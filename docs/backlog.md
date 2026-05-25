@@ -535,7 +535,7 @@
 
 | Field            | Value                                                                                         |
 | ---------------- | --------------------------------------------------------------------------------------------- |
-| **Status**       | `TODO`                                                                                        |
+| **Status**       | `DONE`                                                                                        |
 | **Platform**     | Backend                                                                                       |
 | **Target file**  | `libs/backend/src/api/routes/incomes.ts` · `libs/backend/src/api/routes/houses.ts` · `apps/web/app/api/[[...route]]/route.ts` |
 | **Dependencies** | Task 7.1 `DONE`                                                                               |
@@ -552,11 +552,11 @@
 
 **Acceptance criteria:**
 
-- [ ] `GET /api/incomes` returns all incomes.
-- [ ] `POST /api/incomes` with valid payload returns `201` and the newly created record.
-- [ ] `PUT /api/houses/:id` successfully saves custom latitude/longitude coordinates to the DB.
-- [ ] `GET /api/doc` includes all new incomes endpoints with correct schemas.
-- [ ] `npx nx lint backend` passes with zero errors.
+- [x] `GET /api/incomes` returns all incomes.
+- [x] `POST /api/incomes` with valid payload returns `201` and the newly created record.
+- [x] `PUT /api/houses/:id` successfully saves custom latitude/longitude coordinates to the DB.
+- [x] `GET /api/doc` includes all new incomes endpoints with correct schemas.
+- [x] `npx nx lint backend` passes with zero errors.
 
 ---
 
