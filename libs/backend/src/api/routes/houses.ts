@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import type { TypedResponse } from "hono";
 import { z } from "zod";
 import { db } from "../../db";
-import { insertHouseSchema, houses, selectHouseSchema } from "../../db/schema";
+import { houses, insertHouseSchema, selectHouseSchema, uuidSchema } from "../../db/schema";
 
 const router = new OpenAPIHono({
   defaultHook: (result, c): Response | undefined => {
@@ -25,7 +25,7 @@ const getHouseRoute = createRoute({
   path: "/houses/{id}",
   request: {
     params: z.object({
-      id: z.string().uuid(),
+      id: uuidSchema,
     }),
   },
   responses: {
@@ -65,7 +65,7 @@ const putHouseRoute = createRoute({
   path: "/houses/{id}",
   request: {
     params: z.object({
-      id: z.string().uuid(),
+      id: uuidSchema,
     }),
     body: {
       content: {
@@ -132,10 +132,7 @@ router.openapi(
     try {
       const { id } = c.req.valid("param");
 
-      const [house] = await db
-        .select()
-        .from(houses)
-        .where(eq(houses.id, id));
+      const [house] = await db.select().from(houses).where(eq(houses.id, id));
 
       if (!house) {
         return c.json({ error: "House not found" }, 404);

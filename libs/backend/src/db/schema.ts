@@ -2,6 +2,12 @@ import { integer, numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const uuidSchema = z
+  .string()
+  .regex(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, {
+    message: "Invalid UUID",
+  });
+
 export const houses = pgTable("houses", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
@@ -46,7 +52,7 @@ export const rooms = pgTable("rooms", {
 export const selectRoomSchema = createSelectSchema(rooms);
 
 export const insertRoomSchema = createInsertSchema(rooms, {
-  houseId: z.string().uuid().optional(),
+  houseId: uuidSchema.optional(),
   area: z
     .preprocess((val: unknown): number | undefined => {
       if (val === null || val === undefined || val === "") return undefined;
@@ -87,7 +93,7 @@ export const selectFinancingSchema = createSelectSchema(financing, {
 });
 
 export const insertFinancingSchema = createInsertSchema(financing, {
-  houseId: z.string().uuid(),
+  houseId: uuidSchema,
   propertyValue: z
     .preprocess((val: unknown): number => {
       return Number(val);
@@ -173,7 +179,7 @@ export const selectExpenseSchema = createSelectSchema(expenses, {
 });
 
 export const insertExpenseSchema = createInsertSchema(expenses, {
-  roomId: z.string().uuid().nullable().optional(),
+  roomId: uuidSchema.nullable().optional(),
   totalAmount: z
     .preprocess((val: unknown): number => {
       return Number(val);

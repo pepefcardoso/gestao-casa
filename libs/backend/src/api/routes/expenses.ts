@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import type { TypedResponse } from "hono";
 import { z } from "zod";
 import { db } from "../../db";
-import { expenses, insertExpenseSchema, selectExpenseSchema } from "../../db/schema";
+import { expenses, insertExpenseSchema, selectExpenseSchema, uuidSchema } from "../../db/schema";
 
 const router = new OpenAPIHono({
   defaultHook: (result, c): Response | undefined => {
@@ -59,7 +59,7 @@ const getExpensesRoute = createRoute({
   path: "/expenses",
   request: {
     query: z.object({
-      room_id: z.string().uuid().optional(),
+      room_id: uuidSchema.optional(),
     }),
   },
   responses: {
@@ -134,7 +134,13 @@ router.openapi(
       const responseExpense = {
         ...newExpense,
         status: newExpense.status as "BUDGET" | "CONFIRMED",
-        category: newExpense.category as "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION",
+        category: newExpense.category as
+          | "TAX"
+          | "PRODUCT"
+          | "SERVICE"
+          | "FURNITURE"
+          | "APPLIANCE"
+          | "RENOVATION",
         priority: newExpense.priority as "HIGH" | "MEDIUM" | "LOW",
         dueDate: newExpense.dueDate.toISOString(),
         createdAt: newExpense.createdAt.toISOString(),
@@ -182,7 +188,13 @@ router.openapi(
         const serialized = allExpenses.map((expense) => ({
           ...expense,
           status: expense.status as "BUDGET" | "CONFIRMED",
-          category: expense.category as "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION",
+          category: expense.category as
+            | "TAX"
+            | "PRODUCT"
+            | "SERVICE"
+            | "FURNITURE"
+            | "APPLIANCE"
+            | "RENOVATION",
           priority: expense.priority as "HIGH" | "MEDIUM" | "LOW",
           dueDate: expense.dueDate.toISOString(),
           createdAt: expense.createdAt.toISOString(),
@@ -194,7 +206,13 @@ router.openapi(
       const serialized = filtered.map((expense) => ({
         ...expense,
         status: expense.status as "BUDGET" | "CONFIRMED",
-        category: expense.category as "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION",
+        category: expense.category as
+          | "TAX"
+          | "PRODUCT"
+          | "SERVICE"
+          | "FURNITURE"
+          | "APPLIANCE"
+          | "RENOVATION",
         priority: expense.priority as "HIGH" | "MEDIUM" | "LOW",
         dueDate: expense.dueDate.toISOString(),
         createdAt: expense.createdAt.toISOString(),
@@ -212,7 +230,7 @@ const putExpenseRoute = createRoute({
   path: "/expenses/{id}",
   request: {
     params: z.object({
-      id: z.string().uuid(),
+      id: uuidSchema,
     }),
     body: {
       content: {
@@ -259,7 +277,7 @@ const deleteExpenseRoute = createRoute({
   path: "/expenses/{id}",
   request: {
     params: z.object({
-      id: z.string().uuid(),
+      id: uuidSchema,
     }),
   },
   responses: {
@@ -349,7 +367,13 @@ router.openapi(
       const responseExpense = {
         ...updatedExpense,
         status: updatedExpense.status as "BUDGET" | "CONFIRMED",
-        category: updatedExpense.category as "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION",
+        category: updatedExpense.category as
+          | "TAX"
+          | "PRODUCT"
+          | "SERVICE"
+          | "FURNITURE"
+          | "APPLIANCE"
+          | "RENOVATION",
         priority: updatedExpense.priority as "HIGH" | "MEDIUM" | "LOW",
         dueDate: updatedExpense.dueDate.toISOString(),
         createdAt: updatedExpense.createdAt.toISOString(),
@@ -378,10 +402,7 @@ router.openapi(
     try {
       const { id } = c.req.valid("param");
 
-      const [deletedExpense] = await db
-        .delete(expenses)
-        .where(eq(expenses.id, id))
-        .returning();
+      const [deletedExpense] = await db.delete(expenses).where(eq(expenses.id, id)).returning();
 
       if (!deletedExpense) {
         return c.json({ error: "Expense not found" }, 404);
@@ -396,4 +417,3 @@ router.openapi(
 );
 
 export { router as expensesRouter };
-

@@ -3,7 +3,13 @@ import { eq } from "drizzle-orm";
 import type { TypedResponse } from "hono";
 import { z } from "zod";
 import { db } from "../../db";
-import { financing, insertFinancingSchema, selectFinancingSchema, houses } from "../../db/schema";
+import {
+  financing,
+  houses,
+  insertFinancingSchema,
+  selectFinancingSchema,
+  uuidSchema,
+} from "../../db/schema";
 
 const router = new OpenAPIHono({
   defaultHook: (result, c): Response | undefined => {
@@ -153,7 +159,7 @@ const getFinancingRoute = createRoute({
   path: "/financing/{house_id}",
   request: {
     params: z.object({
-      house_id: z.string().uuid(),
+      house_id: uuidSchema,
     }),
   },
   responses: {

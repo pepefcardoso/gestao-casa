@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import type { TypedResponse } from "hono";
 import { z } from "zod";
 import { db } from "../../db";
-import { insertRoomSchema, rooms, selectRoomSchema, houses } from "../../db/schema";
+import { houses, insertRoomSchema, rooms, selectRoomSchema, uuidSchema } from "../../db/schema";
 
 const router = new OpenAPIHono({
   defaultHook: (result, c): Response | undefined => {
@@ -126,7 +126,7 @@ const getRoomsRoute = createRoute({
   path: "/rooms",
   request: {
     query: z.object({
-      house_id: z.string().uuid().optional(),
+      house_id: uuidSchema.optional(),
     }),
   },
   responses: {
@@ -203,7 +203,7 @@ const getRoomRoute = createRoute({
   path: "/rooms/{id}",
   request: {
     params: z.object({
-      id: z.string().uuid(),
+      id: uuidSchema,
     }),
   },
   responses: {
@@ -264,10 +264,7 @@ router.openapi(
     try {
       const { id } = c.req.valid("param");
 
-      const [room] = await db
-        .select()
-        .from(rooms)
-        .where(eq(rooms.id, id));
+      const [room] = await db.select().from(rooms).where(eq(rooms.id, id));
 
       if (!room) {
         return c.json({ error: "Room not found" }, 404);
@@ -291,7 +288,7 @@ const putRoomRoute = createRoute({
   path: "/rooms/{id}",
   request: {
     params: z.object({
-      id: z.string().uuid(),
+      id: uuidSchema,
     }),
     body: {
       content: {
@@ -338,7 +335,7 @@ const deleteRoomRoute = createRoute({
   path: "/rooms/{id}",
   request: {
     params: z.object({
-      id: z.string().uuid(),
+      id: uuidSchema,
     }),
   },
   responses: {
@@ -444,10 +441,7 @@ router.openapi(
     try {
       const { id } = c.req.valid("param");
 
-      const [deletedRoom] = await db
-        .delete(rooms)
-        .where(eq(rooms.id, id))
-        .returning();
+      const [deletedRoom] = await db.delete(rooms).where(eq(rooms.id, id)).returning();
 
       if (!deletedRoom) {
         return c.json({ error: "Room not found" }, 404);
