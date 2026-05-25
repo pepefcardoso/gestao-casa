@@ -502,7 +502,7 @@
 
 | Field            | Value                           |
 | ---------------- | ------------------------------- |
-| **Status**       | `TODO`                          |
+| **Status**       | `DONE`                          |
 | **Platform**     | Backend                         |
 | **Target file**  | `libs/backend/src/db/schema.ts` |
 | **Dependencies** | Sprint 3 & Sprint 5 `DONE`      |
@@ -524,10 +524,10 @@
 
 **Acceptance criteria:**
 
-- [ ] `npx drizzle-kit generate` produces a valid migration with no errors.
-- [ ] `insertIncomeSchema.parse({ amount: -5 })` throws Zod validation error.
-- [ ] `insertHouseSchema.parse({ latitude: 120 })` throws Zod validation error.
-- [ ] All schema exports are fully typed with no implicit `any`.
+- [x] `npx drizzle-kit generate` produces a valid migration with no errors.
+- [x] `insertIncomeSchema.parse({ amount: -5 })` throws Zod validation error.
+- [x] `insertHouseSchema.parse({ latitude: 120 })` throws Zod validation error.
+- [x] All schema exports are fully typed with no implicit `any`.
 
 ---
 

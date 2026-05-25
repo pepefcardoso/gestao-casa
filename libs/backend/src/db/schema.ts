@@ -13,6 +13,8 @@ export const houses = pgTable("houses", {
   name: text("name").notNull(),
   location: text("location"),
   totalArea: numeric("total_area"),
+  latitude: numeric("latitude"),
+  longitude: numeric("longitude"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -25,16 +27,49 @@ export const insertHouseSchema = createInsertSchema(houses, {
       return Number(val);
     }, z.number().optional())
     .optional(),
-}).refine(
-  (data): boolean => {
-    if (data.totalArea === undefined || data.totalArea === null) return true;
-    return data.totalArea > 0;
-  },
-  {
-    message: "Total area must be greater than 0",
-    path: ["totalArea"],
-  },
-);
+  latitude: z
+    .preprocess((val: unknown): number | undefined => {
+      if (val === null || val === undefined || val === "") return undefined;
+      return Number(val);
+    }, z.number().optional())
+    .optional(),
+  longitude: z
+    .preprocess((val: unknown): number | undefined => {
+      if (val === null || val === undefined || val === "") return undefined;
+      return Number(val);
+    }, z.number().optional())
+    .optional(),
+})
+  .refine(
+    (data): boolean => {
+      if (data.totalArea === undefined || data.totalArea === null) return true;
+      return data.totalArea > 0;
+    },
+    {
+      message: "Total area must be greater than 0",
+      path: ["totalArea"],
+    },
+  )
+  .refine(
+    (data): boolean => {
+      if (data.latitude === undefined || data.latitude === null) return true;
+      return data.latitude >= -90 && data.latitude <= 90;
+    },
+    {
+      message: "Latitude must be between -90 and 90",
+      path: ["latitude"],
+    },
+  )
+  .refine(
+    (data): boolean => {
+      if (data.longitude === undefined || data.longitude === null) return true;
+      return data.longitude >= -180 && data.longitude <= 180;
+    },
+    {
+      message: "Longitude must be between -180 and 180",
+      path: ["longitude"],
+    },
+  );
 
 export type House = z.infer<typeof selectHouseSchema>;
 
@@ -216,3 +251,42 @@ export const insertExpenseSchema = createInsertSchema(expenses, {
 
 export type Expense = z.infer<typeof selectExpenseSchema>;
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+
+export const incomes = pgTable("incomes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  description: text("description").notNull(),
+  amount: numeric("amount").notNull(),
+  status: text("status").notNull(),
+  category: text("category").notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const selectIncomeSchema = createSelectSchema(incomes, {
+  status: z.enum(["BUDGET", "CONFIRMED"]),
+  category: z.enum(["SALARY", "INVESTMENT", "REFUND", "OTHER"]),
+});
+
+export const insertIncomeSchema = createInsertSchema(incomes, {
+  amount: z.preprocess((val: unknown): number => {
+    return Number(val);
+  }, z.number()),
+  status: z.enum(["BUDGET", "CONFIRMED"]),
+  category: z.enum(["SALARY", "INVESTMENT", "REFUND", "OTHER"]),
+  dueDate: z.preprocess((val: unknown): Date => {
+    if (val instanceof Date) return val;
+    if (typeof val === "string") return new Date(val);
+    return new Date(NaN);
+  }, z.date()),
+}).refine(
+  (data): boolean => {
+    return data.amount > 0;
+  },
+  {
+    message: "Amount must be greater than 0",
+    path: ["amount"],
+  },
+);
+
+export type Income = z.infer<typeof selectIncomeSchema>;
+export type InsertIncome = z.infer<typeof insertIncomeSchema>;

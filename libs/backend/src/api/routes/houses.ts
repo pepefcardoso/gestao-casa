@@ -120,6 +120,8 @@ router.openapi(
               name: string;
               location: string | null;
               totalArea: string | null;
+              latitude: string | null;
+              longitude: string | null;
               createdAt: string;
             },
             200,
@@ -164,6 +166,8 @@ router.openapi(
               name: string;
               location: string | null;
               totalArea: string | null;
+              latitude: string | null;
+              longitude: string | null;
               createdAt: string;
             },
             200,
