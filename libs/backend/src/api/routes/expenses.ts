@@ -207,4 +207,193 @@ router.openapi(
   },
 );
 
+const putExpenseRoute = createRoute({
+  method: "put",
+  path: "/expenses/{id}",
+  request: {
+    params: z.object({
+      id: z.string().uuid(),
+    }),
+    body: {
+      content: {
+        "application/json": {
+          schema: insertExpenseSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: selectExpenseSchema,
+        },
+      },
+      description: "Expense updated successfully",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Invalid input payload",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Expense not found",
+    },
+  },
+});
+
+const deleteExpenseRoute = createRoute({
+  method: "delete",
+  path: "/expenses/{id}",
+  request: {
+    params: z.object({
+      id: z.string().uuid(),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.boolean(),
+          }),
+        },
+      },
+      description: "Expense deleted successfully",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Invalid ID parameter",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Expense not found",
+    },
+  },
+});
+
+router.openapi(
+  putExpenseRoute,
+  async (
+    c,
+  ): Promise<
+    Response &
+      (
+        | TypedResponse<
+            {
+              id: string;
+              roomId: string | null;
+              description: string;
+              totalAmount: string;
+              installmentsCount: number;
+              status: "BUDGET" | "CONFIRMED";
+              category: "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION";
+              priority: "HIGH" | "MEDIUM" | "LOW";
+              dueDate: string;
+              createdAt: string;
+            },
+            200,
+            "json"
+          >
+        | TypedResponse<{ error: string }, 400, "json">
+        | TypedResponse<{ error: string }, 404, "json">
+      )
+  > => {
+    try {
+      const { id } = c.req.valid("param");
+      const payload = c.req.valid("json");
+
+      const [updatedExpense] = await db
+        .update(expenses)
+        .set({
+          roomId: payload.roomId ?? null,
+          description: payload.description,
+          totalAmount: String(payload.totalAmount),
+          installmentsCount: payload.installmentsCount,
+          status: payload.status,
+          category: payload.category,
+          priority: payload.priority,
+          dueDate: payload.dueDate,
+        })
+        .where(eq(expenses.id, id))
+        .returning();
+
+      if (!updatedExpense) {
+        return c.json({ error: "Expense not found" }, 404);
+      }
+
+      const responseExpense = {
+        ...updatedExpense,
+        status: updatedExpense.status as "BUDGET" | "CONFIRMED",
+        category: updatedExpense.category as "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION",
+        priority: updatedExpense.priority as "HIGH" | "MEDIUM" | "LOW",
+        dueDate: updatedExpense.dueDate.toISOString(),
+        createdAt: updatedExpense.createdAt.toISOString(),
+      };
+
+      return c.json(responseExpense, 200);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Database error";
+      return c.json({ error: message }, 400);
+    }
+  },
+);
+
+router.openapi(
+  deleteExpenseRoute,
+  async (
+    c,
+  ): Promise<
+    Response &
+      (
+        | TypedResponse<{ success: boolean }, 200, "json">
+        | TypedResponse<{ error: string }, 400, "json">
+        | TypedResponse<{ error: string }, 404, "json">
+      )
+  > => {
+    try {
+      const { id } = c.req.valid("param");
+
+      const [deletedExpense] = await db
+        .delete(expenses)
+        .where(eq(expenses.id, id))
+        .returning();
+
+      if (!deletedExpense) {
+        return c.json({ error: "Expense not found" }, 404);
+      }
+
+      return c.json({ success: true }, 200);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Database error";
+      return c.json({ error: message }, 400);
+    }
+  },
+);
+
 export { router as expensesRouter };
+
