@@ -564,7 +564,7 @@
 
 | Field            | Value                              |
 | ---------------- | ---------------------------------- |
-| **Status**       | `TODO`                             |
+| **Status**       | `DONE`                             |
 | **Platform**     | Web (`apps/web`)                   |
 | **Target file**  | `apps/web/app/incomes/page.tsx`    |
 | **Dependencies** | Task 7.2 `DONE`                    |
@@ -580,10 +580,10 @@
 
 **Acceptance criteria:**
 
-- [ ] `/incomes` lists all incomes correctly.
-- [ ] Creating, editing, and deleting an income performs the API request and updates the UI without full page reload.
-- [ ] Navigation menu on all pages now contains a link to `/incomes`.
-- [ ] `npx nx lint web` passes with zero errors.
+- [x] `/incomes` lists all incomes correctly.
+- [x] Creating, editing, and deleting an income performs the API request and updates the UI without full page reload.
+- [x] Navigation menu on all pages now contains a link to `/incomes`.
+- [x] `npx nx lint web` passes with zero errors.
 
 ---
 
