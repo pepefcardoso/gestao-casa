@@ -17,8 +17,16 @@ import {
   X,
   Calculator,
   PiggyBank,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { projectInstallments } from "../../../../libs/shared-logic/src/utils/project-installments";
+import {
+  type FinancingInstallment,
+  calculateFinancing,
+} from "../../../../libs/shared-logic/src/utils/calculate-financing";
+
+const FALLBACK_HOUSE_ID = "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
 
 interface Expense {
   id: string;
@@ -30,6 +38,29 @@ interface Expense {
   category: "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION";
   priority: "HIGH" | "MEDIUM" | "LOW";
   dueDate: string;
+  createdAt: string;
+}
+
+interface Income {
+  id: string;
+  description: string;
+  amount: string;
+  status: "BUDGET" | "CONFIRMED";
+  category: "SALARY" | "INVESTMENT" | "REFUND" | "OTHER";
+  dueDate: string;
+  createdAt: string;
+}
+
+interface FinancingRecord {
+  id: string;
+  houseId: string;
+  propertyValue: string;
+  downPayment: string;
+  termMonths: number;
+  interestRate: string;
+  amortizationSystem: "SAC" | "PRICE";
+  firstParcelOverride: string | null;
+  lastParcelOverride: string | null;
   createdAt: string;
 }
 
@@ -48,6 +79,13 @@ const CATEGORY_MAP: Record<string, string> = {
   RENOVATION: "Reforma",
 };
 
+const INCOME_CATEGORY_MAP: Record<string, string> = {
+  SALARY: "Salário",
+  INVESTMENT: "Investimento",
+  REFUND: "Reembolso",
+  OTHER: "Outros",
+};
+
 const PRIORITY_MAP: Record<string, { label: string; textClass: string; bgClass: string }> = {
   HIGH: { label: "Alta", textClass: "text-orange-700", bgClass: "bg-orange-50 border-orange-200" },
   MEDIUM: { label: "Média", textClass: "text-blue-700", bgClass: "bg-blue-50 border-blue-200" },
@@ -59,10 +97,13 @@ function ExpensesListContent(): React.JSX.Element {
   const monthParam = searchParams.get("month"); // "YYYY-MM"
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [incomes, setIncomes] = useState<Income[]>([]);
+  const [financingRecord, setFinancingRecord] = useState<FinancingRecord | null>(null);
   const [rooms, setRooms] = useState<RoomOption[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLoadingRooms, setIsLoadingRooms] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"EXPENSES" | "INCOMES">("EXPENSES");
 
   // Modal and Deletion State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -117,10 +158,38 @@ function ExpensesListContent(): React.JSX.Element {
     }
   }, []);
 
+  const fetchIncomes = useCallback(async (): Promise<void> => {
+    try {
+      const res = await fetch("/api/incomes");
+      if (res.ok) {
+        const data: unknown = await res.json();
+        setIncomes(data as Income[]);
+      }
+    } catch (err) {
+      console.error("Erro de rede ao buscar receitas.", err);
+    }
+  }, []);
+
+  const fetchFinancing = useCallback(async (): Promise<void> => {
+    try {
+      const res = await fetch(`/api/financing/${FALLBACK_HOUSE_ID}`);
+      if (res.ok) {
+        const data: unknown = await res.json();
+        setFinancingRecord(data as FinancingRecord);
+      } else {
+        setFinancingRecord(null);
+      }
+    } catch (err) {
+      console.error("Erro de rede ao buscar financiamento.", err);
+    }
+  }, []);
+
   useEffect((): void => {
     fetchExpenses();
     fetchRooms();
-  }, [fetchExpenses, fetchRooms]);
+    fetchIncomes();
+    fetchFinancing();
+  }, [fetchExpenses, fetchRooms, fetchIncomes, fetchFinancing]);
 
   // Filter expenses matching the target month parameter
   const filteredExpenses = useMemo((): Expense[] => {
@@ -128,7 +197,85 @@ function ExpensesListContent(): React.JSX.Element {
     return expenses.filter((exp): boolean => exp.dueDate.substring(0, 7) === monthParam);
   }, [expenses, monthParam]);
 
-  // Calculate quick stats
+  // Filter incomes matching the target month parameter
+  const filteredIncomes = useMemo((): Income[] => {
+    if (!monthParam) return incomes;
+    return incomes.filter((inc): boolean => inc.dueDate.substring(0, 7) === monthParam);
+  }, [incomes, monthParam]);
+
+  // Calculate financing schedule if financing record exists
+  const financingInstallments = useMemo((): FinancingInstallment[] => {
+    if (!financingRecord) return [];
+
+    return calculateFinancing({
+      propertyValue: Number(financingRecord.propertyValue),
+      downPayment: Number(financingRecord.downPayment),
+      termMonths: financingRecord.termMonths,
+      interestRate: Number(financingRecord.interestRate),
+      amortizationSystem: financingRecord.amortizationSystem,
+      firstParcelOverride: financingRecord.firstParcelOverride
+        ? Number(financingRecord.firstParcelOverride)
+        : undefined,
+      lastParcelOverride: financingRecord.lastParcelOverride
+        ? Number(financingRecord.lastParcelOverride)
+        : undefined,
+    });
+  }, [financingRecord]);
+
+  // Matches a calendar month to corresponding financing installment
+  const getFinancingInstallment = useCallback(
+    (colYear: number, colMonth: number): number | null => {
+      if (!financingRecord || financingInstallments.length === 0) return null;
+
+      const createdDate = new Date(financingRecord.createdAt);
+      const startYear = createdDate.getFullYear();
+      const startMonth = createdDate.getMonth();
+
+      const monthIndex = (colYear - startYear) * 12 + (colMonth - startMonth);
+
+      if (monthIndex >= 0 && monthIndex < financingInstallments.length) {
+        return financingInstallments[monthIndex].installment;
+      }
+
+      return 0; // Out of term window
+    },
+    [financingRecord, financingInstallments]
+  );
+
+  const monthFinancingInstallment = useMemo((): number => {
+    if (!monthParam || !financingRecord) return 0;
+    const [year, month] = monthParam.split("-").map(Number);
+    if (!year || !month) return 0;
+    return getFinancingInstallment(year, month - 1) ?? 0;
+  }, [monthParam, financingRecord, getFinancingInstallment]);
+
+  // Calculate consolidated flow summary for target month
+  const monthlyFlowSummary = useMemo(() => {
+    if (!monthParam) return null;
+
+    const totalExpenses = filteredExpenses.reduce(
+      (sum, exp): number => sum + Number(exp.totalAmount),
+      0
+    );
+    const totalOutflow = totalExpenses + monthFinancingInstallment;
+
+    const totalInflow = filteredIncomes.reduce(
+      (sum, inc): number => sum + Number(inc.amount),
+      0
+    );
+
+    const netBalance = totalInflow - totalOutflow;
+
+    return {
+      inflow: totalInflow,
+      outflow: totalOutflow,
+      netBalance,
+      expensesTotal: totalExpenses,
+      financingInstallment: monthFinancingInstallment,
+    };
+  }, [monthParam, filteredExpenses, filteredIncomes, monthFinancingInstallment]);
+
+  // Calculate quick stats (fallback if no month parameter)
   const stats = useMemo(() => {
     let confirmedSum = 0;
     let budgetSum = 0;
@@ -166,15 +313,18 @@ function ExpensesListContent(): React.JSX.Element {
   };
 
   // Human readable title for the selected month parameter
-  const titleMonthLabel = useMemo((): string => {
-    if (!monthParam) return "Todas as Despesas";
+  const titleLabel = useMemo((): string => {
+    if (!monthParam) {
+      return activeTab === "EXPENSES" ? "Todas as Despesas" : "Todas as Receitas";
+    }
     const [year, month] = monthParam.split("-").map(Number);
     if (!year || !month) return monthParam;
 
     const d = new Date(year, month - 1, 1);
     const label = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-    return label.charAt(0).toUpperCase() + label.slice(1);
-  }, [monthParam]);
+    const formattedLabel = label.charAt(0).toUpperCase() + label.slice(1);
+    return `${activeTab === "EXPENSES" ? "Despesas" : "Receitas"}: ${formattedLabel}`;
+  }, [monthParam, activeTab]);
 
   // Modal actions handlers
   const handleNewClick = (): void => {
@@ -330,6 +480,8 @@ function ExpensesListContent(): React.JSX.Element {
   const liveInstallmentsCount = paymentType === "UPFRONT" ? 1 : (Number(installmentsCount) || 1);
   const livePerMonthAmount = liveParsedAmount / liveInstallmentsCount;
 
+  const currentCount = activeTab === "EXPENSES" ? filteredExpenses.length : filteredIncomes.length;
+
   return (
     <div className="max-w-[1400px] mx-auto p-4 md:p-8 space-y-8 animate-fade-in">
       {/* Navigation & Header */}
@@ -345,24 +497,34 @@ function ExpensesListContent(): React.JSX.Element {
         <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-mint-slate-400/30 pb-5 gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-[#0e1717]">
-              Despesas: {titleMonthLabel}
+              {titleLabel}
             </h1>
             <p className="text-sm text-mint-slate-400 mt-1">
               {monthParam
-                ? `Visualizando lançamentos detalhados de saídas e orçamentos para o mês de ${titleMonthLabel}.`
-                : "Visualizando todas as despesas lançadas no sistema."}
+                ? `Visualizando lançamentos detalhados para o mês de ${monthParam}.`
+                : "Visualizando lançamentos consolidados no sistema."}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-            <button
-              type="button"
-              onClick={handleNewClick}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
-            >
-              <Plus className="w-4.5 h-4.5" />
-              Nova Despesa
-            </button>
+            {activeTab === "EXPENSES" ? (
+              <button
+                type="button"
+                onClick={handleNewClick}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
+              >
+                <Plus className="w-4.5 h-4.5" />
+                Nova Despesa
+              </button>
+            ) : (
+              <Link
+                href={monthParam ? `/incomes?month=${monthParam}` : "/incomes"}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
+              >
+                <Plus className="w-4.5 h-4.5" />
+                Gerenciar Receitas
+              </Link>
+            )}
 
             <nav className="flex space-x-1.5 bg-slate-200/50 p-1.5 rounded-xl border border-slate-200/80 justify-center">
               <Link
@@ -410,137 +572,278 @@ function ExpensesListContent(): React.JSX.Element {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-32 gap-3">
           <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-mint-slate-400 font-medium">Carregando despesas...</span>
+          <span className="text-sm text-mint-slate-400 font-medium">Carregando dados...</span>
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Quick Filter Summaries */}
-          <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="bg-white border border-mint-slate-400/20 rounded-xl p-5 shadow-sm flex items-center gap-3">
-              <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-600">
-                <DollarSign className="w-5 h-5" />
+          {/* Month Summary Card (Consolidated Inflow, Outflow, Net Balance) */}
+          {monthlyFlowSummary && (
+            <section className="bg-white border border-mint-slate-400/25 rounded-2xl p-6 shadow-sm divide-y md:divide-y-0 md:divide-x divide-slate-100 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-0">
+              {/* Inflow */}
+              <div className="md:px-6 flex items-center gap-4">
+                <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
+                    Entradas (Receitas)
+                  </span>
+                  <h3 className="text-2xl font-bold font-mono text-[#0e1717] mt-0.5">
+                    {formatBRL(monthlyFlowSummary.inflow)}
+                  </h3>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Planejado + Confirmado
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total do Mês</span>
-                <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.totalSum)}</h4>
-              </div>
-            </div>
 
-            <div className="bg-white border border-mint-slate-400/20 rounded-xl p-5 shadow-sm flex items-center gap-3">
-              <div className="p-2.5 bg-rose-50 border border-rose-100 rounded-lg text-rose-600">
-                <CheckCircle className="w-5 h-5" />
+              {/* Outflow */}
+              <div className="px-6 flex items-center gap-4">
+                <div className="p-3 bg-rose-50 rounded-xl text-rose-600">
+                  <TrendingDown className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
+                    Saídas (Total)
+                  </span>
+                  <h3 className="text-2xl font-bold font-mono text-[#0e1717] mt-0.5">
+                    {formatBRL(monthlyFlowSummary.outflow)}
+                  </h3>
+                  <span className="text-[10px] text-slate-400 font-medium block leading-normal">
+                    Despesas: {formatBRL(monthlyFlowSummary.expensesTotal)} | Financ: {formatBRL(monthlyFlowSummary.financingInstallment)}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-rose-500">Confirmado</span>
-                <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.confirmedSum)}</h4>
-              </div>
-            </div>
 
-            <div className="bg-white border border-mint-slate-400/20 rounded-xl p-5 shadow-sm flex items-center gap-3">
-              <div className="p-2.5 bg-amber-50 border border-amber-100 rounded-lg text-amber-600">
-                <Clock className="w-5 h-5" />
+              {/* Net Balance */}
+              <div className="px-6 flex items-center gap-4">
+                <div className={`p-3 rounded-xl ${monthlyFlowSummary.netBalance >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
+                  <DollarSign className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
+                    Saldo Líquido
+                  </span>
+                  <h3 className={`text-2xl font-bold font-mono mt-0.5 ${monthlyFlowSummary.netBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                    {formatBRL(monthlyFlowSummary.netBalance)}
+                  </h3>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Inflow - Outflow
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500">Orçamento</span>
-                <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.budgetSum)}</h4>
-              </div>
-            </div>
-          </section>
+            </section>
+          )}
 
-          {/* Expenses Table */}
+          {/* Fallback stats cards if no month param is specified */}
+          {!monthlyFlowSummary && (
+            <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="bg-white border border-mint-slate-400/20 rounded-xl p-5 shadow-sm flex items-center gap-3">
+                <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-600">
+                  <DollarSign className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Geral</span>
+                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.totalSum)}</h4>
+                </div>
+              </div>
+
+              <div className="bg-white border border-mint-slate-400/20 rounded-xl p-5 shadow-sm flex items-center gap-3">
+                <div className="p-2.5 bg-rose-50 border border-rose-100 rounded-lg text-rose-600">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-rose-500">Confirmado</span>
+                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.confirmedSum)}</h4>
+                </div>
+              </div>
+
+              <div className="bg-white border border-mint-slate-400/20 rounded-xl p-5 shadow-sm flex items-center gap-3">
+                <div className="p-2.5 bg-amber-50 border border-amber-100 rounded-lg text-amber-600">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500">Orçamento</span>
+                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.budgetSum)}</h4>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Segmented Control / Tab Toggle */}
+          {monthParam && (
+            <div className="flex border-b border-slate-200">
+              <button
+                type="button"
+                onClick={(): void => setActiveTab("EXPENSES")}
+                className={`py-3 px-6 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+                  activeTab === "EXPENSES"
+                    ? "border-emerald-600 text-emerald-700"
+                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                }`}
+              >
+                Despesas ({filteredExpenses.length})
+              </button>
+              <button
+                type="button"
+                onClick={(): void => setActiveTab("INCOMES")}
+                className={`py-3 px-6 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+                  activeTab === "INCOMES"
+                    ? "border-emerald-600 text-emerald-700"
+                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                }`}
+              >
+                Receitas ({filteredIncomes.length})
+              </button>
+            </div>
+          )}
+
+          {/* Lançamentos Table */}
           <div className="bg-white border border-mint-slate-400/20 rounded-xl shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h2 className="text-lg font-semibold text-[#0e1717]">Lançamentos</h2>
               <span className="text-xs text-mint-slate-400 font-semibold font-mono">
-                {stats.count} {stats.count === 1 ? "registro encontrado" : "registros encontrados"}
+                {currentCount} {currentCount === 1 ? "registro encontrado" : "registros encontrados"}
               </span>
             </div>
 
-            {filteredExpenses.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm border-collapse text-left">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-mint-slate-400/25 text-[#0e1717] font-semibold text-xs uppercase">
-                      <th className="py-3 px-6">Descrição</th>
-                      <th className="py-3 px-6 text-right">Valor</th>
-                      <th className="py-3 px-6">Vencimento</th>
-                      <th className="py-3 px-6">Categoria</th>
-                      <th className="py-3 px-6 text-center">Prioridade</th>
-                      <th className="py-3 px-6 text-center">Status</th>
-                      <th className="py-3 px-6 text-center">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredExpenses.map((exp): React.JSX.Element => {
-                      const priority = PRIORITY_MAP[exp.priority] || {
-                        label: exp.priority,
-                        textClass: "text-slate-600",
-                        bgClass: "bg-slate-50",
-                      };
+            {activeTab === "EXPENSES" ? (
+              filteredExpenses.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse text-left">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-mint-slate-400/25 text-[#0e1717] font-semibold text-xs uppercase">
+                        <th className="py-3 px-6">Descrição</th>
+                        <th className="py-3 px-6 text-right">Valor</th>
+                        <th className="py-3 px-6">Vencimento</th>
+                        <th className="py-3 px-6">Categoria</th>
+                        <th className="py-3 px-6 text-center">Prioridade</th>
+                        <th className="py-3 px-6 text-center">Status</th>
+                        <th className="py-3 px-6 text-center">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredExpenses.map((exp): React.JSX.Element => {
+                        const priority = PRIORITY_MAP[exp.priority] || {
+                          label: exp.priority,
+                          textClass: "text-slate-600",
+                          bgClass: "bg-slate-50",
+                        };
 
-                      return (
-                        <tr key={exp.id} className="hover:bg-slate-50/50 transition-colors">
+                        return (
+                          <tr key={exp.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-3.5 px-6 font-medium text-slate-800">
+                              {exp.description}
+                            </td>
+                            <td className="py-3.5 px-6 text-right font-mono font-bold text-[#0e1717] tabular-nums">
+                              {formatBRL(Number(exp.totalAmount))}
+                            </td>
+                            <td className="py-3.5 px-6 font-mono text-slate-500 text-xs">
+                              {formatDate(exp.dueDate)}
+                            </td>
+                            <td className="py-3.5 px-6 text-xs text-slate-600">
+                              {CATEGORY_MAP[exp.category] || exp.category}
+                            </td>
+                            <td className="py-3.5 px-6 text-center">
+                              <span
+                                className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border ${priority.bgClass} ${priority.textClass}`}
+                              >
+                                {priority.label}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-6 text-center">
+                              {exp.status === "CONFIRMED" ? (
+                                <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-100">
+                                  Confirmado
+                                </span>
+                              ) : (
+                                <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100">
+                                  Orçamento
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-6 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={(): void => handleEditClick(exp)}
+                                  className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                  title="Editar"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(): void => setDeleteTarget(exp)}
+                                  className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="py-16 text-center text-mint-slate-400 text-sm flex flex-col items-center gap-2">
+                  <Layers className="w-8 h-8 opacity-45" />
+                  <span>Nenhuma despesa lançada para este período.</span>
+                </div>
+              )
+            ) : (
+              filteredIncomes.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse text-left">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-mint-slate-400/25 text-[#0e1717] font-semibold text-xs uppercase">
+                        <th className="py-3 px-6">Descrição</th>
+                        <th className="py-3 px-6 text-right">Valor</th>
+                        <th className="py-3 px-6">Recebimento</th>
+                        <th className="py-3 px-6">Categoria</th>
+                        <th className="py-3 px-6 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredIncomes.map((inc): React.JSX.Element => (
+                        <tr key={inc.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="py-3.5 px-6 font-medium text-slate-800">
-                            {exp.description}
+                            {inc.description}
                           </td>
                           <td className="py-3.5 px-6 text-right font-mono font-bold text-[#0e1717] tabular-nums">
-                            {formatBRL(Number(exp.totalAmount))}
+                            {formatBRL(Number(inc.amount))}
                           </td>
                           <td className="py-3.5 px-6 font-mono text-slate-500 text-xs">
-                            {formatDate(exp.dueDate)}
+                            {formatDate(inc.dueDate)}
                           </td>
                           <td className="py-3.5 px-6 text-xs text-slate-600">
-                            {CATEGORY_MAP[exp.category] || exp.category}
+                            {INCOME_CATEGORY_MAP[inc.category] || inc.category}
                           </td>
                           <td className="py-3.5 px-6 text-center">
-                            <span
-                              className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border ${priority.bgClass} ${priority.textClass}`}
-                            >
-                              {priority.label}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-6 text-center">
-                            {exp.status === "CONFIRMED" ? (
-                              <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-100">
+                            {inc.status === "CONFIRMED" ? (
+                              <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
                                 Confirmado
                               </span>
                             ) : (
                               <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100">
-                                Orçamento
+                                Planejado
                               </span>
                             )}
                           </td>
-                          <td className="py-3.5 px-6 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                type="button"
-                                onClick={(): void => handleEditClick(exp)}
-                                className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                                title="Editar"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(): void => setDeleteTarget(exp)}
-                                className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                                title="Excluir"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="py-16 text-center text-mint-slate-400 text-sm flex flex-col items-center gap-2">
-                <Layers className="w-8 h-8 opacity-45" />
-                <span>Nenhuma despesa lançada para este período.</span>
-              </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="py-16 text-center text-mint-slate-400 text-sm flex flex-col items-center gap-2">
+                  <Layers className="w-8 h-8 opacity-45" />
+                  <span>Nenhuma receita lançada para este período.</span>
+                </div>
+              )
             )}
           </div>
         </div>

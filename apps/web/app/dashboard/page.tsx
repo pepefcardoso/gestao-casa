@@ -32,6 +32,16 @@ interface Expense {
   createdAt: string;
 }
 
+interface Income {
+  id: string;
+  description: string;
+  amount: string;
+  status: "BUDGET" | "CONFIRMED";
+  category: "SALARY" | "INVESTMENT" | "REFUND" | "OTHER";
+  dueDate: string;
+  createdAt: string;
+}
+
 interface FinancingRecord {
   id: string;
   houseId: string;
@@ -61,23 +71,29 @@ interface AggregatedMonthData {
   confirmedSum: number;
   budgetSum: number;
   totalOutflow: number;
+  confirmedIncomeSum: number;
+  budgetIncomeSum: number;
+  totalInflow: number;
+  netBalance: number;
 }
 
 export default function DashboardPage(): React.JSX.Element {
   const [financingRecord, setFinancingRecord] = useState<FinancingRecord | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [incomes, setIncomes] = useState<Income[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState<boolean>(false);
 
-  // Fetch financing and expense data in parallel
+  // Fetch financing, expense and income data in parallel
   const fetchData = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const [financingRes, expensesRes] = await Promise.all([
+      const [financingRes, expensesRes, incomesRes] = await Promise.all([
         fetch(`/api/financing/${FALLBACK_HOUSE_ID}`),
         fetch("/api/expenses"),
+        fetch("/api/incomes"),
       ]);
 
       if (financingRes.ok) {
@@ -94,6 +110,13 @@ export default function DashboardPage(): React.JSX.Element {
         setExpenses(expData as Expense[]);
       } else {
         setErrorMsg("Erro ao carregar despesas.");
+      }
+
+      if (incomesRes.ok) {
+        const incData: unknown = await incomesRes.json();
+        setIncomes(incData as Income[]);
+      } else {
+        setErrorMsg("Erro ao carregar receitas.");
       }
     } catch (err) {
       setErrorMsg("Erro ao conectar ao servidor.");
@@ -179,7 +202,7 @@ export default function DashboardPage(): React.JSX.Element {
   );
 
   // Aggregate cash flow data by month
-  const monthlyOutflows = useMemo((): AggregatedMonthData[] => {
+  const monthlyFlows = useMemo((): AggregatedMonthData[] => {
     return columns.map((col): AggregatedMonthData => {
       const monthExpenses = expenses.filter(
         (exp): boolean => exp.dueDate.substring(0, 7) === col.key
@@ -197,15 +220,35 @@ export default function DashboardPage(): React.JSX.Element {
       const financingAmount = financingInstallment ?? 0;
       const totalOutflow = financingAmount + confirmedSum + budgetSum;
 
+      // Incomes
+      const monthIncomes = incomes.filter(
+        (inc): boolean => inc.dueDate.substring(0, 7) === col.key
+      );
+
+      const confirmedIncomeSum = monthIncomes
+        .filter((inc): boolean => inc.status === "CONFIRMED")
+        .reduce((sum, inc): number => sum + Number(inc.amount), 0);
+
+      const budgetIncomeSum = monthIncomes
+        .filter((inc): boolean => inc.status === "BUDGET")
+        .reduce((sum, inc): number => sum + Number(inc.amount), 0);
+
+      const totalInflow = confirmedIncomeSum + budgetIncomeSum;
+      const netBalance = totalInflow - totalOutflow;
+
       return {
         ...col,
         financingInstallment,
         confirmedSum,
         budgetSum,
         totalOutflow,
+        confirmedIncomeSum,
+        budgetIncomeSum,
+        totalInflow,
+        netBalance,
       };
     });
-  }, [columns, expenses, getFinancingInstallment]);
+  }, [columns, expenses, incomes, getFinancingInstallment]);
 
   // Formats values to pt-BR BRL Currency
   const formatBRL = (val: number): string => {
@@ -223,22 +266,36 @@ export default function DashboardPage(): React.JSX.Element {
     let totalFinancing = 0;
     let totalConfirmed = 0;
     let totalBudget = 0;
+    let totalInflow = 0;
+    let totalConfirmedIncome = 0;
+    let totalBudgetIncome = 0;
 
-    for (const val of monthlyOutflows) {
+    for (const val of monthlyFlows) {
       totalOutflow += val.totalOutflow;
       totalFinancing += val.financingInstallment ?? 0;
       totalConfirmed += val.confirmedSum;
       totalBudget += val.budgetSum;
+      totalInflow += val.totalInflow;
+      totalConfirmedIncome += val.confirmedIncomeSum;
+      totalBudgetIncome += val.budgetIncomeSum;
     }
+
+    const netBalance = totalInflow - totalOutflow;
 
     return {
       totalOutflow,
       totalFinancing,
       totalConfirmed,
       totalBudget,
+      totalInflow,
+      totalConfirmedIncome,
+      totalBudgetIncome,
+      netBalance,
       hasFinancing: financingRecord !== null,
     };
-  }, [monthlyOutflows, financingRecord]);
+  }, [monthlyFlows, financingRecord]);
+
+  const isNetPositive = totals.netBalance >= 0;
 
   return (
     <div className="max-w-[1400px] mx-auto p-4 md:p-8 space-y-8">
@@ -250,7 +307,7 @@ export default function DashboardPage(): React.JSX.Element {
             Fluxo de Caixa Mensal
           </h1>
           <p className="text-sm text-mint-slate-400 mt-1">
-            Planejamento e análise de saídas financeiras consolidadas para os próximos 12 meses.
+            Planejamento e análise de entradas e saídas consolidadas para os próximos 12 meses.
           </p>
         </div>
 
@@ -303,10 +360,25 @@ export default function DashboardPage(): React.JSX.Element {
       ) : (
         <div className="space-y-8 animate-fade-in">
           {/* Summary KPI Cards */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Total outflow */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+            {/* Total Inflow (Receitas) */}
             <div className="bg-white border border-mint-slate-400/20 rounded-xl p-6 shadow-sm flex items-center gap-4">
-              <div className="p-3 bg-emerald-50 rounded-lg text-emerald-600">
+              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+                <TrendingUp className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Receita Total (12m)
+                </span>
+                <h3 className="text-2xl font-bold font-mono text-[#0e1717] mt-0.5">
+                  {formatBRL(totals.totalInflow)}
+                </h3>
+              </div>
+            </div>
+
+            {/* Total Outflow (Saídas) */}
+            <div className="bg-white border border-mint-slate-400/20 rounded-xl p-6 shadow-sm flex items-center gap-4">
+              <div className="p-3 bg-slate-100 text-slate-600 rounded-lg">
                 <DollarSign className="w-6 h-6" />
               </div>
               <div>
@@ -315,6 +387,21 @@ export default function DashboardPage(): React.JSX.Element {
                 </span>
                 <h3 className="text-2xl font-bold font-mono text-[#0e1717] mt-0.5">
                   {formatBRL(totals.totalOutflow)}
+                </h3>
+              </div>
+            </div>
+
+            {/* Net Balance (Saldo Líquido) */}
+            <div className="bg-white border border-mint-slate-400/20 rounded-xl p-6 shadow-sm flex items-center gap-4">
+              <div className={`p-3 rounded-lg ${isNetPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
+                <DollarSign className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Saldo Líquido (12m)
+                </span>
+                <h3 className={`text-2xl font-bold font-mono mt-0.5 ${isNetPositive ? "text-emerald-700" : "text-rose-700"}`}>
+                  {formatBRL(totals.netBalance)}
                 </h3>
               </div>
             </div>
@@ -375,70 +462,97 @@ export default function DashboardPage(): React.JSX.Element {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-12 gap-4">
-              {monthlyOutflows.map((item): React.JSX.Element => (
-                <Link
-                  href={`/expenses?month=${item.key}`}
-                  key={item.key}
-                  className="block group"
-                >
-                  <div className="border border-mint-slate-400/20 rounded-xl p-4 bg-white hover:border-emerald-600 hover:shadow-xl transition-all cursor-pointer flex flex-col gap-4 h-full relative overflow-hidden">
-                    {/* Month Header */}
-                    <div className="border-b border-slate-100 pb-2 flex justify-between items-center">
-                      <span className="text-sm font-bold text-mint-slate-900 tracking-tight uppercase group-hover:text-emerald-600 transition-colors">
-                        {item.label}
-                      </span>
-                      <span className="text-mint-slate-400 group-hover:translate-x-1 transition-transform">
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </span>
-                    </div>
-
-                    {/* Values Stack */}
-                    <div className="space-y-3.5 flex-grow">
-                      {/* Financing installment row */}
-                      <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-slate-50 border border-slate-100/80">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500">
-                          Parcela Financ.
+              {monthlyFlows.map((item): React.JSX.Element => {
+                const isItemPositive = item.netBalance >= 0;
+                return (
+                  <Link
+                    href={`/expenses?month=${item.key}`}
+                    key={item.key}
+                    className="block group"
+                  >
+                    <div className="border border-mint-slate-400/20 rounded-xl p-4 bg-white hover:border-emerald-600 hover:shadow-xl transition-all cursor-pointer flex flex-col gap-4 h-full relative overflow-hidden">
+                      {/* Month Header */}
+                      <div className="border-b border-slate-100 pb-2 flex justify-between items-center">
+                        <span className="text-sm font-bold text-mint-slate-900 tracking-tight uppercase group-hover:text-emerald-600 transition-colors">
+                          {item.label}
                         </span>
-                        <span className="text-xs font-mono font-bold text-[#0e1717]">
-                          {item.financingInstallment !== null
-                            ? formatBRL(item.financingInstallment)
-                            : "—"}
+                        <span className="text-mint-slate-400 group-hover:translate-x-1 transition-transform">
+                          <ArrowRight className="w-3.5 h-3.5" />
                         </span>
                       </div>
 
-                      {/* Confirmed sum row */}
-                      <div className="bg-rose-600 text-white rounded-lg p-2.5 flex flex-col gap-0.5 shadow-sm transition-transform group-hover:scale-[1.02]">
-                        <span className="text-[9px] uppercase font-bold tracking-wider opacity-90">
-                          Confirmado
-                        </span>
-                        <span className="text-xs font-mono font-bold leading-tight">
-                          {formatBRL(item.confirmedSum)}
-                        </span>
+                      {/* Values Stack */}
+                      <div className="space-y-3.5 flex-grow">
+                        {/* Receitas row */}
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-extrabold text-emerald-700 uppercase tracking-wider block">
+                            Receitas
+                          </span>
+                          <div className="grid grid-cols-2 gap-1">
+                            <div className="bg-emerald-600 text-white rounded-md p-1 flex flex-col gap-0.5 text-center">
+                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">Conf.</span>
+                              <span className="text-[9px] font-mono font-bold">{formatBRL(item.confirmedIncomeSum)}</span>
+                            </div>
+                            <div className="bg-teal-600 text-white rounded-md p-1 flex flex-col gap-0.5 text-center">
+                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">Plan.</span>
+                              <span className="text-[9px] font-mono font-bold">{formatBRL(item.budgetIncomeSum)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Despesas row */}
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-extrabold text-rose-700 uppercase tracking-wider block">
+                            Saídas (Despesas)
+                          </span>
+                          <div className="grid grid-cols-2 gap-1">
+                            <div className="bg-rose-600 text-white rounded-md p-1 flex flex-col gap-0.5 text-center">
+                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">Conf.</span>
+                              <span className="text-[9px] font-mono font-bold">{formatBRL(item.confirmedSum)}</span>
+                            </div>
+                            <div className="bg-amber-600 text-white rounded-md p-1 flex flex-col gap-0.5 text-center">
+                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">Orç.</span>
+                              <span className="text-[9px] font-mono font-bold">{formatBRL(item.budgetSum)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Financing installment row */}
+                        <div className="flex justify-between items-center p-1.5 rounded-lg bg-slate-50 border border-slate-100/80 text-[10px]">
+                          <span className="font-bold text-slate-500 uppercase tracking-wider text-[8px]">
+                            Financ.
+                          </span>
+                          <span className="font-mono font-bold text-[#0e1717]">
+                            {item.financingInstallment !== null
+                              ? formatBRL(item.financingInstallment)
+                              : "—"}
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Budget sum row */}
-                      <div className="bg-amber-600 text-white rounded-lg p-2.5 flex flex-col gap-0.5 shadow-sm transition-transform group-hover:scale-[1.02]">
-                        <span className="text-[9px] uppercase font-bold tracking-wider opacity-90">
-                          Orçamento
-                        </span>
-                        <span className="text-xs font-mono font-bold leading-tight">
-                          {formatBRL(item.budgetSum)}
-                        </span>
+                      {/* Total & Net Balance section */}
+                      <div className="border-t border-slate-100 pt-3 mt-auto space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider">
+                            Saída Total
+                          </span>
+                          <span className="text-xs font-mono font-bold text-[#0e1717]">
+                            {formatBRL(item.totalOutflow)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center pt-1 border-t border-slate-50">
+                          <span className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider">
+                            Saldo Líquido
+                          </span>
+                          <span className={`text-xs font-mono font-extrabold ${isItemPositive ? "text-emerald-700" : "text-rose-700"}`}>
+                            {formatBRL(item.netBalance)}
+                          </span>
+                        </div>
                       </div>
                     </div>
-
-                    {/* Total outflow row */}
-                    <div className="border-t border-slate-100 pt-3 mt-auto flex flex-col gap-0.5">
-                      <span className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">
-                        Saída Total
-                      </span>
-                      <span className="text-sm font-mono font-extrabold text-[#0e1717] group-hover:text-emerald-600 transition-colors">
-                        {formatBRL(item.totalOutflow)}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </section>
         </div>

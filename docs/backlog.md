@@ -591,7 +591,7 @@
 
 | Field            | Value                                                              |
 | ---------------- | ------------------------------------------------------------------ |
-| **Status**       | `TODO`                                                             |
+| **Status**       | `DONE`                                                             |
 | **Platform**     | Web (`apps/web`)                                                   |
 | **Target file**  | `apps/web/app/dashboard/page.tsx` · `apps/web/app/expenses/page.tsx` |
 | **Dependencies** | Task 7.3 `DONE`                                                    |
@@ -614,10 +614,10 @@
 
 **Acceptance criteria:**
 
-- [ ] Dashboard KPI cards and month grids show correct mathematical aggregates including incomes.
-- [ ] Clicking a month column navigates to `/expenses?month=YYYY-MM`, which displays the consolidated monthly details summary card.
-- [ ] Toggling between expenses and incomes tabs works reactively without full page reloads.
-- [ ] `npx nx lint web` passes with zero errors.
+- [x] Dashboard KPI cards and month grids show correct mathematical aggregates including incomes.
+- [x] Clicking a month column navigates to `/expenses?month=YYYY-MM`, which displays the consolidated monthly details summary card.
+- [x] Toggling between expenses and incomes tabs works reactively without full page reloads.
+- [x] `npx nx lint web` passes with zero errors.
 
 ---
 
