@@ -344,3 +344,153 @@
 
 - [x] Running `npm run test` or `npx nx run-many --target=test` executes tests successfully.
 - [x] Unit tests cover boundary values (e.g. term of 1 month, term of 360 months, overrides of exactly R$ 0, negative values rejecting, etc.) with 100% pass rate.
+
+---
+
+## Sprint 5 — Room & House Administration (API & Settings)
+
+### Task 5.1 — API: House & Room Management
+
+| Field            | Value                                                                                                        |
+| ---------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Status**       | `TODO`                                                                                                       |
+| **Platform**     | Backend                                                                                                      |
+| **Target file**  | `libs/backend/src/api/routes/houses.ts` · `libs/backend/src/api/routes/rooms.ts` · `apps/web/app/api/[[...route]]/route.ts` |
+| **Dependencies** | Task 1.2 `DONE`                                                                                              |
+
+**What to implement:**
+
+- Define API routes for House management in a new router `libs/backend/src/api/routes/houses.ts`:
+  - `GET /houses/:id` — returns the house details by ID.
+  - `PUT /houses/:id` — validates request body against `insertHouseSchema` and updates the house name, location, and total area.
+- Add room modification and deletion routes to `libs/backend/src/api/routes/rooms.ts`:
+  - `PUT /rooms/:id` — validates request body against `insertRoomSchema` and updates the room's name, area, and color code.
+  - `DELETE /rooms/:id` — deletes the room by ID. Ensure the Drizzle constraint `set null` on `room_id` in the `expenses` table triggers correctly.
+- Register the new `housesRouter` in the Vercel Hono route handler: `apps/web/app/api/[[...route]]/route.ts`.
+
+**Acceptance criteria:**
+
+- [ ] `GET /api/houses/:id` returns house JSON on success, `404` for non-existent IDs, and `400` on invalid UUID format.
+- [ ] `PUT /api/houses/:id` updates house details and returns the updated house object. Fails with `400` if validation checks fail (e.g., negative area).
+- [ ] `PUT /api/rooms/:id` updates room fields and returns the updated room object. Fails with `400` if room area ≤ 0.
+- [ ] `DELETE /api/rooms/:id` removes the room and unlinks it from any associated expenses (`room_id` becomes `null` on those expenses).
+- [ ] `npx nx lint backend` passes with zero errors.
+
+---
+
+### Task 5.2 — Web UI: Settings & Room Management Screen
+
+| Field            | Value                             |
+| ---------------- | --------------------------------- |
+| **Status**       | `TODO`                            |
+| **Platform**     | Web (`apps/web`)                  |
+| **Target file**  | `apps/web/app/settings/page.tsx`  |
+| **Dependencies** | Task 5.1 `TODO`                   |
+
+**What to implement:**
+
+- Create settings page component in `apps/web/app/settings/page.tsx`.
+- House Edit Form: Render inputs for house name (required), location (optional), and total area (optional). Fetch current values on mount and call `PUT /api/houses/:id` upon submission.
+- Room Management:
+  - List all rooms associated with the house using `GET /api/rooms?house_id=...`.
+  - Allow adding new rooms directly from the screen, and editing existing rooms (name, area, color picker) calling `PUT /api/rooms/:id`.
+  - Include a "Delete" button for each room that displays a confirmation modal warning the user that associated expenses will be unlinked (their room associations will be cleared). Call `DELETE /api/rooms/:id` upon confirmation.
+- UI Design: Adhere to Mint-Slate design palette (`mint-slate-*`, `emerald-600`, `rose-600`) and Tailwind styling rules (no raw inline styles or external component packages).
+
+**Acceptance criteria:**
+
+- [ ] Form displays current house properties and saves changes successfully via PUT request.
+- [ ] Editing a room changes its details in the database and updates the UI without full page reload.
+- [ ] Deleting a room unlinks the room from expenses (room_id set to null) and removes it from the list.
+- [ ] Navigation menu on the web dashboard contains a link to `/settings`.
+- [ ] `npx nx lint web` passes with zero errors.
+
+---
+
+## Sprint 6 — Mobile Native Navigation & Operational UI
+
+### Task 6.1 — Mobile UI: Home / Landing Dashboard Screen
+
+| Field            | Value                          |
+| ---------------- | ------------------------------ |
+| **Status**       | `TODO`                         |
+| **Platform**     | Mobile (`apps/mobile`)         |
+| **Target file**  | `apps/mobile/app/index.tsx`    |
+| **Dependencies** | Sprint 4 `DONE`                |
+
+**What to implement:**
+
+- Create `apps/mobile/app/index.tsx` as the landing/home screen.
+- Render property info cards containing the registered house name, location, and total area.
+- Show key operational statistics: total number of rooms, total outflow, count of high priority items.
+- Implement clear navigation buttons / quick action shortcuts using React Native components:
+  - "Ver Cômodos" -> navigates to `/rooms/index`
+  - "Adicionar Cômodo" -> navigates to `/rooms/new`
+  - "Lista de Despesas" -> navigates to `/expenses` (or `/expenses/index` if folder structure requires)
+  - "Nova Despesa" -> navigates to `/expenses/new`
+- Apply Mint-Slate style guidelines: use standard typography sizes, clean flexbox layouts, card containers with borders, and branding colors.
+
+**Acceptance criteria:**
+
+- [ ] Home screen serves as the default entry point of the mobile app.
+- [ ] House information and statistics load correctly.
+- [ ] Tapping each shortcut button correctly routes the user to the corresponding screen.
+- [ ] `npx nx lint mobile` passes with zero errors.
+
+---
+
+### Task 6.2 — Mobile UI: Room Detail Screen
+
+| Field            | Value                                 |
+| ---------------- | ------------------------------------- |
+| **Status**       | `TODO`                                |
+| **Platform**     | Mobile (`apps/mobile`)                |
+| **Target file**  | `apps/mobile/app/rooms/[id].tsx`      |
+| **Dependencies** | Task 6.1 `TODO`                       |
+
+**What to implement:**
+
+- Implement dynamic route screen `apps/mobile/app/rooms/[id].tsx` to display details of a specific room.
+- Show room header with room name, area (if provided), and an indicator of its color (using `colorCode` from DB).
+- Fetch and display the list of expenses linked to the room via `GET /api/expenses?room_id=id`.
+- Calculate and display total confirmed expense amount vs total budgeted expense amount inside the room.
+- Display a scrollable list of expenses using `FlatList`. Each item card displays description, amount, priority, and status.
+- Implement status toggle on each expense card to allow transitioning `BUDGET` status to `CONFIRMED` natively (equivalent to UC05) with optimistic UI update.
+
+**Acceptance criteria:**
+
+- [ ] Navigating to `/rooms/[id]` loads correct room metadata and its linked expenses.
+- [ ] Room header color matches the custom color code of the room.
+- [ ] Budget and Confirmed totals correctly reflect the sum of the filtered expenses.
+- [ ] Tapping status toggle updates expense status atomically in DB and transitions card style from amber to rose.
+- [ ] `npx nx lint mobile` passes with zero errors.
+
+---
+
+### Task 6.3 — Mobile UI: Expense List Screen
+
+| Field            | Value                                 |
+| ---------------- | ------------------------------------- |
+| **Status**       | `TODO`                                |
+| **Platform**     | Mobile (`apps/mobile`)                |
+| **Target file**  | `apps/mobile/app/expenses/index.tsx`  |
+| **Dependencies** | Task 6.1 `TODO`                       |
+
+**What to implement:**
+
+- Create listing screen in `apps/mobile/app/expenses/index.tsx`.
+- Fetch all expenses from backend `GET /api/expenses`.
+- Implement filter controls:
+  - Room Filter: dropdown/picker containing all rooms to filter expenses by location.
+  - Priority Filter: segmented control to filter by priority (`HIGH`, `MEDIUM`, `LOW`).
+- Render a list of expense items using `FlatList` displaying description, value, due date, category, and status.
+- Include a quick status toggle button for any `BUDGET` expense to switch it to `CONFIRMED` natively with optimistic UI updates.
+- Styling: Ensure alignment with standard typography and colors. Use native Expo vector icons (`lucide` style).
+
+**Acceptance criteria:**
+
+- [ ] Expense list displays all items by default.
+- [ ] Changing room or priority filters refines the visible list immediately.
+- [ ] Status toggle works correctly, shifting colors and sending PUT request to update the database.
+- [ ] `npx nx lint mobile` passes with zero errors.
+
