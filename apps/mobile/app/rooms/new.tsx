@@ -1,4 +1,3 @@
-import { Lucide } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type React from "react";
 import { useState } from "react";
@@ -16,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { z } from "zod";
+import { Lucide } from "../../components/LucideIcon";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 

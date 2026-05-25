@@ -1,4 +1,3 @@
-import { Lucide } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
 import type React from "react";
@@ -17,7 +16,8 @@ import {
   View,
 } from "react-native";
 import { z } from "zod";
-import { projectInstallments } from "../../../libs/shared-logic/src/utils/project-installments";
+import { projectInstallments } from "../../../../libs/shared-logic/src/utils/project-installments";
+import { Lucide } from "../../components/LucideIcon";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -30,7 +30,11 @@ interface RoomOption {
   colorCode: string | null;
 }
 
-const CATEGORIES: { label: string; value: CategoryType; icon: "receipt" | "shopping-bag" | "wrench" | "sofa" | "tv" | "hammer" }[] = [
+const CATEGORIES: {
+  label: string;
+  value: CategoryType;
+  icon: "receipt" | "shopping-bag" | "wrench" | "sofa" | "tv" | "hammer";
+}[] = [
   { label: "Imposto", value: "TAX", icon: "receipt" },
   { label: "Produto", value: "PRODUCT", icon: "shopping-bag" },
   { label: "Serviço", value: "SERVICE", icon: "wrench" },
@@ -39,7 +43,12 @@ const CATEGORIES: { label: string; value: CategoryType; icon: "receipt" | "shopp
   { label: "Reforma", value: "RENOVATION", icon: "hammer" },
 ];
 
-const PRIORITIES: { label: string; value: PriorityType; color: string; icon: "alert-triangle" | "circle" | "arrow-down" }[] = [
+const PRIORITIES: {
+  label: string;
+  value: PriorityType;
+  color: string;
+  icon: "alert-triangle" | "circle" | "arrow-down";
+}[] = [
   { label: "Alta", value: "HIGH", color: "#ea580c", icon: "alert-triangle" },
   { label: "Média", value: "MEDIUM", color: "#2563eb", icon: "circle" },
   { label: "Baixa", value: "LOW", color: "#64748b", icon: "arrow-down" },
@@ -95,7 +104,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   // Load Rooms for Picker
-  useEffect((): () => void => {
+  useEffect((): (() => void) => {
     let active = true;
     const fetchRooms = async (): Promise<void> => {
       try {
@@ -105,7 +114,9 @@ export default function NewExpenseScreen(): React.JSX.Element {
         }
         const data: unknown = await response.json();
         if (active && Array.isArray(data)) {
-          const mappedRooms = (data as { id: string; name: string; colorCode: string | null }[]).map(
+          const mappedRooms = (
+            data as { id: string; name: string; colorCode: string | null }[]
+          ).map(
             (r): RoomOption => ({
               id: r.id,
               name: r.name,
@@ -130,12 +141,15 @@ export default function NewExpenseScreen(): React.JSX.Element {
 
   // Format Helper
   const formatCurrency = (val: number): string => {
-    return `R$ ${val.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+    return `R$ ${val
+      .toFixed(2)
+      .replace(".", ",")
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
   };
 
   // Live calculations
   const parsedAmount = Number(totalAmount) || 0;
-  const parsedInstallmentsCount = paymentType === "UPFRONT" ? 1 : (Number(installmentsCount) || 1);
+  const parsedInstallmentsCount = paymentType === "UPFRONT" ? 1 : Number(installmentsCount) || 1;
   const perMonthAmount = parsedAmount / parsedInstallmentsCount;
 
   const handleInstallmentsChange = (text: string): void => {
@@ -278,8 +292,18 @@ export default function NewExpenseScreen(): React.JSX.Element {
                 disabled={isSubmitting}
                 activeOpacity={0.8}
               >
-                <Lucide name="piggy-bank" size={20} color={status === "BUDGET" ? "#ffffff" : "#64748b"} style={styles.statusToggleIcon} />
-                <Text style={[styles.statusToggleText, status === "BUDGET" && styles.statusToggleTextActive]}>
+                <Lucide
+                  name="piggy-bank"
+                  size={20}
+                  color={status === "BUDGET" ? "#ffffff" : "#64748b"}
+                  style={styles.statusToggleIcon}
+                />
+                <Text
+                  style={[
+                    styles.statusToggleText,
+                    status === "BUDGET" && styles.statusToggleTextActive,
+                  ]}
+                >
                   Planejado (Orçamento)
                 </Text>
               </TouchableOpacity>
@@ -292,8 +316,18 @@ export default function NewExpenseScreen(): React.JSX.Element {
                 disabled={isSubmitting}
                 activeOpacity={0.8}
               >
-                <Lucide name="check-circle" size={20} color={status === "CONFIRMED" ? "#ffffff" : "#64748b"} style={styles.statusToggleIcon} />
-                <Text style={[styles.statusToggleText, status === "CONFIRMED" && styles.statusToggleTextActive]}>
+                <Lucide
+                  name="check-circle"
+                  size={20}
+                  color={status === "CONFIRMED" ? "#ffffff" : "#64748b"}
+                  style={styles.statusToggleIcon}
+                />
+                <Text
+                  style={[
+                    styles.statusToggleText,
+                    status === "CONFIRMED" && styles.statusToggleTextActive,
+                  ]}
+                >
                   Confirmado (Gasto)
                 </Text>
               </TouchableOpacity>
@@ -356,7 +390,12 @@ export default function NewExpenseScreen(): React.JSX.Element {
                 }}
                 disabled={isSubmitting}
               >
-                <Text style={[styles.paymentSelectorText, paymentType === "UPFRONT" && styles.paymentSelectorTextActive]}>
+                <Text
+                  style={[
+                    styles.paymentSelectorText,
+                    paymentType === "UPFRONT" && styles.paymentSelectorTextActive,
+                  ]}
+                >
                   À Vista
                 </Text>
               </TouchableOpacity>
@@ -373,7 +412,12 @@ export default function NewExpenseScreen(): React.JSX.Element {
                 }}
                 disabled={isSubmitting}
               >
-                <Text style={[styles.paymentSelectorText, paymentType === "INSTALLMENTS" && styles.paymentSelectorTextActive]}>
+                <Text
+                  style={[
+                    styles.paymentSelectorText,
+                    paymentType === "INSTALLMENTS" && styles.paymentSelectorTextActive,
+                  ]}
+                >
                   Parcelado
                 </Text>
               </TouchableOpacity>
@@ -424,7 +468,9 @@ export default function NewExpenseScreen(): React.JSX.Element {
                     maxLength={3}
                   />
                 </View>
-                {errors.installmentsCount && <Text style={styles.errorText}>{errors.installmentsCount}</Text>}
+                {errors.installmentsCount && (
+                  <Text style={styles.errorText}>{errors.installmentsCount}</Text>
+                )}
                 <Text style={styles.helperText}>
                   Use o slider até 24 ou digite no campo ao lado até 360 parcelas.
                 </Text>
@@ -473,7 +519,10 @@ export default function NewExpenseScreen(): React.JSX.Element {
                     style={[
                       styles.priorityChip,
                       { borderColor: `${prio.color}44` },
-                      priority === prio.value && { backgroundColor: prio.color, borderColor: prio.color },
+                      priority === prio.value && {
+                        backgroundColor: prio.color,
+                        borderColor: prio.color,
+                      },
                     ]}
                     onPress={(): void => setPriority(prio.value)}
                     disabled={isSubmitting}
@@ -514,10 +563,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
                 contentContainerStyle={styles.roomsScrollContent}
               >
                 <TouchableOpacity
-                  style={[
-                    styles.roomChip,
-                    roomId === null && styles.roomChipActive,
-                  ]}
+                  style={[styles.roomChip, roomId === null && styles.roomChipActive]}
                   onPress={(): void => setRoomId(null)}
                   disabled={isSubmitting}
                 >
@@ -526,37 +572,35 @@ export default function NewExpenseScreen(): React.JSX.Element {
                   </Text>
                 </TouchableOpacity>
 
-                {rooms.map(
-                  (room): React.JSX.Element => {
-                    const isActive = roomId === room.id;
-                    const dotColor = room.colorCode || "#8fa3a3";
-                    return (
-                      <TouchableOpacity
-                        key={room.id}
-                        style={[
-                          styles.roomChip,
-                          isActive && styles.roomChipActive,
-                          isActive && { borderColor: dotColor },
-                        ]}
-                        onPress={(): void => setRoomId(room.id)}
-                        disabled={isSubmitting}
-                      >
-                        <View style={styles.roomChipContent}>
-                          <View style={[styles.roomColorDot, { backgroundColor: dotColor }]} />
-                          <Text
-                            style={[
-                              styles.roomChipText,
-                              isActive && styles.roomChipTextActive,
-                              isActive && { color: "#0e1717" },
-                            ]}
-                          >
-                            {room.name}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  },
-                )}
+                {rooms.map((room): React.JSX.Element => {
+                  const isActive = roomId === room.id;
+                  const dotColor = room.colorCode || "#8fa3a3";
+                  return (
+                    <TouchableOpacity
+                      key={room.id}
+                      style={[
+                        styles.roomChip,
+                        isActive && styles.roomChipActive,
+                        isActive && { borderColor: dotColor },
+                      ]}
+                      onPress={(): void => setRoomId(room.id)}
+                      disabled={isSubmitting}
+                    >
+                      <View style={styles.roomChipContent}>
+                        <View style={[styles.roomColorDot, { backgroundColor: dotColor }]} />
+                        <Text
+                          style={[
+                            styles.roomChipText,
+                            isActive && styles.roomChipTextActive,
+                            isActive && { color: "#0e1717" },
+                          ]}
+                        >
+                          {room.name}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </ScrollView>
             )}
           </View>

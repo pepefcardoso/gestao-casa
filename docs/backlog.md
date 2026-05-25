@@ -281,7 +281,7 @@
 
 | Field            | Value                                                              |
 | ---------------- | ------------------------------------------------------------------ |
-| **Status**       | `TODO`                                                             |
+| **Status**       | `DONE`                                                             |
 | **Platform**     | Mobile (`apps/mobile`)                                             |
 | **Target file**  | `package.json` · `apps/mobile/tsconfig.json` · `apps/mobile/app.json` |
 | **Dependencies** | Sprint 1, 2, 3 `DONE`                                              |
@@ -295,9 +295,9 @@
 
 **Acceptance criteria:**
 
-- [ ] Running typecheck on mobile files passes with no missing module errors.
-- [ ] Local Expo development environment runs without dependency issues.
-- [ ] Linting passes with zero errors.
+- [x] Running typecheck on mobile files passes with no missing module errors.
+- [x] Local Expo development environment runs without dependency issues.
+- [x] Linting passes with zero errors.
 
 ---
 
