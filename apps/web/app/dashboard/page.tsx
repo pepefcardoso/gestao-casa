@@ -11,7 +11,10 @@ import {
   Home,
   AlertTriangle,
   CreditCard,
+  MapPin,
+  Settings,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import {
   type FinancingInstallment,
   calculateFinancing,
@@ -55,6 +58,25 @@ interface FinancingRecord {
   createdAt: string;
 }
 
+interface House {
+  id: string;
+  name: string;
+  location: string | null;
+  totalArea: string | null;
+  latitude: string | null;
+  longitude: string | null;
+  createdAt: string;
+}
+
+const HouseMap = dynamic(() => import("../components/HouseMap"), {
+  ssr: false,
+  loading: (): React.JSX.Element => (
+    <div className="h-[250px] w-full bg-slate-100 rounded-lg flex items-center justify-center animate-pulse">
+      <span className="text-xs text-mint-slate-400">Carregando mapa...</span>
+    </div>
+  ),
+});
+
 interface MonthCol {
   key: string; // "YYYY-MM"
   label: string; // "Mai/26"
@@ -78,6 +100,7 @@ interface AggregatedMonthData {
 }
 
 export default function DashboardPage(): React.JSX.Element {
+  const [house, setHouse] = useState<House | null>(null);
   const [financingRecord, setFinancingRecord] = useState<FinancingRecord | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [incomes, setIncomes] = useState<Income[]>([]);
@@ -85,16 +108,24 @@ export default function DashboardPage(): React.JSX.Element {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState<boolean>(false);
 
-  // Fetch financing, expense and income data in parallel
+  // Fetch house, financing, expense and income data in parallel
   const fetchData = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const [financingRes, expensesRes, incomesRes] = await Promise.all([
+      const [houseRes, financingRes, expensesRes, incomesRes] = await Promise.all([
+        fetch(`/api/houses/${FALLBACK_HOUSE_ID}`),
         fetch(`/api/financing/${FALLBACK_HOUSE_ID}`),
         fetch("/api/expenses"),
         fetch("/api/incomes"),
       ]);
+
+      if (houseRes.ok) {
+        const houseData: unknown = await houseRes.json();
+        setHouse(houseData as House);
+      } else {
+        console.warn("House details fetch returned status:", houseRes.status);
+      }
 
       if (financingRes.ok) {
         const finData: unknown = await financingRes.json();
@@ -448,6 +479,108 @@ export default function DashboardPage(): React.JSX.Element {
                 <h3 className="text-2xl font-bold font-mono text-[#0e1717] mt-0.5">
                   {totals.hasFinancing ? formatBRL(totals.totalFinancing) : "—"}
                 </h3>
+              </div>
+            </div>
+          </section>
+
+          {/* Section: Sua Residência & Localização */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* House Info Card */}
+            <div className="bg-white border border-mint-slate-400/20 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
+                  <Home className="w-5 h-5 text-emerald-600" />
+                  <h2 className="text-lg font-semibold text-[#0e1717]">Sua Residência</h2>
+                </div>
+
+                {house ? (
+                  <div className="space-y-3.5">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Nome</span>
+                      <p className="text-base font-semibold text-[#0e1717]">{house.name}</p>
+                    </div>
+                    {house.location && (
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Endereço</span>
+                        <p className="text-sm font-medium text-slate-600">{house.location}</p>
+                      </div>
+                    )}
+                    {house.totalArea && (
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Área Total</span>
+                        <p className="text-sm font-semibold text-[#0e1717] font-mono">
+                          {Number(house.totalArea).toLocaleString("pt-BR")} m²
+                        </p>
+                      </div>
+                    )}
+                    {(house.latitude || house.longitude) && (
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Coordenadas</span>
+                        <p className="text-xs font-mono text-slate-500">
+                          Lat: {house.latitude || "—"} / Lng: {house.longitude || "—"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-mint-slate-400">Nenhuma informação de casa encontrada.</p>
+                )}
+              </div>
+
+              <Link
+                href="/settings"
+                className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-sm font-semibold rounded-lg transition-colors border border-slate-200/50 cursor-pointer"
+              >
+                <Settings className="w-4 h-4 text-slate-500" />
+                Configurar Residência
+              </Link>
+            </div>
+
+            {/* Map Card */}
+            <div className="lg:col-span-2 bg-white border border-mint-slate-400/20 rounded-xl p-6 shadow-sm flex flex-col gap-4 min-h-[300px]">
+              <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-emerald-600" />
+                  <h2 className="text-lg font-semibold text-[#0e1717]">Localização</h2>
+                </div>
+                {house?.latitude && house?.longitude && (
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${house.latitude},${house.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
+                  >
+                    Ver no Google Maps
+                  </a>
+                )}
+              </div>
+
+              <div className="flex-grow w-full h-full min-h-[220px] relative rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
+                {house?.latitude && house?.longitude ? (
+                  <HouseMap
+                    latitude={Number(house.latitude)}
+                    longitude={Number(house.longitude)}
+                    interactive={false}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 gap-3">
+                    <div className="p-3 bg-slate-100 text-slate-400 rounded-full">
+                      <MapPin className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#0e1717]">Localização não definida</p>
+                      <p className="text-xs text-mint-slate-400 mt-1 max-w-xs">
+                        Defina a localização da sua residência nas configurações para exibir o mapa.
+                      </p>
+                    </div>
+                    <Link
+                      href="/settings"
+                      className="mt-2 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+                    >
+                      Configurar agora →
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </section>

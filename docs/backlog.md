@@ -625,7 +625,7 @@
 
 | Field            | Value                                                              |
 | ---------------- | ------------------------------------------------------------------ |
-| **Status**       | `TODO`                                                             |
+| **Status**       | `DONE`                                                             |
 | **Platform**     | Web (`apps/web`)                                                   |
 | **Target file**  | `apps/web/app/settings/page.tsx` · `apps/web/app/dashboard/page.tsx` |
 | **Dependencies** | Task 7.2 `DONE`                                                    |
@@ -642,9 +642,9 @@
 
 **Acceptance criteria:**
 
-- [ ] Map loads successfully in the settings page without SSR/hydration warnings.
-- [ ] Clicking on the map updates coordinates in the form, and saving persists coordinates.
-- [ ] Re-entering the settings page correctly renders the marker at the stored coordinates.
-- [ ] `npx nx lint web` passes with zero errors.
+- [x] Map loads successfully in the settings page without SSR/hydration warnings.
+- [x] Clicking on the map updates coordinates in the form, and saving persists coordinates.
+- [x] Re-entering the settings page correctly renders the marker at the stored coordinates.
+- [x] `npx nx lint web` passes with zero errors.
 
 

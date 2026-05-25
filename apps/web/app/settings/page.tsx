@@ -3,6 +3,7 @@
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   ArrowLeft,
   AlertTriangle,
@@ -25,6 +26,8 @@ interface House {
   name: string;
   location: string | null;
   totalArea: string | null;
+  latitude: string | null;
+  longitude: string | null;
   createdAt: string;
 }
 
@@ -40,9 +43,20 @@ interface Room {
 interface ValidationErrors {
   houseName?: string;
   houseArea?: string;
+  houseLatitude?: string;
+  houseLongitude?: string;
   roomName?: string;
   roomArea?: string;
 }
+
+const HouseMap = dynamic(() => import("../components/HouseMap"), {
+  ssr: false,
+  loading: (): React.JSX.Element => (
+    <div className="h-[250px] w-full bg-slate-100 rounded-lg flex items-center justify-center animate-pulse">
+      <span className="text-xs text-mint-slate-400">Carregando mapa...</span>
+    </div>
+  ),
+});
 
 const PRESET_COLORS: string[] = [
   "#059669", // Emerald
@@ -61,6 +75,8 @@ export default function SettingsPage(): React.JSX.Element {
   const [houseName, setHouseName] = useState<string>("");
   const [houseLocation, setHouseLocation] = useState<string>("");
   const [houseArea, setHouseArea] = useState<string>("");
+  const [houseLatitude, setHouseLatitude] = useState<string>("");
+  const [houseLongitude, setHouseLongitude] = useState<string>("");
   const [isSavingHouse, setIsSavingHouse] = useState<boolean>(false);
   const [houseSuccessMsg, setHouseSuccessMsg] = useState<string | null>(null);
   const [houseErrorMsg, setHouseErrorMsg] = useState<string | null>(null);
@@ -100,6 +116,8 @@ export default function SettingsPage(): React.JSX.Element {
         setHouseName(h.name);
         setHouseLocation(h.location || "");
         setHouseArea(h.totalArea || "");
+        setHouseLatitude(h.latitude || "");
+        setHouseLongitude(h.longitude || "");
       } else if (res.status === 404) {
         setHouseErrorMsg("Casa padrão não encontrada no banco de dados.");
       } else {
@@ -150,6 +168,18 @@ export default function SettingsPage(): React.JSX.Element {
         errors.houseArea = "A área total deve ser maior que zero.";
       }
     }
+    if (houseLatitude !== "") {
+      const latNum = Number(houseLatitude);
+      if (Number.isNaN(latNum) || latNum < -90 || latNum > 90) {
+        errors.houseLatitude = "A latitude deve estar entre -90 e 90.";
+      }
+    }
+    if (houseLongitude !== "") {
+      const lngNum = Number(houseLongitude);
+      if (Number.isNaN(lngNum) || lngNum < -180 || lngNum > 180) {
+        errors.houseLongitude = "A longitude deve estar entre -180 e 180.";
+      }
+    }
     setValidationErrors(prev => ({ ...prev, ...errors }));
     return Object.keys(errors).length === 0;
   };
@@ -161,7 +191,13 @@ export default function SettingsPage(): React.JSX.Element {
     setHouseErrorMsg(null);
 
     // Clear previous house errors
-    setValidationErrors(prev => ({ ...prev, houseName: undefined, houseArea: undefined }));
+    setValidationErrors(prev => ({
+      ...prev,
+      houseName: undefined,
+      houseArea: undefined,
+      houseLatitude: undefined,
+      houseLongitude: undefined,
+    }));
 
     if (!validateHouseForm()) return;
 
@@ -171,6 +207,8 @@ export default function SettingsPage(): React.JSX.Element {
         name: houseName.trim(),
         location: houseLocation.trim() || null,
         totalArea: houseArea === "" ? null : Number(houseArea),
+        latitude: houseLatitude === "" ? null : Number(houseLatitude),
+        longitude: houseLongitude === "" ? null : Number(houseLongitude),
       };
 
       const res = await fetch(`/api/houses/${FALLBACK_HOUSE_ID}`, {
@@ -186,6 +224,8 @@ export default function SettingsPage(): React.JSX.Element {
         setHouseName(updated.name);
         setHouseLocation(updated.location || "");
         setHouseArea(updated.totalArea || "");
+        setHouseLatitude(updated.latitude || "");
+        setHouseLongitude(updated.longitude || "");
         setHouseSuccessMsg("Configurações da casa atualizadas com sucesso!");
       } else {
         const data: unknown = await res.json();
@@ -505,6 +545,77 @@ export default function SettingsPage(): React.JSX.Element {
                 {validationErrors.houseArea && (
                   <p className="text-xs text-orange-600 mt-1">{validationErrors.houseArea}</p>
                 )}
+              </div>
+
+              {/* Coordinates */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="houseLatitude" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Latitude
+                  </label>
+                  <input
+                    id="houseLatitude"
+                    type="number"
+                    step="any"
+                    placeholder="Ex: -23.5505"
+                    value={houseLatitude}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                      setHouseLatitude(e.target.value);
+                      setHouseSuccessMsg(null);
+                    }}
+                    className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
+                      validationErrors.houseLatitude ? "border-orange-500" : "border-mint-slate-400/40"
+                    }`}
+                  />
+                  {validationErrors.houseLatitude && (
+                    <p className="text-xs text-orange-600 mt-1">{validationErrors.houseLatitude}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="houseLongitude" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Longitude
+                  </label>
+                  <input
+                    id="houseLongitude"
+                    type="number"
+                    step="any"
+                    placeholder="Ex: -46.6333"
+                    value={houseLongitude}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                      setHouseLongitude(e.target.value);
+                      setHouseSuccessMsg(null);
+                    }}
+                    className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
+                      validationErrors.houseLongitude ? "border-orange-500" : "border-mint-slate-400/40"
+                    }`}
+                  />
+                  {validationErrors.houseLongitude && (
+                    <p className="text-xs text-orange-600 mt-1">{validationErrors.houseLongitude}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Interactive Map */}
+              <div className="space-y-1.5">
+                <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Selecionar no Mapa
+                </span>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Clique no mapa para marcar a localização exata ou digite as coordenadas acima.
+                </p>
+                <div className="h-[250px] w-full rounded-lg overflow-hidden border border-mint-slate-400/20 relative">
+                  <HouseMap
+                    latitude={houseLatitude === "" ? null : Number(houseLatitude)}
+                    longitude={houseLongitude === "" ? null : Number(houseLongitude)}
+                    onChange={(lat: number, lng: number): void => {
+                      setHouseLatitude(String(lat));
+                      setHouseLongitude(String(lng));
+                      setHouseSuccessMsg(null);
+                    }}
+                    interactive={true}
+                  />
+                </div>
               </div>
 
               <button
