@@ -85,7 +85,11 @@ export default function RoomsIndexScreen(): React.JSX.Element {
     const dotColor = item.colorCode || "#8fa3a3";
 
     return (
-      <View style={styles.roomCard}>
+      <TouchableOpacity
+        style={styles.roomCard}
+        onPress={(): void => router.push(`/rooms/${item.id}`)}
+        activeOpacity={0.7}
+      >
         <View style={styles.cardLeftContent}>
           <View style={[styles.colorDot, { backgroundColor: dotColor }]} />
           <View style={styles.roomInfo}>
@@ -98,7 +102,7 @@ export default function RoomsIndexScreen(): React.JSX.Element {
         <View style={[styles.arrowContainer, { borderColor: dotColor }]}>
           <Lucide name="chevron-right" size={20} color="#8fa3a3" />
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

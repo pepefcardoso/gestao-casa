@@ -198,6 +198,94 @@ router.openapi(
   },
 );
 
+const getRoomRoute = createRoute({
+  method: "get",
+  path: "/rooms/{id}",
+  request: {
+    params: z.object({
+      id: z.string().uuid(),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: selectRoomSchema,
+        },
+      },
+      description: "Room details retrieved successfully",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Invalid ID parameter",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Room not found",
+    },
+  },
+});
+
+router.openapi(
+  getRoomRoute,
+  async (
+    c,
+  ): Promise<
+    Response &
+      (
+        | TypedResponse<
+            {
+              id: string;
+              houseId: string;
+              name: string;
+              area: string | null;
+              colorCode: string | null;
+              createdAt: string;
+            },
+            200,
+            "json"
+          >
+        | TypedResponse<{ error: string }, 400, "json">
+        | TypedResponse<{ error: string }, 404, "json">
+      )
+  > => {
+    try {
+      const { id } = c.req.valid("param");
+
+      const [room] = await db
+        .select()
+        .from(rooms)
+        .where(eq(rooms.id, id));
+
+      if (!room) {
+        return c.json({ error: "Room not found" }, 404);
+      }
+
+      const responseRoom = {
+        ...room,
+        createdAt: room.createdAt.toISOString(),
+      };
+
+      return c.json(responseRoom, 200);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Database error";
+      return c.json({ error: message }, 400);
+    }
+  },
+);
+
 const putRoomRoute = createRoute({
   method: "put",
   path: "/rooms/{id}",

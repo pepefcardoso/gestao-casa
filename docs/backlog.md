@@ -459,11 +459,11 @@
 
 **Acceptance criteria:**
 
-- [ ] Navigating to `/rooms/[id]` loads correct room metadata and its linked expenses.
-- [ ] Room header color matches the custom color code of the room.
-- [ ] Budget and Confirmed totals correctly reflect the sum of the filtered expenses.
-- [ ] Tapping status toggle updates expense status atomically in DB and transitions card style from amber to rose.
-- [ ] `npx nx lint mobile` passes with zero errors.
+- [x] Navigating to `/rooms/[id]` loads correct room metadata and its linked expenses.
+- [x] Room header color matches the custom color code of the room.
+- [x] Budget and Confirmed totals correctly reflect the sum of the filtered expenses.
+- [x] Tapping status toggle updates expense status atomically in DB and transitions card style from amber to rose.
+- [x] `npx nx lint mobile` passes with zero errors.
 
 ---
 
