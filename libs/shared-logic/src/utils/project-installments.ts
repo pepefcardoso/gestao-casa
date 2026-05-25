@@ -32,6 +32,10 @@ function addMonths(date: Date, months: number): Date {
  * @returns An array of InsertExpense objects representing each installment.
  */
 export function projectInstallments(params: ProjectInstallmentsParams): InsertExpense[] {
+  if (params.totalAmount <= 0 || params.installmentsCount <= 0) {
+    throw new Error("Total amount and installments count must be greater than 0");
+  }
+
   const installments: InsertExpense[] = [];
   const baseDate = typeof params.dueDate === "string" ? new Date(params.dueDate) : params.dueDate;
   const singleAmount = params.totalAmount / params.installmentsCount;

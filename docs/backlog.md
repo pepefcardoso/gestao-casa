@@ -327,7 +327,7 @@
 
 | Field            | Value                                                              |
 | ---------------- | ------------------------------------------------------------------ |
-| **Status**       | `TODO`                                                             |
+| **Status**       | `DONE`                                                             |
 | **Platform**     | Shared / Backend                                                   |
 | **Target file**  | `package.json` · `libs/shared-logic/src/utils/`                    |
 | **Dependencies** | Sprint 1, 2, 3 `DONE`                                              |
@@ -342,5 +342,5 @@
 
 **Acceptance criteria:**
 
-- [ ] Running `npm run test` or `npx nx run-many --target=test` executes tests successfully.
-- [ ] Unit tests cover boundary values (e.g. term of 1 month, term of 360 months, overrides of exactly R$ 0, negative values rejecting, etc.) with 100% pass rate.
+- [x] Running `npm run test` or `npx nx run-many --target=test` executes tests successfully.
+- [x] Unit tests cover boundary values (e.g. term of 1 month, term of 360 months, overrides of exactly R$ 0, negative values rejecting, etc.) with 100% pass rate.

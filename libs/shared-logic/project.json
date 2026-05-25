@@ -1,0 +1,11 @@
+{
+  "name": "shared-logic",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/shared-logic",
+  "targets": {
+    "test": {
+      "command": "vitest run --dir libs/shared-logic"
+    }
+  }
+}

@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "db:migrate": "tsx --env-file=.env libs/backend/src/db/run-migrations.ts",
-    "db:check": "tsx --env-file=.env libs/backend/src/db/validate-connection.ts"
+    "db:check": "tsx --env-file=.env libs/backend/src/db/validate-connection.ts",
+    "test": "vitest run"
   },
   "private": true,
   "dependencies": {
@@ -45,6 +46,7 @@
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.0",
     "tsx": "^4.22.3",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^3.0.0"
   }
 }
