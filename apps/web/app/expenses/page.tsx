@@ -383,6 +383,12 @@ function ExpensesListContent(): React.JSX.Element {
               >
                 Despesas
               </Link>
+              <Link
+                href="/settings"
+                className="px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
+              >
+                Configurações
+              </Link>
             </nav>
           </div>
         </header>

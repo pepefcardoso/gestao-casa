@@ -6,7 +6,7 @@ import { expensesRouter } from "../../../../../libs/backend/src/api/routes/expen
 import { healthRouter } from "../../../../../libs/backend/src/api/routes/health";
 import { housesRouter } from "../../../../../libs/backend/src/api/routes/houses";
 
-export const app = new OpenAPIHono().basePath("/api");
+const app = new OpenAPIHono().basePath("/api");
 
 app.route("/", roomsRouter);
 app.route("/", financingRouter);

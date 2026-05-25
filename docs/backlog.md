@@ -399,11 +399,11 @@
 
 **Acceptance criteria:**
 
-- [ ] Form displays current house properties and saves changes successfully via PUT request.
-- [ ] Editing a room changes its details in the database and updates the UI without full page reload.
-- [ ] Deleting a room unlinks the room from expenses (room_id set to null) and removes it from the list.
-- [ ] Navigation menu on the web dashboard contains a link to `/settings`.
-- [ ] `npx nx lint web` passes with zero errors.
+- [x] Form displays current house properties and saves changes successfully via PUT request.
+- [x] Editing a room changes its details in the database and updates the UI without full page reload.
+- [x] Deleting a room unlinks the room from expenses (room_id set to null) and removes it from the list.
+- [x] Navigation menu on the web dashboard contains a link to `/settings`.
+- [x] `npx nx lint web` passes with zero errors.
 
 ---
 
