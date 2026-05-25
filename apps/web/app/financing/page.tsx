@@ -2,6 +2,8 @@
 
 import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -190,35 +192,67 @@ export default function FinancingPage(): React.JSX.Element {
 
   return (
     <div className="max-w-[1400px] mx-auto p-4 md:p-8 space-y-6">
-      {/* Upper header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-mint-slate-400/30 pb-5 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#0e1717]">
-            Simulador de Financiamento
-          </h1>
-          <p className="text-sm text-mint-slate-400 mt-1">
-            Controle e projete amortizações e parcelas customizadas de maneira reativa.
-          </p>
-        </div>
-        {saveStatus && (
-          <div
-            className={`px-4 py-2.5 rounded-lg text-sm font-medium border flex items-center gap-2 animate-fade-in ${
-              saveStatus.type === "success"
-                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                : "bg-orange-50 text-orange-800 border-orange-200"
-            }`}
-          >
-            <span>{saveStatus.message}</span>
-            <button
-              onClick={(): void => setSaveStatus(null)}
-              className="hover:opacity-70 font-semibold px-1 text-xs"
-              type="button"
-            >
-              ✕
-            </button>
+      {/* Navigation & Header */}
+      <div className="space-y-4">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar para o Painel
+        </Link>
+
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-mint-slate-400/30 pb-5 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-[#0e1717]">
+              Simulador de Financiamento
+            </h1>
+            <p className="text-sm text-mint-slate-400 mt-1">
+              Controle e projete amortizações e parcelas customizadas de maneira reativa.
+            </p>
           </div>
-        )}
-      </header>
+
+          <nav className="flex space-x-1.5 bg-slate-200/50 p-1.5 rounded-xl border border-slate-200/80">
+            <Link
+              href="/dashboard"
+              className="px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
+            >
+              Fluxo de Caixa
+            </Link>
+            <Link
+              href="/financing"
+              className="px-4 py-2 text-sm font-semibold rounded-lg bg-white shadow-sm text-emerald-700 transition-all"
+            >
+              Simulador
+            </Link>
+            <Link
+              href="/expenses"
+              className="px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
+            >
+              Despesas
+            </Link>
+          </nav>
+        </header>
+      </div>
+
+      {saveStatus && (
+        <div
+          className={`px-4 py-2.5 rounded-lg text-sm font-medium border flex items-center justify-between gap-2 animate-fade-in ${
+            saveStatus.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              : "bg-orange-50 text-orange-800 border-orange-200"
+          }`}
+        >
+          <span>{saveStatus.message}</span>
+          <button
+            onClick={(): void => setSaveStatus(null)}
+            className="hover:opacity-70 font-semibold px-1 text-xs"
+            type="button"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {fetchError && (
         <div className="p-4 bg-orange-50 text-orange-800 border border-orange-200 rounded-lg text-sm">

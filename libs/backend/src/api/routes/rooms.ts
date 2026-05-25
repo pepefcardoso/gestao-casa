@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import type { TypedResponse } from "hono";
 import { z } from "zod";
 import { db } from "../../db";
-import { insertRoomSchema, rooms, selectRoomSchema } from "../../db/schema";
+import { insertRoomSchema, rooms, selectRoomSchema, houses } from "../../db/schema";
 
 const router = new OpenAPIHono({
   defaultHook: (result, c): Response | undefined => {
@@ -82,6 +82,15 @@ router.openapi(
       if (!payload.houseId) {
         return c.json({ error: "houseId is required" }, 400);
       }
+
+      // Ensure that the referenced house exists in the database
+      await db
+        .insert(houses)
+        .values({
+          id: payload.houseId,
+          name: "Minha Casa",
+        })
+        .onConflictDoNothing();
 
       const [newRoom] = await db
         .insert(rooms)
