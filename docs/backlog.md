@@ -382,10 +382,10 @@
 
 | Field            | Value                             |
 | ---------------- | --------------------------------- |
-| **Status**       | `TODO`                            |
+| **Status**       | `DONE`                            |
 | **Platform**     | Web (`apps/web`)                  |
 | **Target file**  | `apps/web/app/settings/page.tsx`  |
-| **Dependencies** | Task 5.1 `TODO`                   |
+| **Dependencies** | Task 5.1 `DONE`                   |
 
 **What to implement:**
 
@@ -413,7 +413,7 @@
 
 | Field            | Value                          |
 | ---------------- | ------------------------------ |
-| **Status**       | `TODO`                         |
+| **Status**       | `DONE`                         |
 | **Platform**     | Mobile (`apps/mobile`)         |
 | **Target file**  | `apps/mobile/app/index.tsx`    |
 | **Dependencies** | Sprint 4 `DONE`                |
@@ -443,10 +443,10 @@
 
 | Field            | Value                                 |
 | ---------------- | ------------------------------------- |
-| **Status**       | `TODO`                                |
+| **Status**       | `DONE`                                |
 | **Platform**     | Mobile (`apps/mobile`)                |
 | **Target file**  | `apps/mobile/app/rooms/[id].tsx`      |
-| **Dependencies** | Task 6.1 `TODO`                       |
+| **Dependencies** | Task 6.1 `DONE`                       |
 
 **What to implement:**
 
@@ -471,10 +471,10 @@
 
 | Field            | Value                                 |
 | ---------------- | ------------------------------------- |
-| **Status**       | `TODO`                                |
+| **Status**       | `DONE`                                |
 | **Platform**     | Mobile (`apps/mobile`)                |
 | **Target file**  | `apps/mobile/app/expenses/index.tsx`  |
-| **Dependencies** | Task 6.1 `TODO`                       |
+| **Dependencies** | Task 6.1 `DONE`                       |
 
 **What to implement:**
 
@@ -489,8 +489,8 @@
 
 **Acceptance criteria:**
 
-- [ ] Expense list displays all items by default.
-- [ ] Changing room or priority filters refines the visible list immediately.
-- [ ] Status toggle works correctly, shifting colors and sending PUT request to update the database.
-- [ ] `npx nx lint mobile` passes with zero errors.
+- [x] Expense list displays all items by default.
+- [x] Changing room or priority filters refines the visible list immediately.
+- [x] Status toggle works correctly, shifting colors and sending PUT request to update the database.
+- [x] `npx nx lint mobile` passes with zero errors.
 
