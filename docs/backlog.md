@@ -254,7 +254,7 @@
 
 | Field            | Value                             |
 | ---------------- | --------------------------------- |
-| **Status**       | `TODO`                            |
+| **Status**       | `DONE`                            |
 | **Platform**     | Web (`apps/web`)                  |
 | **Target file**  | `apps/web/app/dashboard/page.tsx` |
 | **Dependencies** | Task 2.2 `DONE` · Task 3.1 `DONE` |
@@ -268,7 +268,7 @@
 
 **Acceptance criteria:**
 
-- [ ] Grid renders 12 columns starting from current month.
-- [ ] Confirmed and budget totals match the sum of `expenses` records for that month.
-- [ ] Clicking a column navigates to the expense list filtered by that month.
-- [ ] `npx nx lint web` passes with zero errors.
+- [x] Grid renders 12 columns starting from current month.
+- [x] Confirmed and budget totals match the sum of `expenses` records for that month.
+- [x] Clicking a column navigates to the expense list filtered by that month.
+- [x] `npx nx lint web` passes with zero errors.
