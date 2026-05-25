@@ -142,7 +142,7 @@
 
 | Field            | Value                             |
 | ---------------- | --------------------------------- |
-| **Status**       | `TODO`                            |
+| **Status**       | `DONE`                            |
 | **Platform**     | Web (`apps/web`)                  |
 | **Target file**  | `apps/web/app/financing/page.tsx` |
 | **Dependencies** | Task 2.1 `DONE` · Task 2.2 `DONE` |
@@ -171,7 +171,7 @@
 
 | Field            | Value                           |
 | ---------------- | ------------------------------- |
-| **Status**       | `TODO`                          |
+| **Status**       | `DONE`                          |
 | **Platform**     | Backend                         |
 | **Target file**  | `libs/backend/src/db/schema.ts` |
 | **Dependencies** | Task 1.1 `DONE`                 |
@@ -227,7 +227,7 @@
 
 | Field            | Value                              |
 | ---------------- | ---------------------------------- |
-| **Status**       | `TODO`                             |
+| **Status**       | `DONE`                             |
 | **Platform**     | Mobile (`apps/mobile`)             |
 | **Target file**  | `apps/mobile/app/expenses/new.tsx` |
 | **Dependencies** | Task 3.1 `DONE` · Task 3.2 `DONE`  |
@@ -272,3 +272,75 @@
 - [x] Confirmed and budget totals match the sum of `expenses` records for that month.
 - [x] Clicking a column navigates to the expense list filtered by that month.
 - [x] `npx nx lint web` passes with zero errors.
+
+---
+
+## Sprint 4 — Production Readiness
+
+### Task 4.1 — Expo/Mobile Infrastructure & Dependency Alignment
+
+| Field            | Value                                                              |
+| ---------------- | ------------------------------------------------------------------ |
+| **Status**       | `TODO`                                                             |
+| **Platform**     | Mobile (`apps/mobile`)                                             |
+| **Target file**  | `package.json` · `apps/mobile/tsconfig.json` · `apps/mobile/app.json` |
+| **Dependencies** | Sprint 1, 2, 3 `DONE`                                              |
+
+**What to implement:**
+
+- Add all required Expo and React Native packages to dependencies (`react-native`, `expo`, `expo-router`, `@expo/vector-icons`, `@react-native-community/slider`, and their respective types).
+- Create basic configuration files for the mobile application in `apps/mobile/` including `app.json`, `babel.config.js`, and `metro.config.js`.
+- Initialize `tsconfig.json` for the `mobile` app to extend the root workspace config with React Native environment settings (`"jsx": "react-native"`).
+- Make sure `tsc --noEmit` checks the mobile app screens successfully without type errors.
+
+**Acceptance criteria:**
+
+- [ ] Running typecheck on mobile files passes with no missing module errors.
+- [ ] Local Expo development environment runs without dependency issues.
+- [ ] Linting passes with zero errors.
+
+---
+
+### Task 4.2 — Database Migrations Reconciliation
+
+| Field            | Value                                                              |
+| ---------------- | ------------------------------------------------------------------ |
+| **Status**       | `TODO`                                                             |
+| **Platform**     | Backend                                                            |
+| **Target file**  | `libs/backend/src/db/`                                             |
+| **Dependencies** | Sprint 1, 2, 3 `DONE`                                              |
+
+**What to implement:**
+
+- Reconcile the local database migration log table (`drizzle.__drizzle_migrations`) with the existing schema structure, or establish a robust baseline setup.
+- Ensure that the migration script can be run on clean production environments cleanly from `0000` to the latest migration.
+- Configure validation script or health checks to ensure DB connections handle environment failures gracefully.
+
+**Acceptance criteria:**
+
+- [ ] Programmatic database migrations run cleanly on any fresh PostgreSQL instance.
+- [ ] Database connection works securely using environment variables in production configurations.
+
+---
+
+### Task 4.3 — Testing Framework Setup & Core Unit Tests
+
+| Field            | Value                                                              |
+| ---------------- | ------------------------------------------------------------------ |
+| **Status**       | `TODO`                                                             |
+| **Platform**     | Shared / Backend                                                   |
+| **Target file**  | `package.json` · `libs/shared-logic/src/utils/`                    |
+| **Dependencies** | Sprint 1, 2, 3 `DONE`                                              |
+
+**What to implement:**
+
+- Install and configure a testing runner (such as Vitest or Jest) in the workspace.
+- Write unit tests for pure helper functions in `libs/shared-logic`:
+  - `calculateFinancing()` (verifying SAC and PRICE systems, overrides, etc.).
+  - `projectInstallments()` (verifying description increments, monthly split of amounts, due date propagation).
+- Configure Nx target `test` or npm script to run test suite.
+
+**Acceptance criteria:**
+
+- [ ] Running `npm run test` or `npx nx run-many --target=test` executes tests successfully.
+- [ ] Unit tests cover boundary values (e.g. term of 1 month, term of 360 months, overrides of exactly R$ 0, negative values rejecting, etc.) with 100% pass rate.
