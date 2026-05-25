@@ -432,10 +432,10 @@
 
 **Acceptance criteria:**
 
-- [ ] Home screen serves as the default entry point of the mobile app.
-- [ ] House information and statistics load correctly.
-- [ ] Tapping each shortcut button correctly routes the user to the corresponding screen.
-- [ ] `npx nx lint mobile` passes with zero errors.
+- [x] Home screen serves as the default entry point of the mobile app.
+- [x] House information and statistics load correctly.
+- [x] Tapping each shortcut button correctly routes the user to the corresponding screen.
+- [x] `npx nx lint mobile` passes with zero errors.
 
 ---
 
