@@ -494,3 +494,157 @@
 - [x] Status toggle works correctly, shifting colors and sending PUT request to update the database.
 - [x] `npx nx lint mobile` passes with zero errors.
 
+---
+
+## Sprint 7 — Cash Inflow & Location Enhancements (Incomes & Maps)
+
+### Task 7.1 — DB Schema: `incomes` table and `houses` coordinates fields
+
+| Field            | Value                           |
+| ---------------- | ------------------------------- |
+| **Status**       | `TODO`                          |
+| **Platform**     | Backend                         |
+| **Target file**  | `libs/backend/src/db/schema.ts` |
+| **Dependencies** | Sprint 3 & Sprint 5 `DONE`      |
+
+**What to implement:**
+
+- Define `incomes` Drizzle table:
+  - `id` (uuid, defaultRandom, PK)
+  - `description` (text, notNull)
+  - `amount` (numeric, notNull)
+  - `status` (text, notNull, constrained to `["BUDGET", "CONFIRMED"]`)
+  - `category` (text, notNull) -> e.g. `["SALARY", "INVESTMENT", "REFUND", "OTHER"]`
+  - `dueDate` (timestamp, notNull)
+  - `createdAt` (timestamp, notNull, defaultNow)
+- Export `selectIncomeSchema`, `insertIncomeSchema`, `type Income`, `type InsertIncome` derived via `createSelectSchema` / `createInsertSchema` with `drizzle-zod`.
+- Apply `.refine()` on `insertIncomeSchema`: `amount` must be `> 0`.
+- Add optional `latitude` and `longitude` fields to the `houses` table as `numeric` values.
+- Apply `.refine()` on `insertHouseSchema` to optionally validate coordinate boundaries (latitude between -90 and 90, longitude between -180 and 180).
+
+**Acceptance criteria:**
+
+- [ ] `npx drizzle-kit generate` produces a valid migration with no errors.
+- [ ] `insertIncomeSchema.parse({ amount: -5 })` throws Zod validation error.
+- [ ] `insertHouseSchema.parse({ latitude: 120 })` throws Zod validation error.
+- [ ] All schema exports are fully typed with no implicit `any`.
+
+---
+
+### Task 7.2 — API: Incomes CRUD and Houses coordinates updates
+
+| Field            | Value                                                                                         |
+| ---------------- | --------------------------------------------------------------------------------------------- |
+| **Status**       | `TODO`                                                                                        |
+| **Platform**     | Backend                                                                                       |
+| **Target file**  | `libs/backend/src/api/routes/incomes.ts` · `libs/backend/src/api/routes/houses.ts` · `apps/web/app/api/[[...route]]/route.ts` |
+| **Dependencies** | Task 7.1 `DONE`                                                                               |
+
+**What to implement:**
+
+- Create new router `libs/backend/src/api/routes/incomes.ts` with the following OpenAPI Hono routes:
+  - `GET /incomes` — returns list of incomes, with optional filtering by month (`?month=YYYY-MM`).
+  - `POST /incomes` — validates body against `insertIncomeSchema`, inserts new record, and returns 201 + created record.
+  - `PUT /incomes/:id` — validates path/body and updates an income record.
+  - `DELETE /incomes/:id` — deletes an income record by ID.
+- Update `PUT /houses/:id` in `libs/backend/src/api/routes/houses.ts` to accept, validate, and save `latitude` and `longitude` coordinates.
+- Register the new `incomesRouter` in the Vercel Hono route handler: `apps/web/app/api/[[...route]]/route.ts`.
+
+**Acceptance criteria:**
+
+- [ ] `GET /api/incomes` returns all incomes.
+- [ ] `POST /api/incomes` with valid payload returns `201` and the newly created record.
+- [ ] `PUT /api/houses/:id` successfully saves custom latitude/longitude coordinates to the DB.
+- [ ] `GET /api/doc` includes all new incomes endpoints with correct schemas.
+- [ ] `npx nx lint backend` passes with zero errors.
+
+---
+
+### Task 7.3 — Web UI: Income CRUD Management page
+
+| Field            | Value                              |
+| ---------------- | ---------------------------------- |
+| **Status**       | `TODO`                             |
+| **Platform**     | Web (`apps/web`)                   |
+| **Target file**  | `apps/web/app/incomes/page.tsx`    |
+| **Dependencies** | Task 7.2 `DONE`                    |
+
+**What to implement:**
+
+- Create a page at `/incomes` containing a table/list of all incomes.
+- Style the page using the Mint-Slate design system.
+- Include a "Novo Lançamento" form/modal to add new incomes: description, amount, category, status (`BUDGET` / `CONFIRMED`), due date.
+- Include inline edit and delete actions for each income, updating the DB and UI.
+- Format all amounts using `BRL` currency formatting.
+- Add "Receitas" link to the shared navigation headers across pages (`dashboard/page.tsx`, `financing/page.tsx`, `expenses/page.tsx`, `settings/page.tsx`, `layout.tsx`).
+
+**Acceptance criteria:**
+
+- [ ] `/incomes` lists all incomes correctly.
+- [ ] Creating, editing, and deleting an income performs the API request and updates the UI without full page reload.
+- [ ] Navigation menu on all pages now contains a link to `/incomes`.
+- [ ] `npx nx lint web` passes with zero errors.
+
+---
+
+### Task 7.4 — Web UI: Dashboard & Month Details integration of Income data
+
+| Field            | Value                                                              |
+| ---------------- | ------------------------------------------------------------------ |
+| **Status**       | `TODO`                                                             |
+| **Platform**     | Web (`apps/web`)                                                   |
+| **Target file**  | `apps/web/app/dashboard/page.tsx` · `apps/web/app/expenses/page.tsx` |
+| **Dependencies** | Task 7.3 `DONE`                                                    |
+
+**What to implement:**
+
+- **Dashboard Integration**:
+  - Fetch incomes alongside expenses and financing in `dashboard/page.tsx`.
+  - Calculate monthly income aggregates (Confirmed vs Budget).
+  - Add two new KPI cards to the top grid:
+    - "Receita Total (12m)" (sum of all incomes)
+    - "Saldo Líquido (12m)" (sum of all incomes minus sum of all outflows, including financing).
+  - Update month column cards to display:
+    - Income totals (both Confirmed and Budget)
+    - Net Balance (Inflow - Outflow) for the month.
+- **Month Details Integration**:
+  - Update `apps/web/app/expenses/page.tsx` to handle both expenses and incomes when viewing a specific month (`?month=YYYY-MM`).
+  - Add a summary card showing: Inflow (Receitas), Outflow (Despesas + Financiamento), and Net Balance (Saldo) for that month.
+  - Implement a segmented control or tab toggle (e.g. "Despesas" vs "Receitas") to show the corresponding detail list for the month.
+
+**Acceptance criteria:**
+
+- [ ] Dashboard KPI cards and month grids show correct mathematical aggregates including incomes.
+- [ ] Clicking a month column navigates to `/expenses?month=YYYY-MM`, which displays the consolidated monthly details summary card.
+- [ ] Toggling between expenses and incomes tabs works reactively without full page reloads.
+- [ ] `npx nx lint web` passes with zero errors.
+
+---
+
+### Task 7.5 — Web UI: House Location Map integration in settings / home
+
+| Field            | Value                                                              |
+| ---------------- | ------------------------------------------------------------------ |
+| **Status**       | `TODO`                                                             |
+| **Platform**     | Web (`apps/web`)                                                   |
+| **Target file**  | `apps/web/app/settings/page.tsx` · `apps/web/app/dashboard/page.tsx` |
+| **Dependencies** | Task 7.2 `DONE`                                                    |
+
+**What to implement:**
+
+- **Settings Page Map**:
+  - Integrate a Leaflet map (using `react-leaflet` or pure Leaflet loaded dynamically on the client-side to avoid SSR `window is not defined` issues).
+  - In `settings/page.tsx`, under "Dados da Casa", render the interactive map.
+  - Allow users to click on the map to set/update `latitude` and `longitude` inputs, or type them and see the marker move.
+  - Submit coordinates along with other house details when saving the house form.
+- **Dashboard Map view**:
+  - Add a beautiful, responsive Location card on the dashboard or in settings displaying the map with the saved home location marker.
+
+**Acceptance criteria:**
+
+- [ ] Map loads successfully in the settings page without SSR/hydration warnings.
+- [ ] Clicking on the map updates coordinates in the form, and saving persists coordinates.
+- [ ] Re-entering the settings page correctly renders the marker at the stored coordinates.
+- [ ] `npx nx lint web` passes with zero errors.
+
+
