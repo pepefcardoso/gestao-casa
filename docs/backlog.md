@@ -305,7 +305,7 @@
 
 | Field            | Value                                                              |
 | ---------------- | ------------------------------------------------------------------ |
-| **Status**       | `TODO`                                                             |
+| **Status**       | `DONE`                                                             |
 | **Platform**     | Backend                                                            |
 | **Target file**  | `libs/backend/src/db/`                                             |
 | **Dependencies** | Sprint 1, 2, 3 `DONE`                                              |
@@ -318,8 +318,8 @@
 
 **Acceptance criteria:**
 
-- [ ] Programmatic database migrations run cleanly on any fresh PostgreSQL instance.
-- [ ] Database connection works securely using environment variables in production configurations.
+- [x] Programmatic database migrations run cleanly on any fresh PostgreSQL instance.
+- [x] Database connection works securely using environment variables in production configurations.
 
 ---
 
