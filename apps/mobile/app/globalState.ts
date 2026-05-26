@@ -95,3 +95,13 @@ export function useMobileUser(): {
 
   return { userId, role, changeUser };
 }
+
+export const THEME = {
+  colors: {
+    canvasFrost: "#F5F5F7",
+    textPrimary: "#1D1D1F",
+    textMuted: "#86868B",
+    brandEmerald: "#10B981",
+    white: "#FFFFFF",
+  },
+} as const;

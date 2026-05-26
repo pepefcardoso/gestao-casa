@@ -21,7 +21,7 @@ import { useMobileUser } from "../globalState";
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 const COLOR_PRESETS = [
-  { name: "Emerald", hex: "#059669" },
+  { name: "Emerald", hex: "#10B981" },
   { name: "Blue", hex: "#2563eb" },
   { name: "Violet", hex: "#7c3aed" },
   { name: "Rose", hex: "#e11d48" },
@@ -61,7 +61,7 @@ export default function NewRoomScreen(): React.JSX.Element {
 
   const [name, setName] = useState<string>("");
   const [area, setArea] = useState<string>("");
-  const [colorCode, setColorCode] = useState<string>("#059669");
+  const [colorCode, setColorCode] = useState<string>("#10B981");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -149,7 +149,7 @@ export default function NewRoomScreen(): React.JSX.Element {
           onPress={(): void => router.back()}
           disabled={isSubmitting}
         >
-          <Lucide name="arrow-left" size={24} color="#0e1717" />
+          <Lucide name="arrow-left" size={24} color="#1D1D1F" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Novo Cômodo</Text>
         <View style={styles.headerPlaceholder} />
@@ -176,7 +176,7 @@ export default function NewRoomScreen(): React.JSX.Element {
                 errors.name !== undefined && styles.inputError,
               ]}
               placeholder="Ex: Sala de Estar, Cozinha..."
-              placeholderTextColor="#8fa3a3"
+              placeholderTextColor="#86868B"
               value={name}
               onChangeText={setName}
               onFocus={(): void => setFocusedField("name")}
@@ -195,7 +195,7 @@ export default function NewRoomScreen(): React.JSX.Element {
                 errors.area !== undefined && styles.inputError,
               ]}
               placeholder="Ex: 15.5 (opcional)"
-              placeholderTextColor="#8fa3a3"
+              placeholderTextColor="#86868B"
               keyboardType="numeric"
               value={area}
               onChangeText={setArea}
@@ -232,7 +232,7 @@ export default function NewRoomScreen(): React.JSX.Element {
                 focusedField === "color" && styles.inputFocused,
               ]}
               placeholder="#000000"
-              placeholderTextColor="#8fa3a3"
+              placeholderTextColor="#86868B"
               value={colorCode}
               onChangeText={setColorCode}
               onFocus={(): void => setFocusedField("color")}
@@ -251,7 +251,7 @@ export default function NewRoomScreen(): React.JSX.Element {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.saveButton, role === "VIEWER" && { backgroundColor: "#cbd5e1" }]}
+              style={[styles.saveButton, role === "VIEWER" && { backgroundColor: "#EBEBEF" }]}
               onPress={handleSave}
               disabled={isSubmitting || role === "VIEWER"}
             >
@@ -273,7 +273,7 @@ export default function NewRoomScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f4f4",
+    backgroundColor: "#F5F5F7",
   },
   flex: {
     flex: 1,
@@ -285,8 +285,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#8fa3a3",
   },
   backButton: {
     padding: 8,
@@ -294,7 +292,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   headerPlaceholder: {
     width: 40,
@@ -325,22 +323,22 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
     marginBottom: 8,
   },
   input: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#8fa3a3",
-    borderRadius: 8,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "transparent",
     paddingVertical: 12,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   inputFocused: {
-    borderColor: "#059669",
-    borderWidth: 2,
+    borderColor: "#10B981",
+    backgroundColor: "#ffffff",
   },
   inputError: {
     borderColor: "#ea580c",
@@ -363,7 +361,7 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   colorSwatchActive: {
-    borderColor: "#0e1717",
+    borderColor: "#1D1D1F",
     transform: [{ scale: 1.1 }],
   },
   hexInput: {
@@ -378,23 +376,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "#8fa3a3",
+    borderColor: "#EBEBEF",
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 24,
     marginRight: 12,
     justifyContent: "center",
     alignItems: "center",
   },
   cancelButtonText: {
-    color: "#475569",
+    color: "#86868B",
     fontSize: 16,
     fontWeight: "600",
   },
   saveButton: {
     flex: 2,
-    backgroundColor: "#059669",
+    backgroundColor: "#10B981",
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
   },

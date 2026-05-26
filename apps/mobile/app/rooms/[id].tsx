@@ -208,7 +208,7 @@ export default function RoomDetailScreen(): React.JSX.Element {
 
     // Color based on priority
     const priorityColor =
-      item.priority === "HIGH" ? "#e11d48" : item.priority === "MEDIUM" ? "#d97706" : "#475569";
+      item.priority === "HIGH" ? "#E11D48" : item.priority === "MEDIUM" ? "#D97706" : "#86868B";
 
     return (
       <View style={[styles.expenseCard, cardStyle, borderAccentStyle]}>
@@ -275,12 +275,12 @@ export default function RoomDetailScreen(): React.JSX.Element {
         <StatusBar barStyle="dark-content" />
         <View style={styles.loadingHeader}>
           <TouchableOpacity style={styles.backButton} onPress={(): void => router.back()}>
-            <Lucide name="arrow-left" size={24} color="#0e1717" />
+            <Lucide name="arrow-left" size={24} color="#1D1D1F" />
           </TouchableOpacity>
           <Text style={styles.loadingHeaderTitle}>Detalhes do Cômodo</Text>
         </View>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#059669" />
+          <ActivityIndicator size="large" color="#10B981" />
           <Text style={styles.loadingText}>Carregando informações...</Text>
         </View>
       </SafeAreaView>
@@ -293,7 +293,7 @@ export default function RoomDetailScreen(): React.JSX.Element {
         <StatusBar barStyle="dark-content" />
         <View style={styles.loadingHeader}>
           <TouchableOpacity style={styles.backButton} onPress={(): void => router.back()}>
-            <Lucide name="arrow-left" size={24} color="#0e1717" />
+            <Lucide name="arrow-left" size={24} color="#1D1D1F" />
           </TouchableOpacity>
           <Text style={styles.loadingHeaderTitle}>Erro</Text>
         </View>
@@ -308,7 +308,7 @@ export default function RoomDetailScreen(): React.JSX.Element {
     );
   }
 
-  const roomColor = room.colorCode || "#059669";
+  const roomColor = room.colorCode || "#10B981";
   const displayArea = room.area
     ? `${Number(room.area).toLocaleString("pt-BR")} m²`
     : "Área não informada";
@@ -385,7 +385,7 @@ export default function RoomDetailScreen(): React.JSX.Element {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Lucide name="receipt" size={48} color="#8fa3a3" style={styles.emptyIcon} />
+            <Lucide name="receipt" size={48} color="#86868B" style={styles.emptyIcon} />
             <Text style={styles.emptyTitle}>Nenhuma despesa</Text>
             <Text style={styles.emptySubtitle}>
               Este cômodo não possui nenhuma despesa vinculada no momento.
@@ -400,7 +400,7 @@ export default function RoomDetailScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f4f4",
+    backgroundColor: "#F5F5F7",
   },
   loadingHeader: {
     height: 56,
@@ -408,13 +408,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#8fa3a3",
   },
   loadingHeaderTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
     marginLeft: 16,
   },
   backButton: {
@@ -429,7 +427,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: "#8fa3a3",
+    color: "#86868B",
     fontWeight: "500",
   },
   errorText: {
@@ -440,7 +438,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: "#059669",
+    backgroundColor: "#10B981",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -509,19 +507,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     marginHorizontal: 4,
-    borderWidth: 1,
-    borderColor: "rgba(143, 163, 163, 0.2)",
-    shadowColor: "#0e1717",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 30,
+    elevation: 2,
   },
   summaryIconBgConfirmed: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(225, 29, 72, 0.08)",
+    backgroundColor: "#FFF1F2",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
@@ -530,7 +526,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(217, 119, 6, 0.08)",
+    backgroundColor: "#FFFBEB",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
@@ -541,7 +537,7 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontSize: 10,
     fontWeight: "600",
-    color: "#8fa3a3",
+    color: "#86868B",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -561,11 +557,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   expensesCountText: {
     fontSize: 12,
-    color: "#8fa3a3",
+    color: "#86868B",
     fontWeight: "500",
   },
   listContent: {
@@ -578,25 +574,20 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 1.5,
-    shadowColor: "#0e1717",
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.04,
-    shadowRadius: 4,
+    shadowRadius: 30,
     elevation: 2,
   },
   confirmedCard: {
-    backgroundColor: "#fff1f2", // very light rose background
+    backgroundColor: "#FFF1F2",
   },
   budgetedCard: {
-    backgroundColor: "#fef3c7", // very light amber background
+    backgroundColor: "#FFFBEB",
   },
-  confirmedAccent: {
-    borderColor: "rgba(225, 29, 72, 0.25)",
-  },
-  budgetedAccent: {
-    borderColor: "rgba(217, 119, 6, 0.25)",
-  },
+  confirmedAccent: {},
+  budgetedAccent: {},
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -609,7 +600,7 @@ const styles = StyleSheet.create({
   expenseDescription: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
     lineHeight: 20,
   },
   metaRow: {
@@ -619,12 +610,12 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: "#475569",
+    color: "#86868B",
     fontWeight: "500",
   },
   metaDot: {
     fontSize: 12,
-    color: "#8fa3a3",
+    color: "#86868B",
     marginHorizontal: 6,
   },
   statusBadge: {
@@ -633,10 +624,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   confirmedBadgeBg: {
-    backgroundColor: "rgba(225, 29, 72, 0.15)",
+    backgroundColor: "rgba(225, 29, 72, 0.1)",
   },
   budgetedBadgeBg: {
-    backgroundColor: "rgba(217, 119, 6, 0.15)",
+    backgroundColor: "rgba(217, 119, 6, 0.1)",
   },
   statusBadgeText: {
     fontSize: 10,
@@ -644,14 +635,14 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   confirmedBadgeText: {
-    color: "#be123c",
+    color: "#E11D48",
   },
   budgetedBadgeText: {
-    color: "#b45309",
+    color: "#D97706",
   },
   cardDivider: {
     height: 1,
-    backgroundColor: "rgba(143, 163, 163, 0.15)",
+    backgroundColor: "rgba(134, 134, 139, 0.15)",
     marginVertical: 12,
   },
   cardFooter: {
@@ -661,18 +652,18 @@ const styles = StyleSheet.create({
   },
   amountLabel: {
     fontSize: 11,
-    color: "#475569",
+    color: "#86868B",
     fontWeight: "500",
     marginBottom: 2,
   },
   expenseAmount: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   installmentsText: {
     fontSize: 11,
-    color: "#475569",
+    color: "#86868B",
     marginTop: 2,
   },
   cardFooterRight: {
@@ -696,11 +687,11 @@ const styles = StyleSheet.create({
   confirmButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#d97706", // amber color for confirmation action
+    backgroundColor: "#10B981",
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 8,
-    shadowColor: "#d97706",
+    borderRadius: 16,
+    shadowColor: "#10B981",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -727,12 +718,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: "#8fa3a3",
+    color: "#86868B",
     textAlign: "center",
     lineHeight: 18,
   },

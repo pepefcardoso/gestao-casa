@@ -158,7 +158,7 @@ export default function HomeScreen(): React.JSX.Element {
           <Text style={styles.headerTitle}>Gestão Casa</Text>
         </View>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#059669" />
+          <ActivityIndicator size="large" color="#10B981" />
           <Text style={styles.loadingText}>Carregando painel...</Text>
         </View>
       </SafeAreaView>
@@ -190,7 +190,7 @@ export default function HomeScreen(): React.JSX.Element {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleRow}>
-          <Lucide name="home" size={24} color="#059669" style={styles.headerIcon} />
+          <Lucide name="home" size={24} color="#10B981" style={styles.headerIcon} />
           <Text style={styles.headerTitle}>Gestão Casa</Text>
         </View>
         <Text style={styles.headerSubtitle}>Seu painel residencial</Text>
@@ -227,13 +227,13 @@ export default function HomeScreen(): React.JSX.Element {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={["#059669"]} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={["#10B981"]} />
         }
       >
         {/* Property Info Card */}
         <View style={styles.propertyCard}>
           <View style={styles.propertyHeader}>
-            <Lucide name="home" size={24} color="#059669" />
+            <Lucide name="home" size={24} color="#10B981" />
             <View style={styles.propertyNameContainer}>
               <Text style={styles.propertyName} numberOfLines={1}>
                 {house?.name || "Minha Casa"}
@@ -247,7 +247,7 @@ export default function HomeScreen(): React.JSX.Element {
           <View style={styles.propertyDetailsRow}>
             <View style={styles.propertyDetailItem}>
               <View style={styles.detailIconRow}>
-                <Lucide name="map-pin" size={14} color="#8fa3a3" style={styles.detailIcon} />
+                <Lucide name="map-pin" size={14} color="#86868B" style={styles.detailIcon} />
                 <Text style={styles.detailLabel}>Localização</Text>
               </View>
               <Text style={styles.detailValue} numberOfLines={1}>
@@ -257,7 +257,7 @@ export default function HomeScreen(): React.JSX.Element {
 
             <View style={styles.propertyDetailItem}>
               <View style={styles.detailIconRow}>
-                <Lucide name="layout" size={14} color="#8fa3a3" style={styles.detailIcon} />
+                <Lucide name="layout" size={14} color="#86868B" style={styles.detailIcon} />
                 <Text style={styles.detailLabel}>Área Total</Text>
               </View>
               <Text style={styles.detailValue} numberOfLines={1}>
@@ -283,7 +283,7 @@ export default function HomeScreen(): React.JSX.Element {
           <View style={styles.statMiniCard}>
             <View style={styles.statMiniHeader}>
               <Text style={styles.statMiniLabel}>Cômodos</Text>
-              <Lucide name="layout" size={18} color="#059669" />
+              <Lucide name="layout" size={18} color="#10B981" />
             </View>
             <Text style={styles.statMiniValue}>{rooms.length}</Text>
             <Text style={styles.statMiniSubtext}>Espaços cadastrados</Text>
@@ -310,7 +310,7 @@ export default function HomeScreen(): React.JSX.Element {
               onPress={(): void => router.push("/rooms/index")}
             >
               <View style={styles.shortcutIconBg}>
-                <Lucide name="eye" size={22} color="#059669" />
+                <Lucide name="eye" size={22} color="#10B981" />
               </View>
               <Text style={styles.shortcutTitle}>Ver Cômodos</Text>
               <Text style={styles.shortcutDesc}>Listar espaços cadastrados</Text>
@@ -328,7 +328,7 @@ export default function HomeScreen(): React.JSX.Element {
               <View
                 style={[styles.shortcutIconBg, role === "VIEWER" && styles.shortcutIconBgDisabled]}
               >
-                <Lucide name="plus" size={22} color={role === "VIEWER" ? "#8fa3a3" : "#059669"} />
+                <Lucide name="plus" size={22} color={role === "VIEWER" ? "#86868B" : "#10B981"} />
               </View>
               <Text
                 style={[styles.shortcutTitle, role === "VIEWER" && styles.shortcutTextDisabled]}
@@ -348,7 +348,7 @@ export default function HomeScreen(): React.JSX.Element {
               onPress={(): void => router.push("/expenses")}
             >
               <View style={styles.shortcutIconBg}>
-                <Lucide name="receipt" size={22} color="#059669" />
+                <Lucide name="receipt" size={22} color="#10B981" />
               </View>
               <Text style={styles.shortcutTitle}>Lista de Despesas</Text>
               <Text style={styles.shortcutDesc}>Ver todos os gastos</Text>
@@ -369,7 +369,7 @@ export default function HomeScreen(): React.JSX.Element {
                 <Lucide
                   name="plus-circle"
                   size={22}
-                  color={role === "VIEWER" ? "#8fa3a3" : "#059669"}
+                  color={role === "VIEWER" ? "#86868B" : "#10B981"}
                 />
               </View>
               <Text
@@ -391,15 +391,13 @@ export default function HomeScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f4f4",
+    backgroundColor: "#F5F5F7",
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 12,
     backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(143, 163, 163, 0.3)",
   },
   headerTitleRow: {
     flexDirection: "row",
@@ -411,11 +409,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   headerSubtitle: {
     fontSize: 12,
-    color: "#8fa3a3",
+    color: "#86868B",
     marginTop: 2,
     fontWeight: "500",
   },
@@ -432,7 +430,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: "#8fa3a3",
+    color: "#86868B",
     fontWeight: "500",
   },
   errorText: {
@@ -443,7 +441,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: "#059669",
+    backgroundColor: "#10B981",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -458,12 +456,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
-    borderWidth: 1,
-    borderColor: "rgba(143, 163, 163, 0.3)",
-    shadowColor: "#0e1717",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 30,
     elevation: 2,
   },
   propertyHeader: {
@@ -477,17 +473,17 @@ const styles = StyleSheet.create({
   propertyName: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   propertyTag: {
     fontSize: 11,
-    color: "#059669",
+    color: "#10B981",
     fontWeight: "600",
     marginTop: 1,
   },
   propertyDivider: {
     height: 1,
-    backgroundColor: "rgba(143, 163, 163, 0.15)",
+    backgroundColor: "rgba(134, 134, 139, 0.1)",
     marginVertical: 12,
   },
   propertyDetailsRow: {
@@ -507,18 +503,18 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 11,
-    color: "#8fa3a3",
+    color: "#86868B",
     fontWeight: "500",
   },
   detailValue: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
     marginBottom: 12,
   },
   totalOutflowCard: {
@@ -526,12 +522,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "rgba(143, 163, 163, 0.3)",
-    shadowColor: "#0e1717",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 30,
     elevation: 2,
   },
   outflowHeader: {
@@ -543,19 +537,19 @@ const styles = StyleSheet.create({
   outflowLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#8fa3a3",
+    color: "#86868B",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   outflowValue: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
     fontFamily: "System",
   },
   outflowSubtext: {
     fontSize: 11,
-    color: "#8fa3a3",
+    color: "#86868B",
     marginTop: 6,
   },
   statsGridRow: {
@@ -569,12 +563,10 @@ const styles = StyleSheet.create({
     padding: 16,
     flex: 1,
     marginHorizontal: 4,
-    borderWidth: 1,
-    borderColor: "rgba(143, 163, 163, 0.3)",
-    shadowColor: "#0e1717",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 30,
     elevation: 2,
   },
   statMiniHeader: {
@@ -586,16 +578,16 @@ const styles = StyleSheet.create({
   statMiniLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#8fa3a3",
+    color: "#86868B",
   },
   statMiniValue: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   statMiniSubtext: {
     fontSize: 10,
-    color: "#8fa3a3",
+    color: "#86868B",
     marginTop: 4,
   },
   shortcutsGrid: {
@@ -612,19 +604,17 @@ const styles = StyleSheet.create({
     padding: 16,
     flex: 1,
     marginHorizontal: 4,
-    borderWidth: 1,
-    borderColor: "rgba(143, 163, 163, 0.3)",
-    shadowColor: "#0e1717",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 30,
     elevation: 2,
   },
   shortcutIconBg: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(5, 150, 105, 0.08)",
+    backgroundColor: "rgba(16, 185, 129, 0.08)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
@@ -632,12 +622,12 @@ const styles = StyleSheet.create({
   shortcutTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
     marginBottom: 4,
   },
   shortcutDesc: {
     fontSize: 11,
-    color: "#8fa3a3",
+    color: "#86868B",
     lineHeight: 14,
   },
   userSwitcherRow: {
@@ -646,13 +636,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     paddingHorizontal: 20,
     paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(143, 163, 163, 0.15)",
   },
   userSwitcherLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#8fa3a3",
+    color: "#86868B",
     marginRight: 8,
   },
   userSwitcherScroll: {
@@ -663,44 +651,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(143, 163, 163, 0.2)",
-    backgroundColor: "#f5f7f7",
+    backgroundColor: "#EBEBEF",
   },
   userPillSelected: {
-    borderColor: "#059669",
-    backgroundColor: "rgba(5, 150, 105, 0.08)",
+    backgroundColor: "rgba(16, 185, 129, 0.08)",
   },
   userPillText: {
     fontSize: 11,
-    color: "#8fa3a3",
+    color: "#86868B",
     fontWeight: "600",
   },
   userPillTextSelected: {
-    color: "#059669",
+    color: "#10B981",
   },
   roleBadge: {
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,
-    backgroundColor: "rgba(143, 163, 163, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(143, 163, 163, 0.2)",
+    backgroundColor: "rgba(134, 134, 139, 0.1)",
     marginLeft: 8,
   },
   roleBadgeText: {
     fontSize: 9,
     fontWeight: "700",
-    color: "#8fa3a3",
+    color: "#86868B",
   },
   shortcutCardDisabled: {
     opacity: 0.5,
     backgroundColor: "#f5f7f7",
   },
   shortcutIconBgDisabled: {
-    backgroundColor: "rgba(143, 163, 163, 0.1)",
+    backgroundColor: "rgba(134, 134, 139, 0.1)",
   },
   shortcutTextDisabled: {
-    color: "#8fa3a3",
+    color: "#86868B",
   },
 });

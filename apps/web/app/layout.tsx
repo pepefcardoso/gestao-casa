@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }): React.JSX.Element {
   return (
     <html lang="pt-BR">
-      <body className="antialiased min-h-screen bg-[#f0f4f4] text-[#0e1717]">
+      <body className="antialiased min-h-screen bg-canvas-frost text-text-primary">
         <UserProvider>
           <Header />
           {children}

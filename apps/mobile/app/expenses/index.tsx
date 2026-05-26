@@ -219,7 +219,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
 
     // Color based on priority
     const priorityColor =
-      item.priority === "HIGH" ? "#e11d48" : item.priority === "MEDIUM" ? "#d97706" : "#475569";
+      item.priority === "HIGH" ? "#E11D48" : item.priority === "MEDIUM" ? "#D97706" : "#86868B";
 
     const expenseRoom = rooms.find((r) => r.id === item.roomId);
 
@@ -240,7 +240,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
                 <View
                   style={[
                     styles.roomMiniDot,
-                    { backgroundColor: expenseRoom.colorCode || "#8fa3a3" },
+                    { backgroundColor: expenseRoom.colorCode || "#86868B" },
                   ]}
                 />
                 <Text style={styles.roomLabelText}>{expenseRoom.name}</Text>
@@ -299,13 +299,13 @@ export default function ExpenseListScreen(): React.JSX.Element {
         <StatusBar barStyle="dark-content" />
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={(): void => router.back()}>
-            <Lucide name="arrow-left" size={24} color="#0e1717" />
+            <Lucide name="arrow-left" size={24} color="#1D1D1F" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Despesas</Text>
           <View style={styles.headerPlaceholder} />
         </View>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#059669" />
+          <ActivityIndicator size="large" color="#10B981" />
           <Text style={styles.loadingText}>Carregando despesas...</Text>
         </View>
       </SafeAreaView>
@@ -318,7 +318,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
         <StatusBar barStyle="dark-content" />
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={(): void => router.back()}>
-            <Lucide name="arrow-left" size={24} color="#0e1717" />
+            <Lucide name="arrow-left" size={24} color="#1D1D1F" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Despesas</Text>
           <View style={styles.headerPlaceholder} />
@@ -345,7 +345,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
           onPress={(): void => router.back()}
           accessibilityLabel="Voltar"
         >
-          <Lucide name="arrow-left" size={24} color="#0e1717" />
+          <Lucide name="arrow-left" size={24} color="#1D1D1F" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Despesas</Text>
         <View style={styles.headerPlaceholder} />
@@ -367,7 +367,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
                   <View
                     style={[
                       styles.roomDot,
-                      { backgroundColor: selectedRoom.colorCode || "#8fa3a3" },
+                      { backgroundColor: selectedRoom.colorCode || "#86868B" },
                     ]}
                   />
                   <Text style={styles.dropdownTriggerText} numberOfLines={1}>
@@ -379,14 +379,14 @@ export default function ExpenseListScreen(): React.JSX.Element {
                   <Lucide
                     name="home"
                     size={16}
-                    color="#8fa3a3"
+                    color="#86868B"
                     style={styles.dropdownTriggerIcon}
                   />
                   <Text style={styles.dropdownTriggerText}>Todos os Cômodos</Text>
                 </>
               )}
             </View>
-            <Lucide name="chevron-down" size={18} color="#8fa3a3" />
+            <Lucide name="chevron-down" size={18} color="#86868B" />
           </TouchableOpacity>
         </View>
 
@@ -422,11 +422,11 @@ export default function ExpenseListScreen(): React.JSX.Element {
         renderItem={renderExpenseItem}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={["#059669"]} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={["#10B981"]} />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Lucide name="receipt" size={48} color="#8fa3a3" style={styles.emptyIcon} />
+            <Lucide name="receipt" size={48} color="#86868B" style={styles.emptyIcon} />
             <Text style={styles.emptyTitle}>Nenhuma despesa</Text>
             <Text style={styles.emptySubtitle}>
               Não encontramos nenhuma despesa para os filtros selecionados.
@@ -454,7 +454,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
                 onPress={(): void => setIsRoomPickerOpen(false)}
                 accessibilityLabel="Fechar"
               >
-                <Lucide name="x" size={20} color="#0e1717" />
+                <Lucide name="x" size={20} color="#1D1D1F" />
               </TouchableOpacity>
             </View>
 
@@ -470,7 +470,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
                   <Lucide
                     name="home"
                     size={16}
-                    color={selectedRoomId === null ? "#059669" : "#8fa3a3"}
+                    color={selectedRoomId === null ? "#10B981" : "#86868B"}
                     style={styles.modalItemIcon}
                   />
                   <Text
@@ -482,12 +482,12 @@ export default function ExpenseListScreen(): React.JSX.Element {
                     Todos os Cômodos
                   </Text>
                 </View>
-                {selectedRoomId === null && <Lucide name="check" size={18} color="#059669" />}
+                {selectedRoomId === null && <Lucide name="check" size={18} color="#10B981" />}
               </TouchableOpacity>
 
               {rooms.map((room): React.JSX.Element => {
                 const isActive = selectedRoomId === room.id;
-                const dotColor = room.colorCode || "#8fa3a3";
+                const dotColor = room.colorCode || "#86868B";
                 return (
                   <TouchableOpacity
                     key={room.id}
@@ -503,7 +503,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
                         {room.name}
                       </Text>
                     </View>
-                    {isActive && <Lucide name="check" size={18} color="#059669" />}
+                    {isActive && <Lucide name="check" size={18} color="#10B981" />}
                   </TouchableOpacity>
                 );
               })}
@@ -530,7 +530,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f4f4",
+    backgroundColor: "#F5F5F7",
   },
   header: {
     height: 56,
@@ -539,8 +539,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(143, 163, 163, 0.3)",
   },
   backButton: {
     padding: 8,
@@ -548,7 +546,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   headerPlaceholder: {
     width: 40,
@@ -562,7 +560,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: "#8fa3a3",
+    color: "#86868B",
     fontWeight: "500",
   },
   errorText: {
@@ -573,7 +571,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: "#059669",
+    backgroundColor: "#10B981",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -588,8 +586,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(143, 163, 163, 0.2)",
   },
   filterGroup: {
     marginBottom: 12,
@@ -597,17 +593,15 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#475569",
+    color: "#86868B",
     marginBottom: 6,
   },
   dropdownTrigger: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#f8fafc",
-    borderWidth: 1,
-    borderColor: "rgba(143, 163, 163, 0.4)",
-    borderRadius: 8,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 12,
   },
@@ -623,7 +617,7 @@ const styles = StyleSheet.create({
   dropdownTriggerText: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   roomDot: {
     width: 10,
@@ -633,7 +627,7 @@ const styles = StyleSheet.create({
   },
   segmentedControl: {
     flexDirection: "row",
-    backgroundColor: "#e2e8f0",
+    backgroundColor: "#EBEBEF",
     borderRadius: 8,
     padding: 3,
   },
@@ -655,10 +649,10 @@ const styles = StyleSheet.create({
   segmentButtonText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#475569",
+    color: "#86868B",
   },
   segmentButtonTextActive: {
-    color: "#059669",
+    color: "#10B981",
   },
   listContent: {
     padding: 16,
@@ -670,25 +664,20 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 1.5,
-    shadowColor: "#0e1717",
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.04,
-    shadowRadius: 4,
+    shadowRadius: 30,
     elevation: 2,
   },
   confirmedCard: {
-    backgroundColor: "#fff1f2",
+    backgroundColor: "#FFF1F2",
   },
   budgetedCard: {
-    backgroundColor: "#fef3c7",
+    backgroundColor: "#FFFBEB",
   },
-  confirmedAccent: {
-    borderColor: "rgba(225, 29, 72, 0.25)",
-  },
-  budgetedAccent: {
-    borderColor: "rgba(217, 119, 6, 0.25)",
-  },
+  confirmedAccent: {},
+  budgetedAccent: {},
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -701,7 +690,7 @@ const styles = StyleSheet.create({
   expenseDescription: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
     lineHeight: 20,
   },
   metaRow: {
@@ -711,19 +700,19 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: "#475569",
+    color: "#86868B",
     fontWeight: "500",
   },
   metaDot: {
     fontSize: 12,
-    color: "#8fa3a3",
+    color: "#86868B",
     marginHorizontal: 6,
   },
   roomLabelContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 6,
-    backgroundColor: "rgba(143, 163, 163, 0.1)",
+    backgroundColor: "rgba(134, 134, 139, 0.1)",
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 6,
@@ -738,7 +727,7 @@ const styles = StyleSheet.create({
   roomLabelText: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#475569",
+    color: "#86868B",
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -746,10 +735,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   confirmedBadgeBg: {
-    backgroundColor: "rgba(225, 29, 72, 0.15)",
+    backgroundColor: "rgba(225, 29, 72, 0.1)",
   },
   budgetedBadgeBg: {
-    backgroundColor: "rgba(217, 119, 6, 0.15)",
+    backgroundColor: "rgba(217, 119, 6, 0.1)",
   },
   statusBadgeText: {
     fontSize: 10,
@@ -757,14 +746,14 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   confirmedBadgeText: {
-    color: "#be123c",
+    color: "#E11D48",
   },
   budgetedBadgeText: {
-    color: "#b45309",
+    color: "#D97706",
   },
   cardDivider: {
     height: 1,
-    backgroundColor: "rgba(143, 163, 163, 0.15)",
+    backgroundColor: "rgba(134, 134, 139, 0.15)",
     marginVertical: 12,
   },
   cardFooter: {
@@ -774,18 +763,18 @@ const styles = StyleSheet.create({
   },
   amountLabel: {
     fontSize: 11,
-    color: "#475569",
+    color: "#86868B",
     fontWeight: "500",
     marginBottom: 2,
   },
   expenseAmount: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   installmentsText: {
     fontSize: 11,
-    color: "#475569",
+    color: "#86868B",
     marginTop: 2,
   },
   cardFooterRight: {
@@ -809,11 +798,11 @@ const styles = StyleSheet.create({
   confirmButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#d97706",
+    backgroundColor: "#10B981",
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 8,
-    shadowColor: "#d97706",
+    borderRadius: 16,
+    shadowColor: "#10B981",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -840,12 +829,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: "#8fa3a3",
+    color: "#86868B",
     textAlign: "center",
     lineHeight: 18,
   },
@@ -874,12 +863,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(143, 163, 163, 0.2)",
+    borderBottomColor: "rgba(134, 134, 139, 0.2)",
   },
   modalTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   modalList: {
     paddingVertical: 8,
@@ -892,7 +881,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   modalItemActive: {
-    backgroundColor: "rgba(5, 150, 105, 0.06)",
+    backgroundColor: "rgba(16, 185, 129, 0.06)",
   },
   modalItemLeft: {
     flexDirection: "row",
@@ -904,11 +893,11 @@ const styles = StyleSheet.create({
   },
   modalItemText: {
     fontSize: 15,
-    color: "#0e1717",
+    color: "#1D1D1F",
     fontWeight: "500",
   },
   modalItemTextActive: {
-    color: "#059669",
+    color: "#10B981",
     fontWeight: "600",
   },
   modalColorDot: {
@@ -921,7 +910,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 20,
     bottom: 30,
-    backgroundColor: "#059669",
+    backgroundColor: "#10B981",
     width: 56,
     height: 56,
     borderRadius: 28,

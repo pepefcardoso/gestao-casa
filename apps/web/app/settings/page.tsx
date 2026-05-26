@@ -542,30 +542,32 @@ export default function SettingsPage(): React.JSX.Element {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-5 space-y-8">
           {/* House Settings Panel */}
-          <section className="bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
+          <section className="bg-surface-white rounded-3xl shadow-premium p-6 space-y-6">
             <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
-              <Home className="w-5 h-5 text-emerald-600" />
-              <h2 className="text-lg font-semibold text-[#0e1717]">Dados da Casa</h2>
+              <Home className="w-5 h-5 text-brand-emerald" />
+              <h2 className="text-lg font-medium tracking-tight text-text-primary">
+                Dados da Casa
+              </h2>
             </div>
 
             {houseErrorMsg && (
-              <div className="p-4 bg-orange-50 text-orange-800 border border-orange-200 rounded-lg text-sm flex items-center gap-2">
+              <div className="p-4 bg-orange-50/50 text-orange-800 rounded-2xl text-xs flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-orange-600 shrink-0" />
                 <span>{houseErrorMsg}</span>
               </div>
             )}
 
             {houseSuccessMsg && (
-              <div className="p-4 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-sm flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="p-4 bg-emerald-50/50 text-emerald-800 rounded-2xl text-xs flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-brand-emerald shrink-0" />
                 <span>{houseSuccessMsg}</span>
               </div>
             )}
 
             {isLoadingHouse ? (
               <div className="flex flex-col items-center justify-center py-10 gap-3">
-                <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs text-mint-slate-400">Carregando casa...</span>
+                <div className="w-8 h-8 border-3 border-brand-emerald border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs text-text-muted">Carregando casa...</span>
               </div>
             ) : (
               <form onSubmit={(e): Promise<void> => handleHouseSubmit(e)} className="space-y-4">
@@ -573,7 +575,7 @@ export default function SettingsPage(): React.JSX.Element {
                 <div className="space-y-1.5">
                   <label
                     htmlFor="houseName"
-                    className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                    className="block text-xs font-bold text-text-muted uppercase tracking-wider"
                   >
                     Nome da Residência *
                   </label>
@@ -586,8 +588,8 @@ export default function SettingsPage(): React.JSX.Element {
                       setHouseName(e.target.value);
                       setHouseSuccessMsg(null);
                     }}
-                    className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
-                      validationErrors.houseName ? "border-orange-500" : "border-mint-slate-400/40"
+                    className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white border-transparent outline-hidden transition-all ${
+                      validationErrors.houseName ? "ring-2 ring-orange-500" : ""
                     }`}
                     disabled={role === "VIEWER"}
                     required
@@ -601,12 +603,12 @@ export default function SettingsPage(): React.JSX.Element {
                 <div className="space-y-1.5">
                   <label
                     htmlFor="houseLocation"
-                    className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                    className="block text-xs font-bold text-text-muted uppercase tracking-wider"
                   >
                     Localização / Endereço
                   </label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-text-muted">
                       <MapPin className="w-4 h-4" />
                     </span>
                     <input
@@ -618,7 +620,7 @@ export default function SettingsPage(): React.JSX.Element {
                         setHouseLocation(e.target.value);
                         setHouseSuccessMsg(null);
                       }}
-                      className="w-full pl-9 pr-3.5 py-2.5 border border-mint-slate-400/40 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all"
+                      className="w-full pl-9 pr-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white border-transparent outline-hidden transition-all text-text-primary"
                       disabled={role === "VIEWER"}
                     />
                   </div>
@@ -628,12 +630,12 @@ export default function SettingsPage(): React.JSX.Element {
                 <div className="space-y-1.5">
                   <label
                     htmlFor="houseArea"
-                    className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                    className="block text-xs font-bold text-text-muted uppercase tracking-wider"
                   >
                     Área Total (m²)
                   </label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-text-muted">
                       <Maximize2 className="w-4 h-4" />
                     </span>
                     <input
@@ -646,10 +648,8 @@ export default function SettingsPage(): React.JSX.Element {
                         setHouseArea(e.target.value);
                         setHouseSuccessMsg(null);
                       }}
-                      className={`w-full pl-9 pr-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
-                        validationErrors.houseArea
-                          ? "border-orange-500"
-                          : "border-mint-slate-400/40"
+                      className={`w-full pl-9 pr-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white border-transparent outline-hidden transition-all text-text-primary ${
+                        validationErrors.houseArea ? "ring-2 ring-orange-500" : ""
                       }`}
                       disabled={role === "VIEWER"}
                     />
@@ -664,7 +664,7 @@ export default function SettingsPage(): React.JSX.Element {
                   <div className="space-y-1.5">
                     <label
                       htmlFor="houseLatitude"
-                      className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                      className="block text-xs font-bold text-text-muted uppercase tracking-wider"
                     >
                       Latitude
                     </label>
@@ -678,10 +678,8 @@ export default function SettingsPage(): React.JSX.Element {
                         setHouseLatitude(e.target.value);
                         setHouseSuccessMsg(null);
                       }}
-                      className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
-                        validationErrors.houseLatitude
-                          ? "border-orange-500"
-                          : "border-mint-slate-400/40"
+                      className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white border-transparent outline-hidden transition-all text-text-primary ${
+                        validationErrors.houseLatitude ? "ring-2 ring-orange-500" : ""
                       }`}
                       disabled={role === "VIEWER"}
                     />
@@ -695,7 +693,7 @@ export default function SettingsPage(): React.JSX.Element {
                   <div className="space-y-1.5">
                     <label
                       htmlFor="houseLongitude"
-                      className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                      className="block text-xs font-bold text-text-muted uppercase tracking-wider"
                     >
                       Longitude
                     </label>
@@ -709,10 +707,8 @@ export default function SettingsPage(): React.JSX.Element {
                         setHouseLongitude(e.target.value);
                         setHouseSuccessMsg(null);
                       }}
-                      className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
-                        validationErrors.houseLongitude
-                          ? "border-orange-500"
-                          : "border-mint-slate-400/40"
+                      className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white border-transparent outline-hidden transition-all text-text-primary ${
+                        validationErrors.houseLongitude ? "ring-2 ring-orange-500" : ""
                       }`}
                       disabled={role === "VIEWER"}
                     />
@@ -726,13 +722,13 @@ export default function SettingsPage(): React.JSX.Element {
 
                 {/* Interactive Map */}
                 <div className="space-y-1.5">
-                  <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <span className="block text-xs font-bold text-text-muted uppercase tracking-wider">
                     Selecionar no Mapa
                   </span>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-[10px] text-text-muted mt-0.5">
                     Clique no mapa para marcar a localização exata ou digite as coordenadas acima.
                   </p>
-                  <div className="h-[250px] w-full rounded-lg overflow-hidden border border-mint-slate-400/20 relative">
+                  <div className="h-[250px] w-full rounded-2xl overflow-hidden bg-canvas-frost relative shadow-premium">
                     <HouseMap
                       latitude={houseLatitude === "" ? null : Number(houseLatitude)}
                       longitude={houseLongitude === "" ? null : Number(houseLongitude)}
@@ -749,7 +745,7 @@ export default function SettingsPage(): React.JSX.Element {
                 <button
                   type="submit"
                   disabled={isSavingHouse || role === "VIEWER"}
-                  className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-mint-slate-400/40 text-white text-sm font-semibold rounded-lg shadow-sm hover:shadow transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 px-4 bg-brand-emerald hover:bg-brand-emerald/90 disabled:bg-[#cbd5e1] text-white text-sm font-semibold rounded-full shadow-premium hover:shadow active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer border-transparent"
                 >
                   {isSavingHouse ? (
                     <>
@@ -765,14 +761,16 @@ export default function SettingsPage(): React.JSX.Element {
           </section>
 
           {/* Collaborators & Sharing Panel */}
-          <section className="bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
+          <section className="bg-surface-white rounded-3xl shadow-premium p-6 space-y-6">
             <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
-              <Users className="w-5 h-5 text-emerald-600" />
-              <h2 className="text-lg font-semibold text-[#0e1717]">Membros e Compartilhamento</h2>
+              <Users className="w-5 h-5 text-brand-emerald" />
+              <h2 className="text-lg font-medium tracking-tight text-text-primary">
+                Membros e Compartilhamento
+              </h2>
             </div>
 
             {shareError && (
-              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-xs flex items-center gap-2">
+              <div className="p-3 bg-orange-50/50 text-orange-800 rounded-2xl text-xs flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-orange-600 shrink-0" />
                 <span>{shareError}</span>
               </div>
@@ -782,9 +780,9 @@ export default function SettingsPage(): React.JSX.Element {
             {role === "OWNER" && (
               <form
                 onSubmit={handleShareSubmit}
-                className="space-y-3 p-3.5 bg-slate-50 border border-slate-200/50 rounded-xl"
+                className="space-y-3 p-4 bg-gray-50/50 border border-slate-200/10 rounded-2xl shadow-premium"
               >
-                <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <span className="block text-xs font-bold text-text-muted uppercase tracking-wider">
                   Convidar Novo Membro
                 </span>
                 <div className="space-y-2">
@@ -793,7 +791,7 @@ export default function SettingsPage(): React.JSX.Element {
                     placeholder="Email do convidado"
                     value={shareEmail}
                     onChange={(e): void => setShareEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-hidden transition-all"
+                    className="w-full px-3.5 py-2.5 rounded-2xl text-xs bg-gray-50 focus:bg-white border-transparent focus:ring-2 focus:ring-brand-emerald/50 outline-hidden transition-all text-text-primary placeholder:text-text-muted"
                     required
                   />
                   <div className="flex gap-2">
@@ -802,7 +800,7 @@ export default function SettingsPage(): React.JSX.Element {
                       onChange={(e): void =>
                         setShareRole(e.target.value as "COLLABORATOR" | "VIEWER")
                       }
-                      className="px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-3xs w-full"
+                      className="px-3 py-2 rounded-2xl text-xs font-semibold text-text-primary bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-brand-emerald/50 cursor-pointer shadow-premium w-full border-transparent"
                     >
                       <option value="COLLABORATOR">Colaborador (Editar)</option>
                       <option value="VIEWER">Visualizador (Apenas Ver)</option>
@@ -810,7 +808,7 @@ export default function SettingsPage(): React.JSX.Element {
                     <button
                       type="submit"
                       disabled={isSharing}
-                      className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow transition-all shrink-0 cursor-pointer"
+                      className="px-4 py-2 bg-brand-emerald hover:bg-brand-emerald/90 disabled:bg-slate-300 text-white text-xs font-semibold rounded-full shadow-premium hover:shadow active:scale-95 transition-all shrink-0 cursor-pointer border-transparent"
                     >
                       {isSharing ? "Convidando..." : "Convidar"}
                     </button>
@@ -821,10 +819,10 @@ export default function SettingsPage(): React.JSX.Element {
 
             {/* Members List */}
             <div className="space-y-3">
-              <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <span className="block text-xs font-bold text-text-muted uppercase tracking-wider">
                 Membros Ativos ({members.length})
               </span>
-              <div className="divide-y divide-slate-100 max-h-[250px] overflow-y-auto pr-1">
+              <div className="divide-y divide-slate-100 max-h-[250px] overflow-y-auto pr-1 no-scrollbar">
                 {members.map((member) => {
                   const isOwner = member.role === "OWNER";
                   const isCollaborator = member.role === "COLLABORATOR";
@@ -832,21 +830,21 @@ export default function SettingsPage(): React.JSX.Element {
                   return (
                     <div key={member.id} className="py-2.5 flex justify-between items-center gap-2">
                       <div className="min-w-0">
-                        <span className="text-xs font-semibold text-slate-800 block truncate">
+                        <span className="text-xs font-semibold text-text-primary block truncate">
                           {member.user.name}
                         </span>
-                        <span className="text-[10px] text-slate-400 block truncate">
+                        <span className="text-[10px] text-text-muted block truncate">
                           {member.user.email}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <span
-                          className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md border tracking-wider ${
+                          className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md tracking-wider ${
                             isOwner
-                              ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                              ? "bg-emerald-50 text-brand-emerald"
                               : isCollaborator
-                                ? "bg-blue-50 border-blue-200 text-blue-700"
-                                : "bg-slate-50 border-slate-200 text-slate-500"
+                                ? "bg-blue-50 text-blue-600"
+                                : "bg-slate-100 text-text-muted"
                           }`}
                         >
                           {isOwner ? "Dono" : isCollaborator ? "Editar" : "Ver"}
@@ -857,7 +855,7 @@ export default function SettingsPage(): React.JSX.Element {
                             onClick={(): void => {
                               handleRemoveMember(member.id);
                             }}
-                            className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-md transition-colors cursor-pointer border border-transparent hover:border-rose-100"
+                            className="p-1 hover:bg-rose-50 text-text-muted hover:text-rose-600 rounded-lg transition-colors cursor-pointer border border-transparent"
                             title="Remover Membro"
                           >
                             <X className="w-3.5 h-3.5" />
@@ -873,16 +871,18 @@ export default function SettingsPage(): React.JSX.Element {
         </div>
 
         {/* Room Management Panel */}
-        <section className="lg:col-span-7 bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
+        <section className="lg:col-span-7 bg-surface-white rounded-3xl shadow-premium p-6 space-y-6">
           <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Palette className="w-5 h-5 text-emerald-600" />
-              <h2 className="text-lg font-semibold text-[#0e1717]">Cômodos Cadastrados</h2>
+              <Palette className="w-5 h-5 text-brand-emerald" />
+              <h2 className="text-lg font-medium tracking-tight text-text-primary">
+                Cômodos Cadastrados
+              </h2>
             </div>
             {role !== "VIEWER" && (
               <button
                 onClick={handleNewRoomClick}
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-brand-emerald hover:bg-brand-emerald/90 text-white text-xs font-semibold rounded-full shadow-premium hover:shadow transition-all cursor-pointer border-transparent"
                 type="button"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -892,15 +892,15 @@ export default function SettingsPage(): React.JSX.Element {
           </div>
 
           {roomsErrorMsg && (
-            <div className="p-4 bg-orange-50 text-orange-800 border border-orange-200 rounded-lg text-sm">
+            <div className="p-4 bg-orange-50/50 text-orange-800 rounded-2xl text-xs">
               {roomsErrorMsg}
             </div>
           )}
 
           {isLoadingRooms ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs text-mint-slate-400">Carregando cômodos...</span>
+              <div className="w-8 h-8 border-3 border-brand-emerald border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs text-text-muted">Carregando cômodos...</span>
             </div>
           ) : rooms.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -908,18 +908,18 @@ export default function SettingsPage(): React.JSX.Element {
                 (room): React.JSX.Element => (
                   <div
                     key={room.id}
-                    className="border border-mint-slate-400/10 rounded-xl p-4 bg-slate-50/50 hover:bg-slate-50 transition-all flex justify-between items-center group shadow-2xs"
+                    className="rounded-2xl p-4 bg-canvas-frost transition-all duration-300 hover:translate-y-[-2px] hover:shadow-premium flex justify-between items-center group"
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className="w-4 h-4 rounded-full border border-slate-200/50 shrink-0 shadow-2xs"
+                        className="w-4 h-4 rounded-full border border-slate-200/25 shrink-0 shadow-premium"
                         style={{ backgroundColor: room.colorCode || "#cbd5e1" }}
                       />
                       <div>
-                        <h3 className="text-sm font-semibold text-[#0e1717] leading-snug">
+                        <h3 className="text-sm font-semibold text-text-primary leading-snug">
                           {room.name}
                         </h3>
-                        <p className="text-xs text-slate-500 font-medium">
+                        <p className="text-xs text-text-muted font-medium">
                           {room.area ? `${room.area} m²` : "Área não definida"}
                         </p>
                       </div>
@@ -929,7 +929,7 @@ export default function SettingsPage(): React.JSX.Element {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={(): void => handleEditRoomClick(room)}
-                          className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200/50 transition-all cursor-pointer"
+                          className="p-1.5 text-text-muted hover:text-brand-emerald hover:bg-white rounded-lg transition-all cursor-pointer"
                           title="Editar"
                           type="button"
                         >
@@ -937,7 +937,7 @@ export default function SettingsPage(): React.JSX.Element {
                         </button>
                         <button
                           onClick={(): void => setDeleteTargetRoom(room)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200/50 transition-all cursor-pointer"
+                          className="p-1.5 text-text-muted hover:text-rose-600 hover:bg-white rounded-lg transition-all cursor-pointer"
                           title="Excluir"
                           type="button"
                         >
@@ -950,7 +950,7 @@ export default function SettingsPage(): React.JSX.Element {
               )}
             </div>
           ) : (
-            <div className="py-16 text-center text-mint-slate-400 text-sm flex flex-col items-center gap-2">
+            <div className="py-16 text-center text-text-muted text-sm flex flex-col items-center gap-2">
               <Palette className="w-8 h-8 opacity-45" />
               <span>Nenhum cômodo cadastrado nesta residência.</span>
             </div>
@@ -961,16 +961,16 @@ export default function SettingsPage(): React.JSX.Element {
       {/* Room Modal (Create / Edit) */}
       {isRoomModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-100 shadow-2xl flex flex-col max-h-[90vh] animate-scale-up">
+          <div className="bg-surface-white rounded-3xl max-w-md w-full border border-slate-100/50 shadow-premium flex flex-col max-h-[90vh] animate-scale-up">
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-[#0e1717]">
+              <h3 className="text-lg font-medium tracking-tight text-text-primary">
                 {editingRoom ? "Editar Cômodo" : "Novo Cômodo"}
               </h3>
               <button
                 type="button"
                 onClick={(): void => setIsRoomModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
+                className="text-text-muted hover:text-text-primary p-1.5 rounded-full hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-4.5 h-4.5" />
               </button>
@@ -979,7 +979,7 @@ export default function SettingsPage(): React.JSX.Element {
             {/* Modal Form */}
             <form onSubmit={(e): Promise<void> => handleSaveRoom(e)} className="p-6 space-y-4">
               {roomFormError && (
-                <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-xs flex items-center gap-2">
+                <div className="p-3 bg-orange-50/50 text-orange-800 rounded-2xl text-xs flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-orange-600 shrink-0" />
                   <span>{roomFormError}</span>
                 </div>
@@ -989,7 +989,7 @@ export default function SettingsPage(): React.JSX.Element {
               <div className="space-y-1.5">
                 <label
                   htmlFor="roomName"
-                  className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                  className="block text-xs font-bold text-text-muted uppercase tracking-wider"
                 >
                   Nome do Cômodo *
                 </label>
@@ -1001,8 +1001,8 @@ export default function SettingsPage(): React.JSX.Element {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
                     setRoomName(e.target.value)
                   }
-                  className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
-                    validationErrors.roomName ? "border-orange-500" : "border-mint-slate-400/40"
+                  className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white border-transparent outline-hidden transition-all ${
+                    validationErrors.roomName ? "ring-2 ring-orange-500" : ""
                   }`}
                   required
                 />
@@ -1015,7 +1015,7 @@ export default function SettingsPage(): React.JSX.Element {
               <div className="space-y-1.5">
                 <label
                   htmlFor="roomArea"
-                  className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                  className="block text-xs font-bold text-text-muted uppercase tracking-wider"
                 >
                   Área (m²)
                 </label>
@@ -1028,8 +1028,8 @@ export default function SettingsPage(): React.JSX.Element {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
                     setRoomArea(e.target.value)
                   }
-                  className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
-                    validationErrors.roomArea ? "border-orange-500" : "border-mint-slate-400/40"
+                  className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white border-transparent outline-hidden transition-all ${
+                    validationErrors.roomArea ? "ring-2 ring-orange-500" : ""
                   }`}
                 />
                 {validationErrors.roomArea && (
@@ -1039,7 +1039,7 @@ export default function SettingsPage(): React.JSX.Element {
 
               {/* Color Code Selector */}
               <div className="space-y-2">
-                <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <span className="block text-xs font-bold text-text-muted uppercase tracking-wider">
                   Cor de Identificação
                 </span>
                 <div className="flex flex-wrap gap-2.5">
@@ -1051,7 +1051,7 @@ export default function SettingsPage(): React.JSX.Element {
                         onClick={(): void => setRoomColor(color)}
                         className={`w-7 h-7 rounded-full border transition-all cursor-pointer ${
                           roomColor === color
-                            ? "ring-2 ring-offset-2 ring-emerald-600 scale-110 border-transparent shadow-xs"
+                            ? "ring-2 ring-offset-2 ring-brand-emerald scale-110 border-transparent shadow-premium"
                             : "border-slate-200 hover:scale-105"
                         }`}
                         style={{ backgroundColor: color }}
@@ -1079,14 +1079,14 @@ export default function SettingsPage(): React.JSX.Element {
                   type="button"
                   onClick={(): void => setIsRoomModalOpen(false)}
                   disabled={isSavingRoom}
-                  className="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold rounded-full border border-slate-200 hover:bg-slate-50 text-text-muted transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingRoom}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2.5 bg-brand-emerald hover:bg-brand-emerald/90 text-white text-xs font-semibold rounded-full shadow-premium hover:shadow active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer border-transparent"
                 >
                   {isSavingRoom ? (
                     <>
@@ -1106,18 +1106,20 @@ export default function SettingsPage(): React.JSX.Element {
       {/* Room Delete Confirmation Modal */}
       {deleteTargetRoom && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-100 shadow-2xl p-6 space-y-6 animate-scale-up">
+          <div className="bg-surface-white rounded-3xl max-w-md w-full border border-slate-100/50 shadow-premium p-6 space-y-6 animate-scale-up">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-rose-50 rounded-xl text-rose-600 shrink-0">
+              <div className="p-3 bg-rose-50 rounded-2xl text-rose-600 shrink-0">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-bold text-[#0e1717]">Excluir Cômodo?</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">
+                <h3 className="text-lg font-medium tracking-tight text-text-primary">
+                  Excluir Cômodo?
+                </h3>
+                <p className="text-xs text-text-muted leading-relaxed">
                   Tem certeza de que deseja excluir o cômodo{" "}
-                  <strong className="text-slate-800">"{deleteTargetRoom.name}"</strong>?
+                  <strong className="text-text-primary">"{deleteTargetRoom.name}"</strong>?
                 </p>
-                <div className="p-3.5 bg-rose-50/50 border border-rose-100 rounded-xl text-xs text-rose-800 leading-relaxed font-medium">
+                <div className="p-3.5 bg-rose-50/50 rounded-2xl text-[11px] text-rose-800 leading-relaxed font-medium">
                   <strong>Aviso:</strong> Todas as despesas atualmente vinculadas a este cômodo
                   serão desvinculadas (o campo do cômodo será limpo nelas). As despesas em si não
                   serão deletadas.
@@ -1130,7 +1132,7 @@ export default function SettingsPage(): React.JSX.Element {
                 type="button"
                 onClick={(): void => setDeleteTargetRoom(null)}
                 disabled={isDeletingRoom}
-                className="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold rounded-full border border-slate-200 hover:bg-slate-50 text-text-muted transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -1138,7 +1140,7 @@ export default function SettingsPage(): React.JSX.Element {
                 type="button"
                 onClick={handleDeleteRoomConfirm}
                 disabled={isDeletingRoom}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-full shadow-premium hover:shadow active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer border-transparent"
               >
                 {isDeletingRoom ? (
                   <>

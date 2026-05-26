@@ -50,9 +50,9 @@ const PRIORITIES: {
   color: string;
   icon: "alert-triangle" | "circle" | "arrow-down";
 }[] = [
-  { label: "Alta", value: "HIGH", color: "#ea580c", icon: "alert-triangle" },
+  { label: "Alta", value: "HIGH", color: "#E11D48", icon: "alert-triangle" },
   { label: "Média", value: "MEDIUM", color: "#2563eb", icon: "circle" },
-  { label: "Baixa", value: "LOW", color: "#64748b", icon: "arrow-down" },
+  { label: "Baixa", value: "LOW", color: "#86868B", icon: "arrow-down" },
 ];
 
 const clientExpenseSchema = z.object({
@@ -267,7 +267,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
           onPress={(): void => router.back()}
           disabled={isSubmitting}
         >
-          <Lucide name="arrow-left" size={24} color="#0e1717" />
+          <Lucide name="arrow-left" size={24} color="#1D1D1F" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Novo Gasto</Text>
         <View style={styles.headerPlaceholder} />
@@ -301,13 +301,13 @@ export default function NewExpenseScreen(): React.JSX.Element {
                 <Lucide
                   name="piggy-bank"
                   size={20}
-                  color={status === "BUDGET" ? "#ffffff" : "#64748b"}
+                  color={status === "BUDGET" ? "#D97706" : "#86868B"}
                   style={styles.statusToggleIcon}
                 />
                 <Text
                   style={[
                     styles.statusToggleText,
-                    status === "BUDGET" && styles.statusToggleTextActive,
+                    status === "BUDGET" && { color: "#D97706", fontWeight: "700" },
                   ]}
                 >
                   Planejado (Orçamento)
@@ -325,13 +325,13 @@ export default function NewExpenseScreen(): React.JSX.Element {
                 <Lucide
                   name="check-circle"
                   size={20}
-                  color={status === "CONFIRMED" ? "#ffffff" : "#64748b"}
+                  color={status === "CONFIRMED" ? "#10B981" : "#86868B"}
                   style={styles.statusToggleIcon}
                 />
                 <Text
                   style={[
                     styles.statusToggleText,
-                    status === "CONFIRMED" && styles.statusToggleTextActive,
+                    status === "CONFIRMED" && { color: "#10B981", fontWeight: "700" },
                   ]}
                 >
                   Confirmado (Gasto)
@@ -350,7 +350,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
                 errors.description !== undefined && styles.inputError,
               ]}
               placeholder="Ex: Sofá de Couro, Pintura da Fachada..."
-              placeholderTextColor="#8fa3a3"
+              placeholderTextColor="#86868B"
               value={description}
               onChangeText={setDescription}
               onFocus={(): void => setFocusedField("description")}
@@ -370,7 +370,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
                 errors.totalAmount !== undefined && styles.inputError,
               ]}
               placeholder="Ex: 1500.00"
-              placeholderTextColor="#8fa3a3"
+              placeholderTextColor="#86868B"
               keyboardType="decimal-pad"
               value={totalAmount}
               onChangeText={setTotalAmount}
@@ -434,7 +434,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
           {paymentType === "INSTALLMENTS" && (
             <View style={styles.installmentsWrapper}>
               <View style={styles.livePreviewContainer}>
-                <Lucide name="calculator" size={18} color="#059669" style={styles.previewIcon} />
+                <Lucide name="calculator" size={18} color="#10B981" style={styles.previewIcon} />
                 <Text style={styles.livePreviewText}>
                   {formatCurrency(parsedAmount)} ÷ {parsedInstallmentsCount} ={" "}
                   <Text style={styles.livePreviewHighlighted}>
@@ -454,9 +454,9 @@ export default function NewExpenseScreen(): React.JSX.Element {
                     step={1}
                     value={Math.min(24, Number(installmentsCount) || 1)}
                     onValueChange={handleSliderChange}
-                    minimumTrackTintColor="#059669"
-                    maximumTrackTintColor="#cbd5e1"
-                    thumbTintColor="#059669"
+                    minimumTrackTintColor="#10B981"
+                    maximumTrackTintColor="#EBEBEF"
+                    thumbTintColor="#10B981"
                     disabled={isSubmitting}
                   />
                   <TextInput
@@ -524,10 +524,10 @@ export default function NewExpenseScreen(): React.JSX.Element {
                     key={prio.value}
                     style={[
                       styles.priorityChip,
-                      { borderColor: `${prio.color}44` },
                       priority === prio.value && {
-                        backgroundColor: prio.color,
+                        backgroundColor: `${prio.color}15`,
                         borderColor: prio.color,
+                        borderWidth: 2,
                       },
                     ]}
                     onPress={(): void => setPriority(prio.value)}
@@ -538,14 +538,14 @@ export default function NewExpenseScreen(): React.JSX.Element {
                       <Lucide
                         name={prio.icon}
                         size={14}
-                        color={priority === prio.value ? "#ffffff" : prio.color}
+                        color={prio.color}
                         style={styles.priorityIcon}
                       />
                       <Text
                         style={[
                           styles.priorityChipText,
                           { color: prio.color },
-                          priority === prio.value && styles.priorityChipTextActive,
+                          priority === prio.value && { fontWeight: "700" },
                         ]}
                       >
                         {prio.label}
@@ -561,7 +561,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
           <View style={styles.formGroup}>
             <Text style={styles.label}>Cômodo Associado (Opcional)</Text>
             {isLoadingRooms ? (
-              <ActivityIndicator size="small" color="#059669" style={styles.loader} />
+              <ActivityIndicator size="small" color="#10B981" style={styles.loader} />
             ) : (
               <ScrollView
                 horizontal
@@ -580,7 +580,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
 
                 {rooms.map((room): React.JSX.Element => {
                   const isActive = roomId === room.id;
-                  const dotColor = room.colorCode || "#8fa3a3";
+                  const dotColor = room.colorCode || "#86868B";
                   return (
                     <TouchableOpacity
                       key={room.id}
@@ -598,7 +598,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
                           style={[
                             styles.roomChipText,
                             isActive && styles.roomChipTextActive,
-                            isActive && { color: "#0e1717" },
+                            isActive && { color: "#1D1D1F" },
                           ]}
                         >
                           {room.name}
@@ -622,7 +622,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.saveButton, role === "VIEWER" && { backgroundColor: "#cbd5e1" }]}
+              style={[styles.saveButton, role === "VIEWER" && { backgroundColor: "#EBEBEF" }]}
               onPress={handleSave}
               disabled={isSubmitting || role === "VIEWER"}
             >
@@ -644,7 +644,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f4f4",
+    backgroundColor: "#F5F5F7",
   },
   flex: {
     flex: 1,
@@ -656,8 +656,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#8fa3a3",
   },
   backButton: {
     padding: 8,
@@ -665,7 +663,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   headerPlaceholder: {
     width: 40,
@@ -697,22 +695,22 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
     marginBottom: 8,
   },
   input: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#8fa3a3",
-    borderRadius: 8,
+    backgroundColor: "#F3F4F6",
+    borderWidth: 2,
+    borderColor: "transparent",
+    borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   inputFocused: {
-    borderColor: "#059669",
-    borderWidth: 2,
+    borderColor: "#10B981",
+    backgroundColor: "#ffffff",
   },
   inputError: {
     borderColor: "#ea580c",
@@ -724,7 +722,7 @@ const styles = StyleSheet.create({
   },
   statusToggleContainer: {
     flexDirection: "row",
-    backgroundColor: "#e2e8f0",
+    backgroundColor: "#EBEBEF",
     borderRadius: 12,
     padding: 4,
   },
@@ -740,56 +738,73 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   statusToggleBudgetActive: {
-    backgroundColor: "#d97706",
+    backgroundColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   statusToggleConfirmedActive: {
-    backgroundColor: "#059669",
+    backgroundColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   statusToggleText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#475569",
+    color: "#86868B",
   },
   statusToggleTextActive: {
-    color: "#ffffff",
+    color: "#1D1D1F",
   },
   paymentSelectorContainer: {
     flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "#8fa3a3",
-    borderRadius: 8,
-    overflow: "hidden",
+    backgroundColor: "#EBEBEF",
+    borderRadius: 12,
+    padding: 4,
   },
   paymentSelectorButton: {
     flex: 1,
-    backgroundColor: "#ffffff",
     paddingVertical: 12,
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 8,
   },
   paymentSelectorActive: {
-    backgroundColor: "#059669",
+    backgroundColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   paymentSelectorText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#475569",
+    color: "#86868B",
   },
   paymentSelectorTextActive: {
-    color: "#ffffff",
+    color: "#1D1D1F",
   },
   installmentsWrapper: {
-    backgroundColor: "#f8fafc",
-    borderWidth: 1,
-    borderColor: "rgba(143, 163, 163, 0.2)",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 30,
+    elevation: 2,
   },
   livePreviewContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(5, 150, 105, 0.08)",
+    backgroundColor: "rgba(16, 185, 129, 0.08)",
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
@@ -800,11 +815,11 @@ const styles = StyleSheet.create({
   },
   livePreviewText: {
     fontSize: 14,
-    color: "#334155",
+    color: "#1D1D1F",
     fontWeight: "500",
   },
   livePreviewHighlighted: {
-    color: "#059669",
+    color: "#10B981",
     fontWeight: "700",
   },
   sliderTextInputRow: {
@@ -818,20 +833,20 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   installmentsInput: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#8fa3a3",
-    borderRadius: 8,
+    backgroundColor: "#F3F4F6",
+    borderWidth: 2,
+    borderColor: "transparent",
+    borderRadius: 12,
     width: 64,
     height: 44,
     textAlign: "center",
     fontSize: 16,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   helperText: {
     fontSize: 11,
-    color: "#64748b",
+    color: "#86868B",
     marginTop: 6,
   },
   categoryGrid: {
@@ -840,9 +855,9 @@ const styles = StyleSheet.create({
     marginHorizontal: -4,
   },
   categoryChip: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
+    backgroundColor: "#F3F4F6",
+    borderWidth: 2,
+    borderColor: "transparent",
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -850,16 +865,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryChipActive: {
-    backgroundColor: "#059669",
-    borderColor: "#059669",
+    backgroundColor: "rgba(16, 185, 129, 0.08)",
+    borderColor: "#10B981",
   },
   categoryChipText: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#475569",
+    color: "#86868B",
   },
   categoryChipTextActive: {
-    color: "#ffffff",
+    color: "#10B981",
+    fontWeight: "600",
   },
   priorityRow: {
     flexDirection: "row",
@@ -867,9 +883,10 @@ const styles = StyleSheet.create({
   },
   priorityChip: {
     flex: 1,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderRadius: 8,
+    backgroundColor: "#F3F4F6",
+    borderWidth: 2,
+    borderColor: "transparent",
+    borderRadius: 12,
     paddingVertical: 10,
     marginHorizontal: 4,
     alignItems: "center",
@@ -895,17 +912,17 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   roomChip: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
+    backgroundColor: "#F3F4F6",
+    borderWidth: 2,
+    borderColor: "transparent",
     borderRadius: 16,
     paddingVertical: 8,
     paddingHorizontal: 14,
     marginRight: 8,
   },
   roomChipActive: {
-    borderColor: "#0e1717",
-    borderWidth: 1.5,
+    backgroundColor: "rgba(29, 29, 31, 0.05)",
+    borderColor: "#1D1D1F",
   },
   roomChipContent: {
     flexDirection: "row",
@@ -919,11 +936,11 @@ const styles = StyleSheet.create({
   },
   roomChipText: {
     fontSize: 13,
-    color: "#475569",
+    color: "#86868B",
     fontWeight: "500",
   },
   roomChipTextActive: {
-    color: "#0e1717",
+    color: "#1D1D1F",
     fontWeight: "600",
   },
   actionContainer: {
@@ -935,23 +952,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "#8fa3a3",
+    borderColor: "#EBEBEF",
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 24,
     marginRight: 12,
     justifyContent: "center",
     alignItems: "center",
   },
   cancelButtonText: {
-    color: "#475569",
+    color: "#86868B",
     fontSize: 16,
     fontWeight: "600",
   },
   saveButton: {
     flex: 2,
-    backgroundColor: "#059669",
+    backgroundColor: "#10B981",
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
   },

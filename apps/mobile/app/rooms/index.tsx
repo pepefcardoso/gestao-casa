@@ -86,7 +86,7 @@ export default function RoomsIndexScreen(): React.JSX.Element {
     const displayArea = item.area
       ? `${Number(item.area).toLocaleString("pt-BR")} m²`
       : "Área não informada";
-    const dotColor = item.colorCode || "#8fa3a3";
+    const dotColor = item.colorCode || "#86868B";
 
     return (
       <TouchableOpacity
@@ -104,7 +104,7 @@ export default function RoomsIndexScreen(): React.JSX.Element {
           </View>
         </View>
         <View style={[styles.arrowContainer, { borderColor: dotColor }]}>
-          <Lucide name="chevron-right" size={20} color="#8fa3a3" />
+          <Lucide name="chevron-right" size={20} color="#86868B" />
         </View>
       </TouchableOpacity>
     );
@@ -118,7 +118,7 @@ export default function RoomsIndexScreen(): React.JSX.Element {
           <Text style={styles.headerTitle}>Cômodos</Text>
         </View>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#059669" />
+          <ActivityIndicator size="large" color="#10B981" />
           <Text style={styles.loadingText}>Carregando cômodos...</Text>
         </View>
       </SafeAreaView>
@@ -156,11 +156,11 @@ export default function RoomsIndexScreen(): React.JSX.Element {
         renderItem={renderRoomItem}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={["#059669"]} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={["#10B981"]} />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Lucide name="home" size={64} color="#8fa3a3" style={styles.emptyIcon} />
+            <Lucide name="home" size={64} color="#86868B" style={styles.emptyIcon} />
             <Text style={styles.emptyTitle}>Nenhum cômodo ainda</Text>
             <Text style={styles.emptySubtitle}>
               Toque no botão abaixo para registrar o primeiro cômodo da sua casa.
@@ -186,20 +186,18 @@ export default function RoomsIndexScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f4f4",
+    backgroundColor: "#F5F5F7",
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 12,
     backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#8fa3a3",
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
   listContent: {
     padding: 16,
@@ -215,7 +213,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: "#8fa3a3",
+    color: "#86868B",
   },
   errorText: {
     marginTop: 12,
@@ -225,7 +223,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: "#059669",
+    backgroundColor: "#10B981",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -243,12 +241,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "rgba(143, 163, 163, 0.2)",
-    shadowColor: "#0e1717",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 30,
     elevation: 2,
   },
   cardLeftContent: {
@@ -268,12 +264,12 @@ const styles = StyleSheet.create({
   roomName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
     marginBottom: 2,
   },
   roomArea: {
     fontSize: 13,
-    color: "#8fa3a3",
+    color: "#86868B",
   },
   arrowContainer: {
     width: 32,
@@ -282,7 +278,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(143, 163, 163, 0.1)",
+    borderColor: "rgba(134, 134, 139, 0.1)",
   },
   emptyContainer: {
     flex: 1,
@@ -298,13 +294,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#0e1717",
+    color: "#1D1D1F",
     marginBottom: 8,
     textAlign: "center",
   },
   emptySubtitle: {
     fontSize: 14,
-    color: "#8fa3a3",
+    color: "#86868B",
     textAlign: "center",
     lineHeight: 20,
   },
@@ -312,7 +308,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 20,
     bottom: 30,
-    backgroundColor: "#059669",
+    backgroundColor: "#10B981",
     width: 56,
     height: 56,
     borderRadius: 28,

@@ -85,10 +85,10 @@ const INCOME_CATEGORY_MAP: Record<string, string> = {
   OTHER: "Outros",
 };
 
-const PRIORITY_MAP: Record<string, { label: string; textClass: string; bgClass: string }> = {
-  HIGH: { label: "Alta", textClass: "text-orange-700", bgClass: "bg-orange-50 border-orange-200" },
-  MEDIUM: { label: "Média", textClass: "text-blue-700", bgClass: "bg-blue-50 border-blue-200" },
-  LOW: { label: "Baixa", textClass: "text-slate-600", bgClass: "bg-slate-50 border-slate-200" },
+const PRIORITY_MAP: Record<string, { label: string; textClass: string }> = {
+  HIGH: { label: "Alta", textClass: "text-orange-500 font-medium" },
+  MEDIUM: { label: "Média", textClass: "text-blue-500 font-medium" },
+  LOW: { label: "Baixa", textClass: "text-gray-400 font-medium" },
 };
 
 function ExpensesListContent(): React.JSX.Element {
@@ -584,7 +584,7 @@ function ExpensesListContent(): React.JSX.Element {
         <div className="space-y-6">
           {/* Month Summary Card (Consolidated Inflow, Outflow, Net Balance) */}
           {monthlyFlowSummary && (
-            <section className="bg-white border border-mint-slate-400/25 rounded-2xl p-6 shadow-sm divide-y md:divide-y-0 md:divide-x divide-slate-100 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-0">
+            <section className="bg-white rounded-2xl p-6 shadow-premium divide-y md:divide-y-0 md:divide-x divide-slate-100 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-0">
               {/* Inflow */}
               <div className="md:px-6 flex items-center gap-4">
                 <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
@@ -647,7 +647,7 @@ function ExpensesListContent(): React.JSX.Element {
           {/* Fallback stats cards if no month param is specified */}
           {!monthlyFlowSummary && (
             <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="bg-white border border-mint-slate-400/20 rounded-xl p-5 shadow-sm flex items-center gap-3">
+              <div className="bg-white rounded-xl p-5 shadow-premium flex items-center gap-3">
                 <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-600">
                   <DollarSign className="w-5 h-5" />
                 </div>
@@ -661,7 +661,7 @@ function ExpensesListContent(): React.JSX.Element {
                 </div>
               </div>
 
-              <div className="bg-white border border-mint-slate-400/20 rounded-xl p-5 shadow-sm flex items-center gap-3">
+              <div className="bg-white rounded-xl p-5 shadow-premium flex items-center gap-3">
                 <div className="p-2.5 bg-rose-50 border border-rose-100 rounded-lg text-rose-600">
                   <CheckCircle className="w-5 h-5" />
                 </div>
@@ -675,7 +675,7 @@ function ExpensesListContent(): React.JSX.Element {
                 </div>
               </div>
 
-              <div className="bg-white border border-mint-slate-400/20 rounded-xl p-5 shadow-sm flex items-center gap-3">
+              <div className="bg-white rounded-xl p-5 shadow-premium flex items-center gap-3">
                 <div className="p-2.5 bg-amber-50 border border-amber-100 rounded-lg text-amber-600">
                   <Clock className="w-5 h-5" />
                 </div>
@@ -720,7 +720,7 @@ function ExpensesListContent(): React.JSX.Element {
           )}
 
           {/* Lançamentos Table */}
-          <div className="bg-white border border-mint-slate-400/20 rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl shadow-premium overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h2 className="text-lg font-semibold text-[#0e1717]">Lançamentos</h2>
               <span className="text-xs text-mint-slate-400 font-semibold font-mono">
@@ -767,19 +767,17 @@ function ExpensesListContent(): React.JSX.Element {
                               {CATEGORY_MAP[exp.category] || exp.category}
                             </td>
                             <td className="py-3.5 px-6 text-center">
-                              <span
-                                className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border ${priority.bgClass} ${priority.textClass}`}
-                              >
+                              <span className={`inline-block text-xs ${priority.textClass}`}>
                                 {priority.label}
                               </span>
                             </td>
                             <td className="py-3.5 px-6 text-center">
                               {exp.status === "CONFIRMED" ? (
-                                <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-100">
+                                <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-600">
                                   Confirmado
                                 </span>
                               ) : (
-                                <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100">
+                                <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-600">
                                   Orçamento
                                 </span>
                               )}
@@ -954,7 +952,7 @@ function ExpensesListContent(): React.JSX.Element {
                   placeholder="Ex: Armários da Cozinha, IPTU..."
                   value={description}
                   onChange={(e): void => setDescription(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-hidden font-medium text-slate-800 text-sm placeholder:text-slate-400"
+                  className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-transparent focus:ring-2 focus:ring-emerald-500/50 focus:bg-white outline-hidden transition-all font-medium text-slate-800 text-sm placeholder:text-slate-400"
                   required
                 />
               </div>
@@ -975,7 +973,7 @@ function ExpensesListContent(): React.JSX.Element {
                     placeholder="0.00"
                     value={totalAmount}
                     onChange={(e): void => setTotalAmount(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-hidden font-mono font-medium text-slate-800 text-sm placeholder:text-slate-400"
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-transparent focus:ring-2 focus:ring-emerald-500/50 focus:bg-white outline-hidden transition-all font-mono font-medium text-slate-800 text-sm placeholder:text-slate-400"
                     required
                   />
                 </div>
@@ -992,7 +990,7 @@ function ExpensesListContent(): React.JSX.Element {
                     type="date"
                     value={dueDate}
                     onChange={(e): void => setDueDate(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-hidden font-mono font-medium text-slate-800 text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-transparent focus:ring-2 focus:ring-emerald-500/50 focus:bg-white outline-hidden transition-all font-mono font-medium text-slate-800 text-sm"
                     required
                   />
                 </div>
@@ -1065,7 +1063,7 @@ function ExpensesListContent(): React.JSX.Element {
                           max="360"
                           value={installmentsCount}
                           onChange={(e): void => setInstallmentsCount(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-hidden font-mono font-medium text-slate-800 text-sm"
+                          className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-transparent focus:ring-2 focus:ring-emerald-500/50 focus:bg-white outline-hidden transition-all font-mono font-medium text-slate-800 text-sm"
                           required
                         />
                         <span className="text-[10px] text-slate-400 font-medium">
@@ -1098,7 +1096,7 @@ function ExpensesListContent(): React.JSX.Element {
                     id="category"
                     value={category}
                     onChange={(e): void => setCategory(e.target.value as typeof category)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 outline-hidden text-slate-800 text-sm bg-white cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-transparent focus:ring-2 focus:ring-emerald-500/50 focus:bg-white outline-hidden transition-all text-slate-800 text-sm cursor-pointer"
                   >
                     <option value="TAX">Imposto</option>
                     <option value="PRODUCT">Produto</option>
@@ -1120,7 +1118,7 @@ function ExpensesListContent(): React.JSX.Element {
                     id="priority"
                     value={priority}
                     onChange={(e): void => setPriority(e.target.value as typeof priority)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 outline-hidden text-slate-800 text-sm bg-white cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-transparent focus:ring-2 focus:ring-emerald-500/50 focus:bg-white outline-hidden transition-all text-slate-800 text-sm cursor-pointer"
                   >
                     <option value="LOW">Baixa</option>
                     <option value="MEDIUM">Média</option>
@@ -1143,7 +1141,7 @@ function ExpensesListContent(): React.JSX.Element {
                     id="roomId"
                     value={roomId}
                     onChange={(e): void => setRoomId(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 outline-hidden text-slate-800 text-sm bg-white cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-transparent focus:ring-2 focus:ring-emerald-500/50 focus:bg-white outline-hidden transition-all text-slate-800 text-sm cursor-pointer"
                   >
                     <option value="">Nenhum cômodo associado</option>
                     {rooms.map(

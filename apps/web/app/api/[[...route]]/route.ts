@@ -10,6 +10,15 @@ import { roomsRouter } from "../../../../../libs/backend/src/api/routes/rooms";
 
 const app = new OpenAPIHono().basePath("/api");
 
+// Catch unhandled errors, such as JSON parse errors from empty bodies in zod-openapi
+app.onError((err, c) => {
+  if (err instanceof SyntaxError) {
+    return c.json({ error: "Invalid or empty JSON body" }, 400);
+  }
+  console.error("Unhandled Hono Error:", err);
+  return c.json({ error: "Internal Server Error" }, 500);
+});
+
 app.route("/", roomsRouter);
 app.route("/", financingRouter);
 app.route("/", expensesRouter);
