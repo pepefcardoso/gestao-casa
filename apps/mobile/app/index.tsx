@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 import { Lucide } from "../components/LucideIcon";
-import { useMobileUser, PRESET_USERS } from "./globalState";
+import { PRESET_USERS, useMobileUser } from "./globalState";
 
 interface HouseClient {
   id: string;
@@ -63,8 +63,12 @@ export default function HomeScreen(): React.JSX.Element {
     try {
       const [houseRes, roomsRes, expensesRes] = await Promise.all([
         fetch(`${API_URL}/houses/${FALLBACK_HOUSE_ID}`, { headers: { "x-user-id": userId } }),
-        fetch(`${API_URL}/rooms?house_id=${FALLBACK_HOUSE_ID}`, { headers: { "x-user-id": userId } }),
-        fetch(`${API_URL}/expenses?house_id=${FALLBACK_HOUSE_ID}`, { headers: { "x-user-id": userId } }),
+        fetch(`${API_URL}/rooms?house_id=${FALLBACK_HOUSE_ID}`, {
+          headers: { "x-user-id": userId },
+        }),
+        fetch(`${API_URL}/expenses?house_id=${FALLBACK_HOUSE_ID}`, {
+          headers: { "x-user-id": userId },
+        }),
       ]);
 
       let houseData: HouseClient | null = null;
@@ -195,7 +199,11 @@ export default function HomeScreen(): React.JSX.Element {
       {/* User Switcher */}
       <View style={styles.userSwitcherRow}>
         <Text style={styles.userSwitcherLabel}>Usuário:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.userSwitcherScroll}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.userSwitcherScroll}
+        >
           {PRESET_USERS.map((u) => {
             const isSelected = u.id === userId;
             return (
@@ -317,11 +325,19 @@ export default function HomeScreen(): React.JSX.Element {
                 }
               }}
             >
-              <View style={[styles.shortcutIconBg, role === "VIEWER" && styles.shortcutIconBgDisabled]}>
+              <View
+                style={[styles.shortcutIconBg, role === "VIEWER" && styles.shortcutIconBgDisabled]}
+              >
                 <Lucide name="plus" size={22} color={role === "VIEWER" ? "#8fa3a3" : "#059669"} />
               </View>
-              <Text style={[styles.shortcutTitle, role === "VIEWER" && styles.shortcutTextDisabled]}>Adicionar Cômodo</Text>
-              <Text style={styles.shortcutDesc}>{role === "VIEWER" ? "Acesso restrito" : "Criar novo cômodo"}</Text>
+              <Text
+                style={[styles.shortcutTitle, role === "VIEWER" && styles.shortcutTextDisabled]}
+              >
+                Adicionar Cômodo
+              </Text>
+              <Text style={styles.shortcutDesc}>
+                {role === "VIEWER" ? "Acesso restrito" : "Criar novo cômodo"}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -347,11 +363,23 @@ export default function HomeScreen(): React.JSX.Element {
                 }
               }}
             >
-              <View style={[styles.shortcutIconBg, role === "VIEWER" && styles.shortcutIconBgDisabled]}>
-                <Lucide name="plus-circle" size={22} color={role === "VIEWER" ? "#8fa3a3" : "#059669"} />
+              <View
+                style={[styles.shortcutIconBg, role === "VIEWER" && styles.shortcutIconBgDisabled]}
+              >
+                <Lucide
+                  name="plus-circle"
+                  size={22}
+                  color={role === "VIEWER" ? "#8fa3a3" : "#059669"}
+                />
               </View>
-              <Text style={[styles.shortcutTitle, role === "VIEWER" && styles.shortcutTextDisabled]}>Nova Despesa</Text>
-              <Text style={styles.shortcutDesc}>{role === "VIEWER" ? "Acesso restrito" : "Registrar novo gasto"}</Text>
+              <Text
+                style={[styles.shortcutTitle, role === "VIEWER" && styles.shortcutTextDisabled]}
+              >
+                Nova Despesa
+              </Text>
+              <Text style={styles.shortcutDesc}>
+                {role === "VIEWER" ? "Acesso restrito" : "Registrar novo gasto"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

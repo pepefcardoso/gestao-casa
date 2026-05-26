@@ -2,7 +2,14 @@ import { createRoute, OpenAPIHono, type RouteConfigToTypedResponse } from "@hono
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../db";
-import { expenses, insertExpenseSchema, selectExpenseSchema, uuidSchema, rooms, houseMemberships } from "../../db/schema";
+import {
+  expenses,
+  houseMemberships,
+  insertExpenseSchema,
+  rooms,
+  selectExpenseSchema,
+  uuidSchema,
+} from "../../db/schema";
 import { authMiddleware, verifyHouseAccess } from "../auth";
 
 const router = new OpenAPIHono<{ Variables: { userId: string } }>({
@@ -198,14 +205,22 @@ router.openapi(
           return c.json({ error: "Room not found" }, 404);
         }
 
-        const check = await verifyHouseAccess(userId, room.houseId, ["OWNER", "COLLABORATOR", "VIEWER"]);
+        const check = await verifyHouseAccess(userId, room.houseId, [
+          "OWNER",
+          "COLLABORATOR",
+          "VIEWER",
+        ]);
         if (!check.success) {
           return c.json({ error: check.error || "Access denied" }, 403);
         }
 
         results = await db.select().from(expenses).where(eq(expenses.roomId, room_id));
       } else if (house_id) {
-        const check = await verifyHouseAccess(userId, house_id, ["OWNER", "COLLABORATOR", "VIEWER"]);
+        const check = await verifyHouseAccess(userId, house_id, [
+          "OWNER",
+          "COLLABORATOR",
+          "VIEWER",
+        ]);
         if (!check.success) {
           return c.json({ error: check.error || "Access denied" }, 403);
         }
@@ -388,9 +403,15 @@ router.openapi(
       if (payload.roomId && payload.roomId !== expense.roomId) {
         const [room] = await db.select().from(rooms).where(eq(rooms.id, payload.roomId));
         if (room) {
-          const roomCheck = await verifyHouseAccess(userId, room.houseId, ["OWNER", "COLLABORATOR"]);
+          const roomCheck = await verifyHouseAccess(userId, room.houseId, [
+            "OWNER",
+            "COLLABORATOR",
+          ]);
           if (!roomCheck.success) {
-            return c.json({ error: "Cannot assign expense to a room you do not have write access to." }, 403);
+            return c.json(
+              { error: "Cannot assign expense to a room you do not have write access to." },
+              403,
+            );
           }
           updatedHouseId = room.houseId;
         }

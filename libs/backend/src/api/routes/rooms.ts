@@ -2,7 +2,13 @@ import { createRoute, OpenAPIHono, type RouteConfigToTypedResponse } from "@hono
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../db";
-import { insertRoomSchema, rooms, selectRoomSchema, uuidSchema, houseMemberships } from "../../db/schema";
+import {
+  houseMemberships,
+  insertRoomSchema,
+  rooms,
+  selectRoomSchema,
+  uuidSchema,
+} from "../../db/schema";
 import { authMiddleware, verifyHouseAccess } from "../auth";
 
 const router = new OpenAPIHono<{ Variables: { userId: string } }>({
@@ -160,7 +166,11 @@ router.openapi(
 
       let results: (typeof rooms.$inferSelect)[] = [];
       if (house_id) {
-        const check = await verifyHouseAccess(userId, house_id, ["OWNER", "COLLABORATOR", "VIEWER"]);
+        const check = await verifyHouseAccess(userId, house_id, [
+          "OWNER",
+          "COLLABORATOR",
+          "VIEWER",
+        ]);
         if (!check.success) {
           return c.json({ error: check.error || "Access denied" }, 403);
         }
@@ -257,7 +267,11 @@ router.openapi(
       }
 
       // Verify read access to the house the room belongs to
-      const check = await verifyHouseAccess(userId, room.houseId, ["OWNER", "COLLABORATOR", "VIEWER"]);
+      const check = await verifyHouseAccess(userId, room.houseId, [
+        "OWNER",
+        "COLLABORATOR",
+        "VIEWER",
+      ]);
       if (!check.success) {
         return c.json({ error: check.error || "Access denied" }, 403);
       }

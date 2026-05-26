@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 export interface User {
   id: string;
@@ -16,14 +16,22 @@ export interface House {
 }
 
 interface UserContextType {
+  user: User | null;
   activeUserId: string;
   activeHouseId: string;
   role: "OWNER" | "COLLABORATOR" | "VIEWER" | null;
   usersList: User[];
   housesList: House[];
-  changeUser: (userId: string) => void;
+  isLoading: boolean;
   changeHouse: (houseId: string) => void;
   refreshContext: () => Promise<void>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  registerUser: (
+    name: string,
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -49,47 +57,85 @@ export const PRESET_USERS: User[] = [
 export const FALLBACK_HOUSE_ID = "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
 
 export function UserProvider({ children }: { children: React.ReactNode }): React.JSX.Element {
+  const [user, setUser] = useState<User | null>(null);
   const [activeUserId, setActiveUserId] = useState<string>("");
   const [activeHouseId, setActiveHouseId] = useState<string>("");
   const [housesList, setHousesList] = useState<House[]>([]);
   const [role, setRole] = useState<"OWNER" | "COLLABORATOR" | "VIEWER" | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Load initial state from localStorage
-  useEffect(() => {
-    const savedUserId = localStorage.getItem("gestao_casa_user_id") || PRESET_USERS[0].id;
-    const savedHouseId = localStorage.getItem("gestao_casa_house_id") || FALLBACK_HOUSE_ID;
-
-    setActiveUserId(savedUserId);
-    setActiveHouseId(savedHouseId);
-  }, []);
-
-  const refreshContext = useCallback(async (): Promise<void> => {
-    if (!activeUserId) return;
+  // Initialize and fetch user session
+  const fetchSession = useCallback(async (): Promise<void> => {
+    setIsLoading(true);
+    const token = localStorage.getItem("gestao_casa_auth_token");
+    if (!token) {
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      // 1. Fetch houses user has access to
-      const res = await fetch("/api/houses", {
-        headers: { "x-user-id": activeUserId },
+      const res = await fetch("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+        setActiveUserId(data.user.id);
+        localStorage.setItem("gestao_casa_user_id", data.user.id);
+      } else {
+        // Token is invalid/expired
+        localStorage.removeItem("gestao_casa_auth_token");
+        setUser(null);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar sessão:", err);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSession();
+  }, [fetchSession]);
+
+  // Load house and role context
+  const refreshContext = useCallback(async (): Promise<void> => {
+    const currentUserId = activeUserId || localStorage.getItem("gestao_casa_user_id");
+    const token = localStorage.getItem("gestao_casa_auth_token");
+    if (!currentUserId) return;
+
+    try {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      } else {
+        headers["x-user-id"] = currentUserId;
+      }
+
+      // 1. Fetch houses user has access to
+      const res = await fetch("/api/houses", { headers });
       if (res.ok) {
         const housesData: House[] = await res.json();
         setHousesList(housesData);
 
         // Find or set active house ID
-        let currentHouseId = activeHouseId;
-        if (!currentHouseId || !housesData.some((h) => h.id === currentHouseId)) {
-          currentHouseId = housesData[0]?.id || FALLBACK_HOUSE_ID;
-          setActiveHouseId(currentHouseId);
-          localStorage.setItem("gestao_casa_house_id", currentHouseId);
+        let savedHouseId = localStorage.getItem("gestao_casa_house_id");
+        if (!savedHouseId || !housesData.some((h) => h.id === savedHouseId)) {
+          savedHouseId = housesData[0]?.id || FALLBACK_HOUSE_ID;
+          localStorage.setItem("gestao_casa_house_id", savedHouseId);
         }
+        setActiveHouseId(savedHouseId);
 
         // 2. Fetch role for active house
-        const membersRes = await fetch(`/api/houses/${currentHouseId}/members`, {
-          headers: { "x-user-id": activeUserId },
-        });
+        const membersRes = await fetch(`/api/houses/${savedHouseId}/members`, { headers });
         if (membersRes.ok) {
           const members: { role: string; user: { id: string } }[] = await membersRes.json();
-          const match = members.find((m) => m.user.id === activeUserId);
+          const match = members.find((m) => m.user.id === currentUserId);
           setRole((match?.role as "OWNER" | "COLLABORATOR" | "VIEWER") || "VIEWER");
         } else {
           setRole(null);
@@ -98,26 +144,91 @@ export function UserProvider({ children }: { children: React.ReactNode }): React
     } catch (err) {
       console.error("Failed to load user context:", err);
     }
-  }, [activeUserId, activeHouseId]);
+  }, [activeUserId]);
 
   useEffect(() => {
-    refreshContext();
-  }, [refreshContext]);
-
-  const changeUser = (userId: string): void => {
-    setActiveUserId(userId);
-    localStorage.setItem("gestao_casa_user_id", userId);
-  };
+    if (activeUserId) {
+      refreshContext();
+    }
+  }, [activeUserId, refreshContext]);
 
   const changeHouse = (houseId: string): void => {
     setActiveHouseId(houseId);
     localStorage.setItem("gestao_casa_house_id", houseId);
+    refreshContext();
   };
 
-  // MONKEYPATCH fetch globally to transparently inject user header & active house ID
-  useEffect(() => {
-    if (!activeUserId || !activeHouseId) return;
+  const login = async (
+    email: string,
+    password: string,
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || "E-mail ou senha incorretos" };
+      }
+
+      localStorage.setItem("gestao_casa_auth_token", data.token);
+      localStorage.setItem("gestao_casa_user_id", data.user.id);
+      setUser(data.user);
+      setActiveUserId(data.user.id);
+      return { success: true };
+    } catch (err) {
+      console.error("Erro ao fazer login:", err);
+      return { success: false, error: "Falha na conexão com o servidor" };
+    }
+  };
+
+  const registerUser = async (
+    name: string,
+    email: string,
+    password: string,
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || "Erro ao registrar usuário" };
+      }
+
+      localStorage.setItem("gestao_casa_auth_token", data.token);
+      localStorage.setItem("gestao_casa_user_id", data.user.id);
+      setUser(data.user);
+      setActiveUserId(data.user.id);
+      return { success: true };
+    } catch (err) {
+      console.error("Erro ao cadastrar:", err);
+      return { success: false, error: "Falha na conexão com o servidor" };
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Erro ao limpar sessão no backend:", err);
+    }
+    localStorage.removeItem("gestao_casa_auth_token");
+    localStorage.removeItem("gestao_casa_user_id");
+    setUser(null);
+    setActiveUserId("");
+    setHousesList([]);
+    setRole(null);
+  };
+
+  // MONKEYPATCH fetch globally to inject JWT & House headers and handle 401 redirects
+  useEffect(() => {
     const originalFetch = window.fetch;
     window.fetch = async (input, init) => {
       let url = "";
@@ -132,38 +243,48 @@ export function UserProvider({ children }: { children: React.ReactNode }): React
       // Only intercept API calls
       if (url.startsWith("/api/")) {
         const headers = new Headers(init?.headers);
+        const token = localStorage.getItem("gestao_casa_auth_token");
+        const currentUserId = localStorage.getItem("gestao_casa_user_id") || "";
+        const currentHouseId = localStorage.getItem("gestao_casa_house_id") || "";
 
-        // 1. Inject active user ID
-        if (!headers.has("x-user-id")) {
-          headers.set("x-user-id", activeUserId);
+        // 1. Inject Token or x-user-id fallback
+        if (token) {
+          if (!headers.has("Authorization")) {
+            headers.set("Authorization", `Bearer ${token}`);
+          }
+        } else if (currentUserId && !headers.has("x-user-id")) {
+          headers.set("x-user-id", currentUserId);
         }
 
         // 2. Map FALLBACK_HOUSE_ID in URL to activeHouseId
-        if (url.includes(FALLBACK_HOUSE_ID)) {
-          url = url.replace(FALLBACK_HOUSE_ID, activeHouseId);
+        if (currentHouseId && url.includes(FALLBACK_HOUSE_ID)) {
+          url = url.replace(FALLBACK_HOUSE_ID, currentHouseId);
         }
 
         // 3. Inject house_id query param for expenses & incomes if missing
-        if (url.startsWith("/api/expenses") || url.startsWith("/api/incomes")) {
+        if (currentHouseId && (url.startsWith("/api/expenses") || url.startsWith("/api/incomes"))) {
           const isListing = !url.includes("/api/expenses/") && !url.includes("/api/incomes/");
           if (isListing && !url.includes("house_id=") && !url.includes("room_id=")) {
             const separator = url.includes("?") ? "&" : "?";
-            url = `${url}${separator}house_id=${activeHouseId}`;
+            url = `${url}${separator}house_id=${currentHouseId}`;
           }
         }
 
         // 4. Inject houseId payload for POST requests if missing
         let newBody = init?.body;
         if (
+          currentHouseId &&
           init?.method?.toUpperCase() === "POST" &&
           init.body &&
           typeof init.body === "string" &&
-          (url.startsWith("/api/expenses") || url.startsWith("/api/incomes") || url.startsWith("/api/rooms"))
+          (url.startsWith("/api/expenses") ||
+            url.startsWith("/api/incomes") ||
+            url.startsWith("/api/rooms"))
         ) {
           try {
             const bodyObj = JSON.parse(init.body);
             if (!bodyObj.houseId) {
-              bodyObj.houseId = activeHouseId;
+              bodyObj.houseId = currentHouseId;
               newBody = JSON.stringify(bodyObj);
             }
           } catch {
@@ -177,7 +298,23 @@ export function UserProvider({ children }: { children: React.ReactNode }): React
           body: newBody,
         };
 
-        return originalFetch(url, newInit);
+        const res = await originalFetch(url, newInit);
+
+        // 5. Intercept 401 errors to trigger logout & login redirection
+        if (
+          res.status === 401 &&
+          !url.includes("/api/auth/login") &&
+          !url.includes("/api/auth/register")
+        ) {
+          const pathname = window.location.pathname;
+          if (pathname !== "/login" && pathname !== "/register" && pathname !== "/") {
+            localStorage.removeItem("gestao_casa_auth_token");
+            localStorage.removeItem("gestao_casa_user_id");
+            window.location.href = "/login";
+          }
+        }
+
+        return res;
       }
 
       return originalFetch(input, init);
@@ -186,19 +323,23 @@ export function UserProvider({ children }: { children: React.ReactNode }): React
     return () => {
       window.fetch = originalFetch;
     };
-  }, [activeUserId, activeHouseId]);
+  }, []);
 
   return (
     <UserContext.Provider
       value={{
+        user,
         activeUserId,
         activeHouseId,
         role,
         usersList: PRESET_USERS,
         housesList,
-        changeUser,
+        isLoading,
         changeHouse,
         refreshContext,
+        login,
+        registerUser,
+        logout,
       }}
     >
       {children}

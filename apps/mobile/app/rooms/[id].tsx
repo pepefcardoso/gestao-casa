@@ -128,8 +128,8 @@ export default function RoomDetailScreen(): React.JSX.Element {
     const previousExpenses = [...expenses];
 
     // Optimistically update
-    const updatedExpenses = expenses.map((e): ExpenseClient =>
-      e.id === expense.id ? { ...e, status: "CONFIRMED" as const } : e,
+    const updatedExpenses = expenses.map(
+      (e): ExpenseClient => (e.id === expense.id ? { ...e, status: "CONFIRMED" as const } : e),
     );
     setExpenses(updatedExpenses);
 

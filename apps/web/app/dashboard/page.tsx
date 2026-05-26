@@ -1,23 +1,23 @@
 "use client";
 
-import type React from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import {
-  DollarSign,
-  TrendingDown,
-  TrendingUp,
-  ArrowRight,
-  Home,
   AlertTriangle,
+  ArrowRight,
   CreditCard,
+  DollarSign,
+  Home,
   MapPin,
   Settings,
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import type React from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  type FinancingInstallment,
   calculateFinancing,
+  type FinancingInstallment,
 } from "../../../../libs/shared-logic/src/utils/calculate-financing";
 import { useUser } from "../components/UserContext";
 
@@ -230,14 +230,14 @@ export default function DashboardPage(): React.JSX.Element {
 
       return 0; // Out of term window
     },
-    [financingRecord, financingInstallments]
+    [financingRecord, financingInstallments],
   );
 
   // Aggregate cash flow data by month
   const monthlyFlows = useMemo((): AggregatedMonthData[] => {
     return columns.map((col): AggregatedMonthData => {
       const monthExpenses = expenses.filter(
-        (exp): boolean => exp.dueDate.substring(0, 7) === col.key
+        (exp): boolean => exp.dueDate.substring(0, 7) === col.key,
       );
 
       const confirmedSum = monthExpenses
@@ -254,7 +254,7 @@ export default function DashboardPage(): React.JSX.Element {
 
       // Incomes
       const monthIncomes = incomes.filter(
-        (inc): boolean => inc.dueDate.substring(0, 7) === col.key
+        (inc): boolean => inc.dueDate.substring(0, 7) === col.key,
       );
 
       const confirmedIncomeSum = monthIncomes
@@ -387,7 +387,9 @@ export default function DashboardPage(): React.JSX.Element {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-32 gap-3">
           <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-mint-slate-400 font-medium">Carregando painel financeiro...</span>
+          <span className="text-sm text-mint-slate-400 font-medium">
+            Carregando painel financeiro...
+          </span>
         </div>
       ) : (
         <div className="space-y-8 animate-fade-in">
@@ -425,14 +427,18 @@ export default function DashboardPage(): React.JSX.Element {
 
             {/* Net Balance (Saldo Líquido) */}
             <div className="bg-white border border-mint-slate-400/20 rounded-xl p-6 shadow-sm flex items-center gap-4">
-              <div className={`p-3 rounded-lg ${isNetPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
+              <div
+                className={`p-3 rounded-lg ${isNetPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}
+              >
                 <DollarSign className="w-6 h-6" />
               </div>
               <div>
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Saldo Líquido (12m)
                 </span>
-                <h3 className={`text-2xl font-bold font-mono mt-0.5 ${isNetPositive ? "text-emerald-700" : "text-rose-700"}`}>
+                <h3
+                  className={`text-2xl font-bold font-mono mt-0.5 ${isNetPositive ? "text-emerald-700" : "text-rose-700"}`}
+                >
                   {formatBRL(totals.netBalance)}
                 </h3>
               </div>
@@ -497,18 +503,24 @@ export default function DashboardPage(): React.JSX.Element {
                 {house ? (
                   <div className="space-y-3.5">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Nome</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Nome
+                      </span>
                       <p className="text-base font-semibold text-[#0e1717]">{house.name}</p>
                     </div>
                     {house.location && (
                       <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Endereço</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Endereço
+                        </span>
                         <p className="text-sm font-medium text-slate-600">{house.location}</p>
                       </div>
                     )}
                     {house.totalArea && (
                       <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Área Total</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Área Total
+                        </span>
                         <p className="text-sm font-semibold text-[#0e1717] font-mono">
                           {Number(house.totalArea).toLocaleString("pt-BR")} m²
                         </p>
@@ -516,7 +528,9 @@ export default function DashboardPage(): React.JSX.Element {
                     )}
                     {(house.latitude || house.longitude) && (
                       <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Coordenadas</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Coordenadas
+                        </span>
                         <p className="text-xs font-mono text-slate-500">
                           Lat: {house.latitude || "—"} / Lng: {house.longitude || "—"}
                         </p>
@@ -524,7 +538,9 @@ export default function DashboardPage(): React.JSX.Element {
                     )}
                   </div>
                 ) : (
-                  <p className="text-sm text-mint-slate-400">Nenhuma informação de casa encontrada.</p>
+                  <p className="text-sm text-mint-slate-400">
+                    Nenhuma informação de casa encontrada.
+                  </p>
                 )}
               </div>
 
@@ -569,7 +585,9 @@ export default function DashboardPage(): React.JSX.Element {
                       <MapPin className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#0e1717]">Localização não definida</p>
+                      <p className="text-sm font-semibold text-[#0e1717]">
+                        Localização não definida
+                      </p>
                       <p className="text-xs text-mint-slate-400 mt-1 max-w-xs">
                         Defina a localização da sua residência nas configurações para exibir o mapa.
                       </p>
@@ -599,11 +617,7 @@ export default function DashboardPage(): React.JSX.Element {
               {monthlyFlows.map((item): React.JSX.Element => {
                 const isItemPositive = item.netBalance >= 0;
                 return (
-                  <Link
-                    href={`/expenses?month=${item.key}`}
-                    key={item.key}
-                    className="block group"
-                  >
+                  <Link href={`/expenses?month=${item.key}`} key={item.key} className="block group">
                     <div className="border border-mint-slate-400/20 rounded-xl p-4 bg-white hover:border-emerald-600 hover:shadow-xl transition-all cursor-pointer flex flex-col gap-4 h-full relative overflow-hidden">
                       {/* Month Header */}
                       <div className="border-b border-slate-100 pb-2 flex justify-between items-center">
@@ -624,12 +638,20 @@ export default function DashboardPage(): React.JSX.Element {
                           </span>
                           <div className="grid grid-cols-2 gap-1">
                             <div className="bg-emerald-600 text-white rounded-md p-1 flex flex-col gap-0.5 text-center">
-                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">Conf.</span>
-                              <span className="text-[9px] font-mono font-bold">{formatBRL(item.confirmedIncomeSum)}</span>
+                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">
+                                Conf.
+                              </span>
+                              <span className="text-[9px] font-mono font-bold">
+                                {formatBRL(item.confirmedIncomeSum)}
+                              </span>
                             </div>
                             <div className="bg-teal-600 text-white rounded-md p-1 flex flex-col gap-0.5 text-center">
-                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">Plan.</span>
-                              <span className="text-[9px] font-mono font-bold">{formatBRL(item.budgetIncomeSum)}</span>
+                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">
+                                Plan.
+                              </span>
+                              <span className="text-[9px] font-mono font-bold">
+                                {formatBRL(item.budgetIncomeSum)}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -641,12 +663,20 @@ export default function DashboardPage(): React.JSX.Element {
                           </span>
                           <div className="grid grid-cols-2 gap-1">
                             <div className="bg-rose-600 text-white rounded-md p-1 flex flex-col gap-0.5 text-center">
-                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">Conf.</span>
-                              <span className="text-[9px] font-mono font-bold">{formatBRL(item.confirmedSum)}</span>
+                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">
+                                Conf.
+                              </span>
+                              <span className="text-[9px] font-mono font-bold">
+                                {formatBRL(item.confirmedSum)}
+                              </span>
                             </div>
                             <div className="bg-amber-600 text-white rounded-md p-1 flex flex-col gap-0.5 text-center">
-                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">Orç.</span>
-                              <span className="text-[9px] font-mono font-bold">{formatBRL(item.budgetSum)}</span>
+                              <span className="text-[7px] uppercase font-bold tracking-wider opacity-90">
+                                Orç.
+                              </span>
+                              <span className="text-[9px] font-mono font-bold">
+                                {formatBRL(item.budgetSum)}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -678,7 +708,9 @@ export default function DashboardPage(): React.JSX.Element {
                           <span className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider">
                             Saldo Líquido
                           </span>
-                          <span className={`text-xs font-mono font-extrabold ${isItemPositive ? "text-emerald-700" : "text-rose-700"}`}>
+                          <span
+                            className={`text-xs font-mono font-extrabold ${isItemPositive ? "text-emerald-700" : "text-rose-700"}`}
+                          >
                             {formatBRL(item.netBalance)}
                           </span>
                         </div>

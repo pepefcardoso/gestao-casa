@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export interface User {
   id: string;
@@ -35,21 +35,25 @@ export const globalState = {
   },
   setActiveUserId(id: string): void {
     activeUserId = id;
-    listeners.forEach((l) => { l(); });
+    listeners.forEach((l) => {
+      l();
+    });
   },
   getActiveUserRole(): "OWNER" | "COLLABORATOR" | "VIEWER" {
     return activeUserRole;
   },
   setActiveUserRole(role: "OWNER" | "COLLABORATOR" | "VIEWER"): void {
     activeUserRole = role;
-    listeners.forEach((l) => { l(); });
+    listeners.forEach((l) => {
+      l();
+    });
   },
   subscribe(listener: () => void): () => void {
     listeners.add(listener);
     return () => {
       listeners.delete(listener);
     };
-  }
+  },
 };
 
 export function useMobileUser(): {
@@ -58,7 +62,9 @@ export function useMobileUser(): {
   changeUser: (newUserId: string) => Promise<void>;
 } {
   const [userId, setUserId] = useState<string>(globalState.getActiveUserId());
-  const [role, setRole] = useState<"OWNER" | "COLLABORATOR" | "VIEWER">(globalState.getActiveUserRole());
+  const [role, setRole] = useState<"OWNER" | "COLLABORATOR" | "VIEWER">(
+    globalState.getActiveUserRole(),
+  );
 
   useEffect((): (() => void) => {
     return globalState.subscribe((): void => {
@@ -73,7 +79,7 @@ export function useMobileUser(): {
     try {
       const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
       const res = await fetch(`${API_URL}/houses/9519c5f5-e74b-49dc-88d9-e484fda2c3c2/members`, {
-        headers: { "x-user-id": newUserId }
+        headers: { "x-user-id": newUserId },
       });
       if (res.ok) {
         const members: { role: string; user: { id: string } }[] = await res.json();

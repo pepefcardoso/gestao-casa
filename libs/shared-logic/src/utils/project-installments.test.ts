@@ -17,7 +17,7 @@ describe("projectInstallments", (): void => {
     const result = projectInstallments(defaultParams);
 
     expect(result).toHaveLength(3);
-    
+
     // Sum of split amounts must equal totalAmount
     const sum = result.reduce((acc, curr) => acc + (curr.totalAmount ?? 0), 0);
     expect(sum).toBeCloseTo(3000, 5);
@@ -42,7 +42,7 @@ describe("projectInstallments", (): void => {
     const result = projectInstallments(defaultParams);
 
     expect(result[0].dueDate).toBeInstanceOf(Date);
-    
+
     // 2025-01-15 UTC representation (or local depending on new Date parsing, but standard Date behavior is tested)
     const d0 = result[0].dueDate as Date;
     const d1 = result[1].dueDate as Date;

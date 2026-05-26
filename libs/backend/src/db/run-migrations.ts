@@ -1,5 +1,5 @@
-import { runMigrations } from "./migrate";
 import { pool } from "./index";
+import { runMigrations } from "./migrate";
 
 /**
  * Main execution block for running database migrations programmatically.

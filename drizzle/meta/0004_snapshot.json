@@ -84,12 +84,8 @@
           "name": "expenses_house_id_houses_id_fk",
           "tableFrom": "expenses",
           "tableTo": "houses",
-          "columnsFrom": [
-            "house_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["house_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -97,12 +93,8 @@
           "name": "expenses_room_id_rooms_id_fk",
           "tableFrom": "expenses",
           "tableTo": "rooms",
-          "columnsFrom": [
-            "room_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -186,12 +178,8 @@
           "name": "financing_house_id_houses_id_fk",
           "tableFrom": "financing",
           "tableTo": "houses",
-          "columnsFrom": [
-            "house_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["house_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -201,9 +189,7 @@
         "financing_house_id_unique": {
           "name": "financing_house_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "house_id"
-          ]
+          "columns": ["house_id"]
         }
       },
       "policies": {},
@@ -253,12 +239,8 @@
           "name": "house_memberships_user_id_users_id_fk",
           "tableFrom": "house_memberships",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -266,12 +248,8 @@
           "name": "house_memberships_house_id_houses_id_fk",
           "tableFrom": "house_memberships",
           "tableTo": "houses",
-          "columnsFrom": [
-            "house_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["house_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -401,12 +379,8 @@
           "name": "incomes_house_id_houses_id_fk",
           "tableFrom": "incomes",
           "tableTo": "houses",
-          "columnsFrom": [
-            "house_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["house_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -466,12 +440,8 @@
           "name": "rooms_house_id_houses_id_fk",
           "tableFrom": "rooms",
           "tableTo": "houses",
-          "columnsFrom": [
-            "house_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["house_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -520,9 +490,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},

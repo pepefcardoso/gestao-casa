@@ -2,7 +2,13 @@ import { createRoute, OpenAPIHono, type RouteConfigToTypedResponse } from "@hono
 import { and, eq, gte, lt } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../db";
-import { incomes, insertIncomeSchema, selectIncomeSchema, uuidSchema, houseMemberships } from "../../db/schema";
+import {
+  houseMemberships,
+  incomes,
+  insertIncomeSchema,
+  selectIncomeSchema,
+  uuidSchema,
+} from "../../db/schema";
 import { authMiddleware, verifyHouseAccess } from "../auth";
 
 const router = new OpenAPIHono<{ Variables: { userId: string } }>({
@@ -230,12 +236,19 @@ router.openapi(
       if (!checkHouseId) {
         // If not specified, we check if the user is authorized for any house
         // Or fetch memberships
-        const userMembs = await db.select().from(houseMemberships).where(eq(houseMemberships.userId, userId));
+        const userMembs = await db
+          .select()
+          .from(houseMemberships)
+          .where(eq(houseMemberships.userId, userId));
         if (userMembs.length === 0) {
           return c.json([], 200);
         }
       } else {
-        const check = await verifyHouseAccess(userId, checkHouseId, ["OWNER", "COLLABORATOR", "VIEWER"]);
+        const check = await verifyHouseAccess(userId, checkHouseId, [
+          "OWNER",
+          "COLLABORATOR",
+          "VIEWER",
+        ]);
         if (!check.success) {
           return c.json({ error: check.error || "Access denied" }, 403);
         }
@@ -261,7 +274,7 @@ router.openapi(
           .where(
             dateClause
               ? and(eq(incomes.houseId, checkHouseId), dateClause)
-              : eq(incomes.houseId, checkHouseId)
+              : eq(incomes.houseId, checkHouseId),
           );
       } else {
         // Fetch all incomes the user has access to across all houses
@@ -281,7 +294,7 @@ router.openapi(
           .where(
             dateClause
               ? and(eq(houseMemberships.userId, userId), dateClause)
-              : eq(houseMemberships.userId, userId)
+              : eq(houseMemberships.userId, userId),
           );
       }
 
@@ -374,9 +387,15 @@ router.openapi(
       // If they changed the houseId, check permissions
       let updatedHouseId = income.houseId;
       if (payload.houseId && payload.houseId !== income.houseId) {
-        const checkNew = await verifyHouseAccess(userId, payload.houseId, ["OWNER", "COLLABORATOR"]);
+        const checkNew = await verifyHouseAccess(userId, payload.houseId, [
+          "OWNER",
+          "COLLABORATOR",
+        ]);
         if (!checkNew.success) {
-          return c.json({ error: "Cannot move income to a house you do not have write access to." }, 403);
+          return c.json(
+            { error: "Cannot move income to a house you do not have write access to." },
+            403,
+          );
         }
         updatedHouseId = payload.houseId;
       }

@@ -40,7 +40,7 @@ export default function RoomsIndexScreen(): React.JSX.Element {
     setError(null);
     try {
       const response = await fetch(`${API_URL}/rooms`, {
-        headers: { "x-user-id": userId }
+        headers: { "x-user-id": userId },
       });
       if (!response.ok) {
         throw new Error("Não foi possível carregar os cômodos.");

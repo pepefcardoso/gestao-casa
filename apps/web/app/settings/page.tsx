@@ -1,24 +1,24 @@
 "use client";
 
-import type React from "react";
-import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import dynamic from "next/dynamic";
 import {
-  ArrowLeft,
   AlertTriangle,
+  ArrowLeft,
   CheckCircle,
-  Plus,
-  X,
-  Home,
   Edit2,
-  Trash2,
+  Home,
   MapPin,
   Maximize2,
   Palette,
+  Plus,
   Settings,
+  Trash2,
   Users,
+  X,
 } from "lucide-react";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import type React from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useUser } from "../components/UserContext";
 
 interface Member {
@@ -218,7 +218,7 @@ export default function SettingsPage(): React.JSX.Element {
         errors.houseLongitude = "A longitude deve estar entre -180 e 180.";
       }
     }
-    setValidationErrors(prev => ({ ...prev, ...errors }));
+    setValidationErrors((prev) => ({ ...prev, ...errors }));
     return Object.keys(errors).length === 0;
   };
 
@@ -229,7 +229,7 @@ export default function SettingsPage(): React.JSX.Element {
     setHouseErrorMsg(null);
 
     // Clear previous house errors
-    setValidationErrors(prev => ({
+    setValidationErrors((prev) => ({
       ...prev,
       houseName: undefined,
       houseArea: undefined,
@@ -267,9 +267,10 @@ export default function SettingsPage(): React.JSX.Element {
         setHouseSuccessMsg("Configurações da casa atualizadas com sucesso!");
       } else {
         const data: unknown = await res.json();
-        const msg = data && typeof data === "object" && "error" in data
-          ? String((data as { error: unknown }).error)
-          : "Erro ao salvar alterações da casa.";
+        const msg =
+          data && typeof data === "object" && "error" in data
+            ? String((data as { error: unknown }).error)
+            : "Erro ao salvar alterações da casa.";
         setHouseErrorMsg(msg);
       }
     } catch (err) {
@@ -287,7 +288,7 @@ export default function SettingsPage(): React.JSX.Element {
     setRoomArea("");
     setRoomColor(PRESET_COLORS[0]);
     setRoomFormError(null);
-    setValidationErrors(prev => ({ ...prev, roomName: undefined, roomArea: undefined }));
+    setValidationErrors((prev) => ({ ...prev, roomName: undefined, roomArea: undefined }));
     setIsRoomModalOpen(true);
   };
 
@@ -298,7 +299,7 @@ export default function SettingsPage(): React.JSX.Element {
     setRoomArea(room.area || "");
     setRoomColor(room.colorCode || PRESET_COLORS[0]);
     setRoomFormError(null);
-    setValidationErrors(prev => ({ ...prev, roomName: undefined, roomArea: undefined }));
+    setValidationErrors((prev) => ({ ...prev, roomName: undefined, roomArea: undefined }));
     setIsRoomModalOpen(true);
   };
 
@@ -314,7 +315,7 @@ export default function SettingsPage(): React.JSX.Element {
         errors.roomArea = "A área deve ser maior que zero.";
       }
     }
-    setValidationErrors(prev => ({ ...prev, ...errors }));
+    setValidationErrors((prev) => ({ ...prev, ...errors }));
     return Object.keys(errors).length === 0;
   };
 
@@ -324,7 +325,7 @@ export default function SettingsPage(): React.JSX.Element {
     setRoomFormError(null);
 
     // Clear previous room errors
-    setValidationErrors(prev => ({ ...prev, roomName: undefined, roomArea: undefined }));
+    setValidationErrors((prev) => ({ ...prev, roomName: undefined, roomArea: undefined }));
 
     if (!validateRoomForm()) return;
 
@@ -347,13 +348,14 @@ export default function SettingsPage(): React.JSX.Element {
         if (res.ok) {
           const data: unknown = await res.json();
           const updated = data as Room;
-          setRooms(prev => prev.map(r => (r.id === updated.id ? updated : r)));
+          setRooms((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
           setIsRoomModalOpen(false);
         } else {
           const data: unknown = await res.json();
-          const msg = data && typeof data === "object" && "error" in data
-            ? String((data as { error: unknown }).error)
-            : "Erro ao atualizar cômodo.";
+          const msg =
+            data && typeof data === "object" && "error" in data
+              ? String((data as { error: unknown }).error)
+              : "Erro ao atualizar cômodo.";
           setRoomFormError(msg);
         }
       } else {
@@ -374,13 +376,14 @@ export default function SettingsPage(): React.JSX.Element {
         if (res.ok) {
           const data: unknown = await res.json();
           const created = data as Room;
-          setRooms(prev => [...prev, created]);
+          setRooms((prev) => [...prev, created]);
           setIsRoomModalOpen(false);
         } else {
           const data: unknown = await res.json();
-          const msg = data && typeof data === "object" && "error" in data
-            ? String((data as { error: unknown }).error)
-            : "Erro ao criar cômodo.";
+          const msg =
+            data && typeof data === "object" && "error" in data
+              ? String((data as { error: unknown }).error)
+              : "Erro ao criar cômodo.";
           setRoomFormError(msg);
         }
       }
@@ -403,13 +406,14 @@ export default function SettingsPage(): React.JSX.Element {
       });
 
       if (res.ok) {
-        setRooms(prev => prev.filter(r => r.id !== deleteTargetRoom.id));
+        setRooms((prev) => prev.filter((r) => r.id !== deleteTargetRoom.id));
         setDeleteTargetRoom(null);
       } else {
         const data: unknown = await res.json();
-        const msg = data && typeof data === "object" && "error" in data
-          ? String((data as { error: unknown }).error)
-          : "Erro ao excluir cômodo.";
+        const msg =
+          data && typeof data === "object" && "error" in data
+            ? String((data as { error: unknown }).error)
+            : "Erro ao excluir cômodo.";
         alert(msg);
       }
     } catch (err) {
@@ -441,9 +445,10 @@ export default function SettingsPage(): React.JSX.Element {
         fetchMembers();
       } else {
         const data: unknown = await res.json();
-        const msg = data && typeof data === "object" && "error" in data
-          ? String((data as { error: unknown }).error)
-          : "Erro ao compartilhar.";
+        const msg =
+          data && typeof data === "object" && "error" in data
+            ? String((data as { error: unknown }).error)
+            : "Erro ao compartilhar.";
         setShareError(msg);
       }
     } catch (err) {
@@ -464,9 +469,10 @@ export default function SettingsPage(): React.JSX.Element {
         fetchMembers();
       } else {
         const data: unknown = await res.json();
-        const msg = data && typeof data === "object" && "error" in data
-          ? String((data as { error: unknown }).error)
-          : "Erro ao remover membro.";
+        const msg =
+          data && typeof data === "object" && "error" in data
+            ? String((data as { error: unknown }).error)
+            : "Erro ao remover membro.";
         alert(msg);
       }
     } catch (err) {
@@ -539,313 +545,339 @@ export default function SettingsPage(): React.JSX.Element {
           <section className="bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
             <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
               <Home className="w-5 h-5 text-emerald-600" />
-              <h2 className="text-lg font-semibold text-[#0e1717]">
-                Dados da Casa
-              </h2>
+              <h2 className="text-lg font-semibold text-[#0e1717]">Dados da Casa</h2>
             </div>
 
-          {houseErrorMsg && (
-            <div className="p-4 bg-orange-50 text-orange-800 border border-orange-200 rounded-lg text-sm flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-orange-600 shrink-0" />
-              <span>{houseErrorMsg}</span>
-            </div>
-          )}
-
-          {houseSuccessMsg && (
-            <div className="p-4 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-sm flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{houseSuccessMsg}</span>
-            </div>
-          )}
-
-          {isLoadingHouse ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-3">
-              <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs text-mint-slate-400">Carregando casa...</span>
-            </div>
-          ) : (
-            <form onSubmit={(e): Promise<void> => handleHouseSubmit(e)} className="space-y-4">
-              {/* House Name */}
-              <div className="space-y-1.5">
-                <label htmlFor="houseName" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Nome da Residência *
-                </label>
-                <input
-                  id="houseName"
-                  type="text"
-                  placeholder="Ex: Minha Casa, Apartamento 102"
-                  value={houseName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-                    setHouseName(e.target.value);
-                    setHouseSuccessMsg(null);
-                  }}
-                  className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
-                    validationErrors.houseName ? "border-orange-500" : "border-mint-slate-400/40"
-                  }`}
-                  disabled={role === "VIEWER"}
-                  required
-                />
-                {validationErrors.houseName && (
-                  <p className="text-xs text-orange-600 mt-1">{validationErrors.houseName}</p>
-                )}
+            {houseErrorMsg && (
+              <div className="p-4 bg-orange-50 text-orange-800 border border-orange-200 rounded-lg text-sm flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-orange-600 shrink-0" />
+                <span>{houseErrorMsg}</span>
               </div>
+            )}
 
-              {/* Location */}
-              <div className="space-y-1.5">
-                <label htmlFor="houseLocation" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Localização / Endereço
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                    <MapPin className="w-4 h-4" />
-                  </span>
+            {houseSuccessMsg && (
+              <div className="p-4 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-sm flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{houseSuccessMsg}</span>
+              </div>
+            )}
+
+            {isLoadingHouse ? (
+              <div className="flex flex-col items-center justify-center py-10 gap-3">
+                <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs text-mint-slate-400">Carregando casa...</span>
+              </div>
+            ) : (
+              <form onSubmit={(e): Promise<void> => handleHouseSubmit(e)} className="space-y-4">
+                {/* House Name */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="houseName"
+                    className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                  >
+                    Nome da Residência *
+                  </label>
                   <input
-                    id="houseLocation"
+                    id="houseName"
                     type="text"
-                    placeholder="Ex: Jardim Paulista, São Paulo - SP"
-                    value={houseLocation}
+                    placeholder="Ex: Minha Casa, Apartamento 102"
+                    value={houseName}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-                      setHouseLocation(e.target.value);
-                      setHouseSuccessMsg(null);
-                    }}
-                    className="w-full pl-9 pr-3.5 py-2.5 border border-mint-slate-400/40 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all"
-                    disabled={role === "VIEWER"}
-                  />
-                </div>
-              </div>
-
-              {/* Area */}
-              <div className="space-y-1.5">
-                <label htmlFor="houseArea" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Área Total (m²)
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                    <Maximize2 className="w-4 h-4" />
-                  </span>
-                  <input
-                    id="houseArea"
-                    type="number"
-                    step="0.01"
-                    placeholder="Ex: 120.50"
-                    value={houseArea}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-                      setHouseArea(e.target.value);
-                      setHouseSuccessMsg(null);
-                    }}
-                    className={`w-full pl-9 pr-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
-                      validationErrors.houseArea ? "border-orange-500" : "border-mint-slate-400/40"
-                    }`}
-                    disabled={role === "VIEWER"}
-                  />
-                </div>
-                {validationErrors.houseArea && (
-                  <p className="text-xs text-orange-600 mt-1">{validationErrors.houseArea}</p>
-                )}
-              </div>
-
-              {/* Coordinates */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="houseLatitude" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Latitude
-                  </label>
-                  <input
-                    id="houseLatitude"
-                    type="number"
-                    step="any"
-                    placeholder="Ex: -23.5505"
-                    value={houseLatitude}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-                      setHouseLatitude(e.target.value);
+                      setHouseName(e.target.value);
                       setHouseSuccessMsg(null);
                     }}
                     className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
-                      validationErrors.houseLatitude ? "border-orange-500" : "border-mint-slate-400/40"
+                      validationErrors.houseName ? "border-orange-500" : "border-mint-slate-400/40"
                     }`}
                     disabled={role === "VIEWER"}
+                    required
                   />
-                  {validationErrors.houseLatitude && (
-                    <p className="text-xs text-orange-600 mt-1">{validationErrors.houseLatitude}</p>
+                  {validationErrors.houseName && (
+                    <p className="text-xs text-orange-600 mt-1">{validationErrors.houseName}</p>
                   )}
                 </div>
 
+                {/* Location */}
                 <div className="space-y-1.5">
-                  <label htmlFor="houseLongitude" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Longitude
+                  <label
+                    htmlFor="houseLocation"
+                    className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                  >
+                    Localização / Endereço
                   </label>
-                  <input
-                    id="houseLongitude"
-                    type="number"
-                    step="any"
-                    placeholder="Ex: -46.6333"
-                    value={houseLongitude}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-                      setHouseLongitude(e.target.value);
-                      setHouseSuccessMsg(null);
-                    }}
-                    className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
-                      validationErrors.houseLongitude ? "border-orange-500" : "border-mint-slate-400/40"
-                    }`}
-                    disabled={role === "VIEWER"}
-                  />
-                  {validationErrors.houseLongitude && (
-                    <p className="text-xs text-orange-600 mt-1">{validationErrors.houseLongitude}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Interactive Map */}
-              <div className="space-y-1.5">
-                <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Selecionar no Mapa
-                </span>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Clique no mapa para marcar a localização exata ou digite as coordenadas acima.
-                </p>
-                <div className="h-[250px] w-full rounded-lg overflow-hidden border border-mint-slate-400/20 relative">
-                  <HouseMap
-                    latitude={houseLatitude === "" ? null : Number(houseLatitude)}
-                    longitude={houseLongitude === "" ? null : Number(houseLongitude)}
-                    onChange={(lat: number, lng: number): void => {
-                      setHouseLatitude(String(lat));
-                      setHouseLongitude(String(lng));
-                      setHouseSuccessMsg(null);
-                    }}
-                    interactive={role !== "VIEWER"}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSavingHouse || role === "VIEWER"}
-                className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-mint-slate-400/40 text-white text-sm font-semibold rounded-lg shadow-sm hover:shadow transition-colors flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {isSavingHouse ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  "Salvar Alterações"
-                )}
-              </button>
-            </form>
-          )}
-        </section>
-
-        {/* Collaborators & Sharing Panel */}
-        <section className="bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
-          <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
-            <Users className="w-5 h-5 text-emerald-600" />
-            <h2 className="text-lg font-semibold text-[#0e1717]">
-              Membros e Compartilhamento
-            </h2>
-          </div>
-
-          {shareError && (
-            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-xs flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-orange-600 shrink-0" />
-              <span>{shareError}</span>
-            </div>
-          )}
-
-          {/* Invite Form (Only for OWNER) */}
-          {role === "OWNER" && (
-            <form onSubmit={handleShareSubmit} className="space-y-3 p-3.5 bg-slate-50 border border-slate-200/50 rounded-xl">
-              <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Convidar Novo Membro
-              </span>
-              <div className="space-y-2">
-                <input
-                  type="email"
-                  placeholder="Email do convidado"
-                  value={shareEmail}
-                  onChange={(e): void => setShareEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-hidden transition-all"
-                  required
-                />
-                <div className="flex gap-2">
-                  <select
-                    value={shareRole}
-                    onChange={(e): void => setShareRole(e.target.value as "COLLABORATOR" | "VIEWER")}
-                    className="px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-3xs w-full"
-                  >
-                    <option value="COLLABORATOR">Colaborador (Editar)</option>
-                    <option value="VIEWER">Visualizador (Apenas Ver)</option>
-                  </select>
-                  <button
-                    type="submit"
-                    disabled={isSharing}
-                    className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow transition-all shrink-0 cursor-pointer"
-                  >
-                    {isSharing ? "Convidando..." : "Convidar"}
-                  </button>
-                </div>
-              </div>
-            </form>
-          )}
-
-          {/* Members List */}
-          <div className="space-y-3">
-            <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Membros Ativos ({members.length})
-            </span>
-            <div className="divide-y divide-slate-100 max-h-[250px] overflow-y-auto pr-1">
-              {members.map((member) => {
-                const isOwner = member.role === "OWNER";
-                const isCollaborator = member.role === "COLLABORATOR";
-
-                return (
-                  <div key={member.id} className="py-2.5 flex justify-between items-center gap-2">
-                    <div className="min-w-0">
-                      <span className="text-xs font-semibold text-slate-800 block truncate">
-                        {member.user.name}
-                      </span>
-                      <span className="text-[10px] text-slate-400 block truncate">
-                        {member.user.email}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span
-                        className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md border tracking-wider ${
-                          isOwner
-                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                            : isCollaborator
-                            ? "bg-blue-50 border-blue-200 text-blue-700"
-                            : "bg-slate-50 border-slate-200 text-slate-500"
-                        }`}
-                      >
-                        {isOwner ? "Dono" : isCollaborator ? "Editar" : "Ver"}
-                      </span>
-                      {role === "OWNER" && member.user.id !== activeUserId && (
-                        <button
-                          type="button"
-                          onClick={(): void => { handleRemoveMember(member.id); }}
-                          className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-md transition-colors cursor-pointer border border-transparent hover:border-rose-100"
-                          title="Remover Membro"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                      <MapPin className="w-4 h-4" />
+                    </span>
+                    <input
+                      id="houseLocation"
+                      type="text"
+                      placeholder="Ex: Jardim Paulista, São Paulo - SP"
+                      value={houseLocation}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                        setHouseLocation(e.target.value);
+                        setHouseSuccessMsg(null);
+                      }}
+                      className="w-full pl-9 pr-3.5 py-2.5 border border-mint-slate-400/40 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all"
+                      disabled={role === "VIEWER"}
+                    />
                   </div>
-                );
-              })}
+                </div>
+
+                {/* Area */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="houseArea"
+                    className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                  >
+                    Área Total (m²)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                      <Maximize2 className="w-4 h-4" />
+                    </span>
+                    <input
+                      id="houseArea"
+                      type="number"
+                      step="0.01"
+                      placeholder="Ex: 120.50"
+                      value={houseArea}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                        setHouseArea(e.target.value);
+                        setHouseSuccessMsg(null);
+                      }}
+                      className={`w-full pl-9 pr-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
+                        validationErrors.houseArea
+                          ? "border-orange-500"
+                          : "border-mint-slate-400/40"
+                      }`}
+                      disabled={role === "VIEWER"}
+                    />
+                  </div>
+                  {validationErrors.houseArea && (
+                    <p className="text-xs text-orange-600 mt-1">{validationErrors.houseArea}</p>
+                  )}
+                </div>
+
+                {/* Coordinates */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="houseLatitude"
+                      className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                    >
+                      Latitude
+                    </label>
+                    <input
+                      id="houseLatitude"
+                      type="number"
+                      step="any"
+                      placeholder="Ex: -23.5505"
+                      value={houseLatitude}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                        setHouseLatitude(e.target.value);
+                        setHouseSuccessMsg(null);
+                      }}
+                      className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
+                        validationErrors.houseLatitude
+                          ? "border-orange-500"
+                          : "border-mint-slate-400/40"
+                      }`}
+                      disabled={role === "VIEWER"}
+                    />
+                    {validationErrors.houseLatitude && (
+                      <p className="text-xs text-orange-600 mt-1">
+                        {validationErrors.houseLatitude}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="houseLongitude"
+                      className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                    >
+                      Longitude
+                    </label>
+                    <input
+                      id="houseLongitude"
+                      type="number"
+                      step="any"
+                      placeholder="Ex: -46.6333"
+                      value={houseLongitude}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                        setHouseLongitude(e.target.value);
+                        setHouseSuccessMsg(null);
+                      }}
+                      className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
+                        validationErrors.houseLongitude
+                          ? "border-orange-500"
+                          : "border-mint-slate-400/40"
+                      }`}
+                      disabled={role === "VIEWER"}
+                    />
+                    {validationErrors.houseLongitude && (
+                      <p className="text-xs text-orange-600 mt-1">
+                        {validationErrors.houseLongitude}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Interactive Map */}
+                <div className="space-y-1.5">
+                  <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Selecionar no Mapa
+                  </span>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Clique no mapa para marcar a localização exata ou digite as coordenadas acima.
+                  </p>
+                  <div className="h-[250px] w-full rounded-lg overflow-hidden border border-mint-slate-400/20 relative">
+                    <HouseMap
+                      latitude={houseLatitude === "" ? null : Number(houseLatitude)}
+                      longitude={houseLongitude === "" ? null : Number(houseLongitude)}
+                      onChange={(lat: number, lng: number): void => {
+                        setHouseLatitude(String(lat));
+                        setHouseLongitude(String(lng));
+                        setHouseSuccessMsg(null);
+                      }}
+                      interactive={role !== "VIEWER"}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSavingHouse || role === "VIEWER"}
+                  className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-mint-slate-400/40 text-white text-sm font-semibold rounded-lg shadow-sm hover:shadow transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isSavingHouse ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    "Salvar Alterações"
+                  )}
+                </button>
+              </form>
+            )}
+          </section>
+
+          {/* Collaborators & Sharing Panel */}
+          <section className="bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
+            <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
+              <Users className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-lg font-semibold text-[#0e1717]">Membros e Compartilhamento</h2>
             </div>
-          </div>
-        </section>
-      </div>
+
+            {shareError && (
+              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-orange-600 shrink-0" />
+                <span>{shareError}</span>
+              </div>
+            )}
+
+            {/* Invite Form (Only for OWNER) */}
+            {role === "OWNER" && (
+              <form
+                onSubmit={handleShareSubmit}
+                className="space-y-3 p-3.5 bg-slate-50 border border-slate-200/50 rounded-xl"
+              >
+                <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Convidar Novo Membro
+                </span>
+                <div className="space-y-2">
+                  <input
+                    type="email"
+                    placeholder="Email do convidado"
+                    value={shareEmail}
+                    onChange={(e): void => setShareEmail(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-hidden transition-all"
+                    required
+                  />
+                  <div className="flex gap-2">
+                    <select
+                      value={shareRole}
+                      onChange={(e): void =>
+                        setShareRole(e.target.value as "COLLABORATOR" | "VIEWER")
+                      }
+                      className="px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-3xs w-full"
+                    >
+                      <option value="COLLABORATOR">Colaborador (Editar)</option>
+                      <option value="VIEWER">Visualizador (Apenas Ver)</option>
+                    </select>
+                    <button
+                      type="submit"
+                      disabled={isSharing}
+                      className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow transition-all shrink-0 cursor-pointer"
+                    >
+                      {isSharing ? "Convidando..." : "Convidar"}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            {/* Members List */}
+            <div className="space-y-3">
+              <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Membros Ativos ({members.length})
+              </span>
+              <div className="divide-y divide-slate-100 max-h-[250px] overflow-y-auto pr-1">
+                {members.map((member) => {
+                  const isOwner = member.role === "OWNER";
+                  const isCollaborator = member.role === "COLLABORATOR";
+
+                  return (
+                    <div key={member.id} className="py-2.5 flex justify-between items-center gap-2">
+                      <div className="min-w-0">
+                        <span className="text-xs font-semibold text-slate-800 block truncate">
+                          {member.user.name}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block truncate">
+                          {member.user.email}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span
+                          className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md border tracking-wider ${
+                            isOwner
+                              ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                              : isCollaborator
+                                ? "bg-blue-50 border-blue-200 text-blue-700"
+                                : "bg-slate-50 border-slate-200 text-slate-500"
+                          }`}
+                        >
+                          {isOwner ? "Dono" : isCollaborator ? "Editar" : "Ver"}
+                        </span>
+                        {role === "OWNER" && member.user.id !== activeUserId && (
+                          <button
+                            type="button"
+                            onClick={(): void => {
+                              handleRemoveMember(member.id);
+                            }}
+                            className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-md transition-colors cursor-pointer border border-transparent hover:border-rose-100"
+                            title="Remover Membro"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        </div>
 
         {/* Room Management Panel */}
         <section className="lg:col-span-7 bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
           <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Palette className="w-5 h-5 text-emerald-600" />
-              <h2 className="text-lg font-semibold text-[#0e1717]">
-                Cômodos Cadastrados
-              </h2>
+              <h2 className="text-lg font-semibold text-[#0e1717]">Cômodos Cadastrados</h2>
             </div>
             {role !== "VIEWER" && (
               <button
@@ -872,48 +904,50 @@ export default function SettingsPage(): React.JSX.Element {
             </div>
           ) : rooms.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {rooms.map((room): React.JSX.Element => (
-                <div
-                  key={room.id}
-                  className="border border-mint-slate-400/10 rounded-xl p-4 bg-slate-50/50 hover:bg-slate-50 transition-all flex justify-between items-center group shadow-2xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-4 h-4 rounded-full border border-slate-200/50 shrink-0 shadow-2xs"
-                      style={{ backgroundColor: room.colorCode || "#cbd5e1" }}
-                    />
-                    <div>
-                      <h3 className="text-sm font-semibold text-[#0e1717] leading-snug">
-                        {room.name}
-                      </h3>
-                      <p className="text-xs text-slate-500 font-medium">
-                        {room.area ? `${room.area} m²` : "Área não definida"}
-                      </p>
+              {rooms.map(
+                (room): React.JSX.Element => (
+                  <div
+                    key={room.id}
+                    className="border border-mint-slate-400/10 rounded-xl p-4 bg-slate-50/50 hover:bg-slate-50 transition-all flex justify-between items-center group shadow-2xs"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-4 h-4 rounded-full border border-slate-200/50 shrink-0 shadow-2xs"
+                        style={{ backgroundColor: room.colorCode || "#cbd5e1" }}
+                      />
+                      <div>
+                        <h3 className="text-sm font-semibold text-[#0e1717] leading-snug">
+                          {room.name}
+                        </h3>
+                        <p className="text-xs text-slate-500 font-medium">
+                          {room.area ? `${room.area} m²` : "Área não definida"}
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  {role !== "VIEWER" && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={(): void => handleEditRoomClick(room)}
-                        className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200/50 transition-all cursor-pointer"
-                        title="Editar"
-                        type="button"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={(): void => setDeleteTargetRoom(room)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200/50 transition-all cursor-pointer"
-                        title="Excluir"
-                        type="button"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    {role !== "VIEWER" && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(): void => handleEditRoomClick(room)}
+                          className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200/50 transition-all cursor-pointer"
+                          title="Editar"
+                          type="button"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(): void => setDeleteTargetRoom(room)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200/50 transition-all cursor-pointer"
+                          title="Excluir"
+                          type="button"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ),
+              )}
             </div>
           ) : (
             <div className="py-16 text-center text-mint-slate-400 text-sm flex flex-col items-center gap-2">
@@ -953,7 +987,10 @@ export default function SettingsPage(): React.JSX.Element {
 
               {/* Room Name */}
               <div className="space-y-1.5">
-                <label htmlFor="roomName" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <label
+                  htmlFor="roomName"
+                  className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                >
                   Nome do Cômodo *
                 </label>
                 <input
@@ -961,7 +998,9 @@ export default function SettingsPage(): React.JSX.Element {
                   type="text"
                   placeholder="Ex: Quarto Principal, Banheiro Social..."
                   value={roomName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setRoomName(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                    setRoomName(e.target.value)
+                  }
                   className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
                     validationErrors.roomName ? "border-orange-500" : "border-mint-slate-400/40"
                   }`}
@@ -974,7 +1013,10 @@ export default function SettingsPage(): React.JSX.Element {
 
               {/* Room Area */}
               <div className="space-y-1.5">
-                <label htmlFor="roomArea" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <label
+                  htmlFor="roomArea"
+                  className="block text-xs font-bold text-slate-500 uppercase tracking-wider"
+                >
                   Área (m²)
                 </label>
                 <input
@@ -983,7 +1025,9 @@ export default function SettingsPage(): React.JSX.Element {
                   step="0.01"
                   placeholder="Ex: 12.80"
                   value={roomArea}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setRoomArea(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                    setRoomArea(e.target.value)
+                  }
                   className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
                     validationErrors.roomArea ? "border-orange-500" : "border-mint-slate-400/40"
                   }`}
@@ -999,25 +1043,29 @@ export default function SettingsPage(): React.JSX.Element {
                   Cor de Identificação
                 </span>
                 <div className="flex flex-wrap gap-2.5">
-                  {PRESET_COLORS.map((color): React.JSX.Element => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={(): void => setRoomColor(color)}
-                      className={`w-7 h-7 rounded-full border transition-all cursor-pointer ${
-                        roomColor === color
-                          ? "ring-2 ring-offset-2 ring-emerald-600 scale-110 border-transparent shadow-xs"
-                          : "border-slate-200 hover:scale-105"
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
+                  {PRESET_COLORS.map(
+                    (color): React.JSX.Element => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={(): void => setRoomColor(color)}
+                        className={`w-7 h-7 rounded-full border transition-all cursor-pointer ${
+                          roomColor === color
+                            ? "ring-2 ring-offset-2 ring-emerald-600 scale-110 border-transparent shadow-xs"
+                            : "border-slate-200 hover:scale-105"
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ),
+                  )}
                   {/* Custom color input */}
                   <div className="relative w-7 h-7 rounded-full border border-slate-200 overflow-hidden hover:scale-105 transition-transform flex items-center justify-center bg-slate-50">
                     <input
                       type="color"
                       value={roomColor}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setRoomColor(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                        setRoomColor(e.target.value)
+                      }
                       className="absolute inset-0 w-full h-full p-0 border-0 outline-hidden cursor-pointer opacity-100 scale-150"
                       title="Cor personalizada"
                     />
@@ -1064,15 +1112,15 @@ export default function SettingsPage(): React.JSX.Element {
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-bold text-[#0e1717]">
-                  Excluir Cômodo?
-                </h3>
+                <h3 className="text-lg font-bold text-[#0e1717]">Excluir Cômodo?</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">
                   Tem certeza de que deseja excluir o cômodo{" "}
                   <strong className="text-slate-800">"{deleteTargetRoom.name}"</strong>?
                 </p>
                 <div className="p-3.5 bg-rose-50/50 border border-rose-100 rounded-xl text-xs text-rose-800 leading-relaxed font-medium">
-                  <strong>Aviso:</strong> Todas as despesas atualmente vinculadas a este cômodo serão desvinculadas (o campo do cômodo será limpo nelas). As despesas em si não serão deletadas.
+                  <strong>Aviso:</strong> Todas as despesas atualmente vinculadas a este cômodo
+                  serão desvinculadas (o campo do cômodo será limpo nelas). As despesas em si não
+                  serão deletadas.
                 </div>
               </div>
             </div>

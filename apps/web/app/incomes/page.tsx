@@ -1,22 +1,22 @@
 "use client";
 
-import type React from "react";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
   AlertTriangle,
+  ArrowLeft,
   CheckCircle,
   Clock,
   DollarSign,
-  Layers,
   Edit2,
-  Trash2,
-  Plus,
-  X,
+  Layers,
   PiggyBank,
+  Plus,
+  Trash2,
+  X,
 } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import type React from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useUser } from "../components/UserContext";
 
 interface Income {
@@ -199,9 +199,10 @@ function IncomesListContent(): React.JSX.Element {
 
         if (!res.ok) {
           const errData: unknown = await res.json();
-          const msg = errData && typeof errData === "object" && "error" in errData
-            ? String((errData as { error: unknown }).error)
-            : "Erro ao salvar alterações da receita.";
+          const msg =
+            errData && typeof errData === "object" && "error" in errData
+              ? String((errData as { error: unknown }).error)
+              : "Erro ao salvar alterações da receita.";
           throw new Error(msg);
         }
 
@@ -217,9 +218,10 @@ function IncomesListContent(): React.JSX.Element {
 
         if (!res.ok) {
           const errData: unknown = await res.json();
-          const msg = errData && typeof errData === "object" && "error" in errData
-            ? String((errData as { error: unknown }).error)
-            : "Erro ao registrar receita.";
+          const msg =
+            errData && typeof errData === "object" && "error" in errData
+              ? String((errData as { error: unknown }).error)
+              : "Erro ao registrar receita.";
           throw new Error(msg);
         }
 
@@ -243,9 +245,10 @@ function IncomesListContent(): React.JSX.Element {
 
       if (!res.ok) {
         const errData: unknown = await res.json();
-        const msg = errData && typeof errData === "object" && "error" in errData
-          ? String((errData as { error: unknown }).error)
-          : "Erro ao excluir receita.";
+        const msg =
+          errData && typeof errData === "object" && "error" in errData
+            ? String((errData as { error: unknown }).error)
+            : "Erro ao excluir receita.";
         throw new Error(msg);
       }
 
@@ -349,8 +352,12 @@ function IncomesListContent(): React.JSX.Element {
                 <DollarSign className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total do Período</span>
-                <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.totalSum)}</h4>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                  Total do Período
+                </span>
+                <h4 className="text-lg font-bold font-mono text-[#0e1717]">
+                  {formatBRL(stats.totalSum)}
+                </h4>
               </div>
             </div>
 
@@ -359,8 +366,12 @@ function IncomesListContent(): React.JSX.Element {
                 <CheckCircle className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600">Confirmado</span>
-                <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.confirmedSum)}</h4>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600">
+                  Confirmado
+                </span>
+                <h4 className="text-lg font-bold font-mono text-[#0e1717]">
+                  {formatBRL(stats.confirmedSum)}
+                </h4>
               </div>
             </div>
 
@@ -369,8 +380,12 @@ function IncomesListContent(): React.JSX.Element {
                 <Clock className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500">Planejado (Orçamento)</span>
-                <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.budgetSum)}</h4>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500">
+                  Planejado (Orçamento)
+                </span>
+                <h4 className="text-lg font-bold font-mono text-[#0e1717]">
+                  {formatBRL(stats.budgetSum)}
+                </h4>
               </div>
             </div>
           </section>
@@ -398,57 +413,61 @@ function IncomesListContent(): React.JSX.Element {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {filteredIncomes.map((inc): React.JSX.Element => (
-                      <tr key={inc.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="py-3.5 px-6 font-medium text-slate-800">
-                          {inc.description}
-                        </td>
-                        <td className="py-3.5 px-6 text-right font-mono font-bold text-[#0e1717] tabular-nums">
-                          {formatBRL(Number(inc.amount))}
-                        </td>
-                        <td className="py-3.5 px-6 font-mono text-slate-500 text-xs">
-                          {formatDate(inc.dueDate)}
-                        </td>
-                        <td className="py-3.5 px-6 text-xs text-slate-600">
-                          {CATEGORY_MAP[inc.category] || inc.category}
-                        </td>
-                        <td className="py-3.5 px-6 text-center">
-                          {inc.status === "CONFIRMED" ? (
-                            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                              Confirmado
-                            </span>
-                          ) : (
-                            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100">
-                              Planejado
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-6 text-center">
-                          {role !== "VIEWER" ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                type="button"
-                                onClick={(): void => handleEditClick(inc)}
-                                className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                                title="Editar"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(): void => setDeleteTarget(inc)}
-                                className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                                title="Excluir"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-slate-400 font-medium">Apenas Leitura</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredIncomes.map(
+                      (inc): React.JSX.Element => (
+                        <tr key={inc.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-3.5 px-6 font-medium text-slate-800">
+                            {inc.description}
+                          </td>
+                          <td className="py-3.5 px-6 text-right font-mono font-bold text-[#0e1717] tabular-nums">
+                            {formatBRL(Number(inc.amount))}
+                          </td>
+                          <td className="py-3.5 px-6 font-mono text-slate-500 text-xs">
+                            {formatDate(inc.dueDate)}
+                          </td>
+                          <td className="py-3.5 px-6 text-xs text-slate-600">
+                            {CATEGORY_MAP[inc.category] || inc.category}
+                          </td>
+                          <td className="py-3.5 px-6 text-center">
+                            {inc.status === "CONFIRMED" ? (
+                              <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                Confirmado
+                              </span>
+                            ) : (
+                              <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100">
+                                Planejado
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-6 text-center">
+                            {role !== "VIEWER" ? (
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={(): void => handleEditClick(inc)}
+                                  className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                  title="Editar"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(): void => setDeleteTarget(inc)}
+                                  className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-400 font-medium">
+                                Apenas Leitura
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ),
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -481,7 +500,10 @@ function IncomesListContent(): React.JSX.Element {
             </div>
 
             {/* Modal Body / Form */}
-            <form onSubmit={(e): Promise<void> => handleSave(e)} className="flex-1 overflow-y-auto p-6 space-y-5">
+            <form
+              onSubmit={(e): Promise<void> => handleSave(e)}
+              className="flex-1 overflow-y-auto p-6 space-y-5"
+            >
               {formError && (
                 <div className="p-3.5 bg-orange-50 border border-orange-200 rounded-xl text-orange-800 text-sm flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-orange-600 shrink-0" />
@@ -491,7 +513,9 @@ function IncomesListContent(): React.JSX.Element {
 
               {/* Status Select Toggle */}
               <div className="space-y-2">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Status da Receita</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                  Status da Receita
+                </span>
                 <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200/50">
                   <button
                     type="button"
@@ -522,7 +546,12 @@ function IncomesListContent(): React.JSX.Element {
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label htmlFor="description" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Descrição *</label>
+                <label
+                  htmlFor="description"
+                  className="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                >
+                  Descrição *
+                </label>
                 <input
                   id="description"
                   type="text"
@@ -537,7 +566,12 @@ function IncomesListContent(): React.JSX.Element {
               {/* Amount and Due Date Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="amount" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Valor Total (R$) *</label>
+                  <label
+                    htmlFor="amount"
+                    className="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                  >
+                    Valor Total (R$) *
+                  </label>
                   <input
                     id="amount"
                     type="number"
@@ -551,7 +585,12 @@ function IncomesListContent(): React.JSX.Element {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="dueDate" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Data de Vencimento *</label>
+                  <label
+                    htmlFor="dueDate"
+                    className="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                  >
+                    Data de Vencimento *
+                  </label>
                   <input
                     id="dueDate"
                     type="date"
@@ -565,7 +604,12 @@ function IncomesListContent(): React.JSX.Element {
 
               {/* Category selector */}
               <div className="space-y-1.5">
-                <label htmlFor="category" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria</label>
+                <label
+                  htmlFor="category"
+                  className="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                >
+                  Categoria
+                </label>
                 <select
                   id="category"
                   value={category}
@@ -620,7 +664,13 @@ function IncomesListContent(): React.JSX.Element {
               <div className="space-y-1.5">
                 <h3 className="text-lg font-bold text-[#0e1717]">Excluir Receita</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">
-                  Tem certeza de que deseja excluir a receita <span className="font-semibold text-slate-800">"{deleteTarget.description}"</span> no valor de <span className="font-bold text-[#0e1717]">{formatBRL(Number(deleteTarget.amount))}</span>? Esta ação não pode ser desfeita.
+                  Tem certeza de que deseja excluir a receita{" "}
+                  <span className="font-semibold text-slate-800">"{deleteTarget.description}"</span>{" "}
+                  no valor de{" "}
+                  <span className="font-bold text-[#0e1717]">
+                    {formatBRL(Number(deleteTarget.amount))}
+                  </span>
+                  ? Esta ação não pode ser desfeita.
                 </p>
               </div>
             </div>

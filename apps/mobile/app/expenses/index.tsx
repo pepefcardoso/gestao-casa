@@ -77,7 +77,9 @@ export default function ExpenseListScreen(): React.JSX.Element {
 
   // Filters State
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-  const [selectedPriority, setSelectedPriority] = useState<"ALL" | "HIGH" | "MEDIUM" | "LOW">("ALL");
+  const [selectedPriority, setSelectedPriority] = useState<"ALL" | "HIGH" | "MEDIUM" | "LOW">(
+    "ALL",
+  );
   const [isRoomPickerOpen, setIsRoomPickerOpen] = useState<boolean>(false);
 
   // Fetch Data
@@ -137,8 +139,8 @@ export default function ExpenseListScreen(): React.JSX.Element {
     const previousExpenses = [...expenses];
 
     // Optimistically update
-    const updatedExpenses = expenses.map((e): ExpenseClient =>
-      e.id === expense.id ? { ...e, status: "CONFIRMED" as const } : e,
+    const updatedExpenses = expenses.map(
+      (e): ExpenseClient => (e.id === expense.id ? { ...e, status: "CONFIRMED" as const } : e),
     );
     setExpenses(updatedExpenses);
 
@@ -374,7 +376,12 @@ export default function ExpenseListScreen(): React.JSX.Element {
                 </>
               ) : (
                 <>
-                  <Lucide name="home" size={16} color="#8fa3a3" style={styles.dropdownTriggerIcon} />
+                  <Lucide
+                    name="home"
+                    size={16}
+                    color="#8fa3a3"
+                    style={styles.dropdownTriggerIcon}
+                  />
                   <Text style={styles.dropdownTriggerText}>Todos os Cômodos</Text>
                 </>
               )}
@@ -387,25 +394,23 @@ export default function ExpenseListScreen(): React.JSX.Element {
         <View style={styles.filterGroup}>
           <Text style={styles.filterLabel}>Filtrar por Prioridade</Text>
           <View style={styles.segmentedControl}>
-            {PRIORITIES.map(
-              (prio): React.JSX.Element => {
-                const isActive = selectedPriority === prio.value;
-                return (
-                  <TouchableOpacity
-                    key={prio.value}
-                    style={[styles.segmentButton, isActive && styles.segmentButtonActive]}
-                    onPress={(): void => setSelectedPriority(prio.value)}
-                    activeOpacity={0.8}
+            {PRIORITIES.map((prio): React.JSX.Element => {
+              const isActive = selectedPriority === prio.value;
+              return (
+                <TouchableOpacity
+                  key={prio.value}
+                  style={[styles.segmentButton, isActive && styles.segmentButtonActive]}
+                  onPress={(): void => setSelectedPriority(prio.value)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[styles.segmentButtonText, isActive && styles.segmentButtonTextActive]}
                   >
-                    <Text
-                      style={[styles.segmentButtonText, isActive && styles.segmentButtonTextActive]}
-                    >
-                      {prio.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              },
-            )}
+                    {prio.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
       </View>
@@ -480,32 +485,28 @@ export default function ExpenseListScreen(): React.JSX.Element {
                 {selectedRoomId === null && <Lucide name="check" size={18} color="#059669" />}
               </TouchableOpacity>
 
-              {rooms.map(
-                (room): React.JSX.Element => {
-                  const isActive = selectedRoomId === room.id;
-                  const dotColor = room.colorCode || "#8fa3a3";
-                  return (
-                    <TouchableOpacity
-                      key={room.id}
-                      style={[styles.modalItem, isActive && styles.modalItemActive]}
-                      onPress={(): void => {
-                        setSelectedRoomId(room.id);
-                        setIsRoomPickerOpen(false);
-                      }}
-                    >
-                      <View style={styles.modalItemLeft}>
-                        <View style={[styles.modalColorDot, { backgroundColor: dotColor }]} />
-                        <Text
-                          style={[styles.modalItemText, isActive && styles.modalItemTextActive]}
-                        >
-                          {room.name}
-                        </Text>
-                      </View>
-                      {isActive && <Lucide name="check" size={18} color="#059669" />}
-                    </TouchableOpacity>
-                  );
-                },
-              )}
+              {rooms.map((room): React.JSX.Element => {
+                const isActive = selectedRoomId === room.id;
+                const dotColor = room.colorCode || "#8fa3a3";
+                return (
+                  <TouchableOpacity
+                    key={room.id}
+                    style={[styles.modalItem, isActive && styles.modalItemActive]}
+                    onPress={(): void => {
+                      setSelectedRoomId(room.id);
+                      setIsRoomPickerOpen(false);
+                    }}
+                  >
+                    <View style={styles.modalItemLeft}>
+                      <View style={[styles.modalColorDot, { backgroundColor: dotColor }]} />
+                      <Text style={[styles.modalItemText, isActive && styles.modalItemTextActive]}>
+                        {room.name}
+                      </Text>
+                    </View>
+                    {isActive && <Lucide name="check" size={18} color="#059669" />}
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
           </View>
         </TouchableOpacity>

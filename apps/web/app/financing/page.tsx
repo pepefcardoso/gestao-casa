@@ -1,21 +1,13 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { Area, AreaChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
-  Area,
-  AreaChart,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  type FinancingInstallment,
   calculateFinancing,
+  type FinancingInstallment,
 } from "../../../../libs/shared-logic/src/utils/calculate-financing";
 import { useUser } from "../components/UserContext";
 
@@ -35,7 +27,7 @@ export default function FinancingPage(): React.JSX.Element {
   const [termMonths, setTermMonths] = useState<number>(360);
   const [interestRatePercentage, setInterestRatePercentage] = useState<number>(10);
   const [amortizationSystem, setAmortizationSystem] = useState<"SAC" | "PRICE">("SAC");
-  
+
   // Override states
   const [firstParcelOverride, setFirstParcelOverride] = useState<number | undefined>(undefined);
   const [lastParcelOverride, setLastParcelOverride] = useState<number | undefined>(undefined);
@@ -43,7 +35,10 @@ export default function FinancingPage(): React.JSX.Element {
   // Status states
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [saveStatus, setSaveStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [saveStatus, setSaveStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Fetch initial data
@@ -71,10 +66,10 @@ export default function FinancingPage(): React.JSX.Element {
           setInterestRatePercentage(Number(record.interestRate) * 100);
           setAmortizationSystem(record.amortizationSystem);
           setFirstParcelOverride(
-            record.firstParcelOverride ? Number(record.firstParcelOverride) : undefined
+            record.firstParcelOverride ? Number(record.firstParcelOverride) : undefined,
           );
           setLastParcelOverride(
-            record.lastParcelOverride ? Number(record.lastParcelOverride) : undefined
+            record.lastParcelOverride ? Number(record.lastParcelOverride) : undefined,
           );
         }
       } else if (response.status !== 404) {
@@ -121,12 +116,16 @@ export default function FinancingPage(): React.JSX.Element {
       });
 
       if (response.ok) {
-        setSaveStatus({ type: "success", message: "Configuração do financiamento salva com sucesso!" });
+        setSaveStatus({
+          type: "success",
+          message: "Configuração do financiamento salva com sucesso!",
+        });
       } else {
         const data: unknown = await response.json();
-        const errorMsg = data && typeof data === "object" && "error" in data 
-          ? String((data as { error: unknown }).error)
-          : "Erro ao salvar dados.";
+        const errorMsg =
+          data && typeof data === "object" && "error" in data
+            ? String((data as { error: unknown }).error)
+            : "Erro ao salvar dados.";
         setSaveStatus({ type: "error", message: errorMsg });
       }
     } catch {
@@ -159,7 +158,11 @@ export default function FinancingPage(): React.JSX.Element {
 
   // Reactive amortization calculations (no API request required)
   const installments = useMemo((): FinancingInstallment[] => {
-    if (propertyValue - downPayment <= 0 || termMonths <= 0 || Object.keys(validationErrors).length > 0) {
+    if (
+      propertyValue - downPayment <= 0 ||
+      termMonths <= 0 ||
+      Object.keys(validationErrors).length > 0
+    ) {
       return [];
     }
     return calculateFinancing({
@@ -281,7 +284,6 @@ export default function FinancingPage(): React.JSX.Element {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
           {/* Left panel: form configuration */}
           <section className="lg:col-span-4 bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
             <h2 className="text-lg font-semibold text-[#0e1717] border-b border-slate-100 pb-3">
@@ -291,7 +293,10 @@ export default function FinancingPage(): React.JSX.Element {
             <div className="space-y-4">
               {/* Property Value */}
               <div>
-                <label htmlFor="property-value-input" className="block text-xs font-semibold text-[#0e1717] mb-1.5 uppercase tracking-wider">
+                <label
+                  htmlFor="property-value-input"
+                  className="block text-xs font-semibold text-[#0e1717] mb-1.5 uppercase tracking-wider"
+                >
                   Valor do Imóvel (R$)
                 </label>
                 <input
@@ -303,7 +308,9 @@ export default function FinancingPage(): React.JSX.Element {
                     setSaveStatus(null);
                   }}
                   className={`w-full px-3.5 py-2 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-none transition-all ${
-                    validationErrors.propertyValue ? "border-orange-500" : "border-mint-slate-400/40"
+                    validationErrors.propertyValue
+                      ? "border-orange-500"
+                      : "border-mint-slate-400/40"
                   }`}
                 />
                 {validationErrors.propertyValue && (
@@ -313,7 +320,10 @@ export default function FinancingPage(): React.JSX.Element {
 
               {/* Down Payment */}
               <div>
-                <label htmlFor="down-payment-input" className="block text-xs font-semibold text-[#0e1717] mb-1.5 uppercase tracking-wider">
+                <label
+                  htmlFor="down-payment-input"
+                  className="block text-xs font-semibold text-[#0e1717] mb-1.5 uppercase tracking-wider"
+                >
                   Entrada (R$)
                 </label>
                 <input
@@ -346,7 +356,10 @@ export default function FinancingPage(): React.JSX.Element {
               <div className="grid grid-cols-2 gap-4">
                 {/* Term */}
                 <div>
-                  <label htmlFor="term-months-input" className="block text-xs font-semibold text-[#0e1717] mb-1.5 uppercase tracking-wider">
+                  <label
+                    htmlFor="term-months-input"
+                    className="block text-xs font-semibold text-[#0e1717] mb-1.5 uppercase tracking-wider"
+                  >
                     Prazo (Meses)
                   </label>
                   <input
@@ -365,10 +378,13 @@ export default function FinancingPage(): React.JSX.Element {
                     <p className="text-xs text-orange-600 mt-1">{validationErrors.termMonths}</p>
                   )}
                 </div>
- 
+
                 {/* Interest Rate */}
                 <div>
-                  <label htmlFor="interest-rate-input" className="block text-xs font-semibold text-[#0e1717] mb-1.5 uppercase tracking-wider">
+                  <label
+                    htmlFor="interest-rate-input"
+                    className="block text-xs font-semibold text-[#0e1717] mb-1.5 uppercase tracking-wider"
+                  >
                     Taxa Anual (%)
                   </label>
                   <input
@@ -381,7 +397,9 @@ export default function FinancingPage(): React.JSX.Element {
                       setSaveStatus(null);
                     }}
                     className={`w-full px-3.5 py-2 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-none transition-all ${
-                      validationErrors.interestRate ? "border-orange-500" : "border-mint-slate-400/40"
+                      validationErrors.interestRate
+                        ? "border-orange-500"
+                        : "border-mint-slate-400/40"
                     }`}
                   />
                   {validationErrors.interestRate && (
@@ -392,7 +410,10 @@ export default function FinancingPage(): React.JSX.Element {
 
               {/* Amortization System */}
               <div>
-                <label htmlFor="amortization-system-select" className="block text-xs font-semibold text-[#0e1717] mb-1.5 uppercase tracking-wider">
+                <label
+                  htmlFor="amortization-system-select"
+                  className="block text-xs font-semibold text-[#0e1717] mb-1.5 uppercase tracking-wider"
+                >
                   Sistema de Amortização
                 </label>
                 <select
@@ -415,7 +436,10 @@ export default function FinancingPage(): React.JSX.Element {
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="first-parcel-override-input" className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase">
+                    <label
+                      htmlFor="first-parcel-override-input"
+                      className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase"
+                    >
                       1ª Parcela (R$)
                     </label>
                     <input
@@ -432,7 +456,10 @@ export default function FinancingPage(): React.JSX.Element {
                     />
                   </div>
                   <div>
-                    <label htmlFor="last-parcel-override-input" className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase">
+                    <label
+                      htmlFor="last-parcel-override-input"
+                      className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase"
+                    >
                       Última (R$)
                     </label>
                     <input
@@ -474,7 +501,6 @@ export default function FinancingPage(): React.JSX.Element {
 
           {/* Right panel: chart and interactive table */}
           <div className="lg:col-span-8 space-y-6">
-            
             {/* Chart */}
             <div className="bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6">
               <h2 className="text-lg font-semibold text-[#0e1717] mb-4">
@@ -503,7 +529,7 @@ export default function FinancingPage(): React.JSX.Element {
                       <Tooltip
                         formatter={(value: unknown): [string, string] => [
                           typeof value === "number" ? formatBRL(value) : "",
-                          ""
+                          "",
                         ]}
                         labelFormatter={(label: unknown): string => `Mês ${label}`}
                       />
@@ -541,9 +567,7 @@ export default function FinancingPage(): React.JSX.Element {
             {/* Table */}
             <div className="bg-white border border-mint-slate-400/20 rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-[#0e1717]">
-                  Cronograma de Pagamento
-                </h2>
+                <h2 className="text-lg font-semibold text-[#0e1717]">Cronograma de Pagamento</h2>
                 <div className="text-xs text-mint-slate-400 font-medium font-mono">
                   {installments.length} parcelas simuladas
                 </div>
@@ -565,17 +589,21 @@ export default function FinancingPage(): React.JSX.Element {
                       {installments.map((inst): React.JSX.Element => {
                         const isFirst = inst.month === 1;
                         const isLast = inst.month === termMonths;
-                        
+
                         // Row styling to support top and bottom sticky overrides pinning
                         let rowClass = "hover:bg-slate-50/50 transition-colors";
                         let cellClass = "py-2.5 px-4 text-slate-700";
 
                         if (isFirst) {
-                          rowClass = "bg-emerald-50/90 backdrop-blur border-b-2 border-emerald-500 font-semibold";
-                          cellClass = "sticky top-[38px] py-3 px-4 bg-emerald-50/90 text-emerald-950 z-10 border-b border-emerald-200/50";
+                          rowClass =
+                            "bg-emerald-50/90 backdrop-blur border-b-2 border-emerald-500 font-semibold";
+                          cellClass =
+                            "sticky top-[38px] py-3 px-4 bg-emerald-50/90 text-emerald-950 z-10 border-b border-emerald-200/50";
                         } else if (isLast) {
-                          rowClass = "bg-emerald-50/90 backdrop-blur border-t-2 border-emerald-500 font-semibold";
-                          cellClass = "sticky bottom-0 py-3 px-4 bg-emerald-50/90 text-emerald-950 z-10 border-t border-emerald-200/50";
+                          rowClass =
+                            "bg-emerald-50/90 backdrop-blur border-t-2 border-emerald-500 font-semibold";
+                          cellClass =
+                            "sticky bottom-0 py-3 px-4 bg-emerald-50/90 text-emerald-950 z-10 border-t border-emerald-200/50";
                         }
 
                         return (
@@ -624,7 +652,9 @@ export default function FinancingPage(): React.JSX.Element {
                             </td>
                             <td className={cellClass}>{formatBRL(inst.interest)}</td>
                             <td className={cellClass}>{formatBRL(inst.amortization)}</td>
-                            <td className={cellClass}>{formatBRL(Math.max(0, inst.outstandingBalance))}</td>
+                            <td className={cellClass}>
+                              {formatBRL(Math.max(0, inst.outstandingBalance))}
+                            </td>
                           </tr>
                         );
                       })}

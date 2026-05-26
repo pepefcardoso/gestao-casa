@@ -1,8 +1,8 @@
 "use client";
 
+import L from "leaflet";
 import type React from "react";
 import { useEffect, useRef } from "react";
-import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 interface HouseMapProps {
@@ -25,9 +25,7 @@ export default function HouseMap({
   // Default coordinate centered in São Paulo, Brazil if none is provided
   const defaultCenter: [number, number] = [-23.55052, -46.633308];
   const initialCenter: [number, number] =
-    latitude !== null && longitude !== null
-      ? [latitude, longitude]
-      : defaultCenter;
+    latitude !== null && longitude !== null ? [latitude, longitude] : defaultCenter;
 
   const initialZoom = latitude !== null && longitude !== null ? 15 : 4;
 

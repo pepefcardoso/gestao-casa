@@ -111,7 +111,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
     const fetchRooms = async (): Promise<void> => {
       try {
         const response = await fetch(`${API_URL}/rooms`, {
-          headers: { "x-user-id": userId }
+          headers: { "x-user-id": userId },
         });
         if (!response.ok) {
           throw new Error("Erro ao carregar cômodos");

@@ -6,7 +6,7 @@ describe("calculateFinancing", (): void => {
     propertyValue: 500000,
     downPayment: 100000,
     termMonths: 12,
-    interestRate: 0.10, // 10% annual interest rate
+    interestRate: 0.1, // 10% annual interest rate
     amortizationSystem: "SAC" as const,
   };
 
@@ -16,7 +16,7 @@ describe("calculateFinancing", (): void => {
     expect(result).toHaveLength(12);
 
     const expectedAmortization = 400000 / 12; // (500000 - 100000) / 12 = 33333.333...
-    
+
     // In SAC, amortization is constant
     for (const inst of result) {
       expect(inst.amortization).toBeCloseTo(expectedAmortization, 5);

@@ -77,12 +77,8 @@
           "name": "financing_house_id_houses_id_fk",
           "tableFrom": "financing",
           "tableTo": "houses",
-          "columnsFrom": [
-            "house_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["house_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -92,9 +88,7 @@
         "financing_house_id_unique": {
           "name": "financing_house_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "house_id"
-          ]
+          "columns": ["house_id"]
         }
       },
       "policies": {},
@@ -195,12 +189,8 @@
           "name": "rooms_house_id_houses_id_fk",
           "tableFrom": "rooms",
           "tableTo": "houses",
-          "columnsFrom": [
-            "house_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["house_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

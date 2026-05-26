@@ -1,30 +1,30 @@
 "use client";
 
-import type React from "react";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
   AlertTriangle,
+  ArrowLeft,
+  Calculator,
   CheckCircle,
   Clock,
   DollarSign,
-  Layers,
   Edit2,
-  Trash2,
-  Plus,
-  X,
-  Calculator,
+  Layers,
   PiggyBank,
-  TrendingUp,
+  Plus,
+  Trash2,
   TrendingDown,
+  TrendingUp,
+  X,
 } from "lucide-react";
-import { projectInstallments } from "../../../../libs/shared-logic/src/utils/project-installments";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import type React from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  type FinancingInstallment,
   calculateFinancing,
+  type FinancingInstallment,
 } from "../../../../libs/shared-logic/src/utils/calculate-financing";
+import { projectInstallments } from "../../../../libs/shared-logic/src/utils/project-installments";
 import { useUser } from "../components/UserContext";
 
 interface Expense {
@@ -114,7 +114,9 @@ function ExpensesListContent(): React.JSX.Element {
   const [description, setDescription] = useState<string>("");
   const [totalAmount, setTotalAmount] = useState<string>("");
   const [status, setStatus] = useState<"BUDGET" | "CONFIRMED">("CONFIRMED");
-  const [category, setCategory] = useState<"TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION">("PRODUCT");
+  const [category, setCategory] = useState<
+    "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION"
+  >("PRODUCT");
   const [priority, setPriority] = useState<"HIGH" | "MEDIUM" | "LOW">("MEDIUM");
   const [paymentType, setPaymentType] = useState<"UPFRONT" | "INSTALLMENTS">("UPFRONT");
   const [installmentsCount, setInstallmentsCount] = useState<string>("1");
@@ -243,7 +245,7 @@ function ExpensesListContent(): React.JSX.Element {
 
       return 0; // Out of term window
     },
-    [financingRecord, financingInstallments]
+    [financingRecord, financingInstallments],
   );
 
   const monthFinancingInstallment = useMemo((): number => {
@@ -259,14 +261,11 @@ function ExpensesListContent(): React.JSX.Element {
 
     const totalExpenses = filteredExpenses.reduce(
       (sum, exp): number => sum + Number(exp.totalAmount),
-      0
+      0,
     );
     const totalOutflow = totalExpenses + monthFinancingInstallment;
 
-    const totalInflow = filteredIncomes.reduce(
-      (sum, inc): number => sum + Number(inc.amount),
-      0
-    );
+    const totalInflow = filteredIncomes.reduce((sum, inc): number => sum + Number(inc.amount), 0);
 
     const netBalance = totalInflow - totalOutflow;
 
@@ -402,9 +401,10 @@ function ExpensesListContent(): React.JSX.Element {
 
         if (!res.ok) {
           const errData: unknown = await res.json();
-          const msg = errData && typeof errData === "object" && "error" in errData
-            ? String((errData as { error: unknown }).error)
-            : "Erro ao salvar alterações da despesa.";
+          const msg =
+            errData && typeof errData === "object" && "error" in errData
+              ? String((errData as { error: unknown }).error)
+              : "Erro ao salvar alterações da despesa.";
           throw new Error(msg);
         }
 
@@ -412,7 +412,7 @@ function ExpensesListContent(): React.JSX.Element {
         fetchExpenses();
       } else {
         // Add new record(s)
-        const instCount = paymentType === "UPFRONT" ? 1 : (Number(installmentsCount) || 1);
+        const instCount = paymentType === "UPFRONT" ? 1 : Number(installmentsCount) || 1;
         if (instCount < 1 || instCount > 360) {
           setFormError("A quantidade de parcelas deve ser entre 1 e 360.");
           setIsSaving(false);
@@ -439,9 +439,10 @@ function ExpensesListContent(): React.JSX.Element {
 
           if (!res.ok) {
             const errData: unknown = await res.json();
-            const msg = errData && typeof errData === "object" && "error" in errData
-              ? String((errData as { error: unknown }).error)
-              : "Erro ao registrar despesa.";
+            const msg =
+              errData && typeof errData === "object" && "error" in errData
+                ? String((errData as { error: unknown }).error)
+                : "Erro ao registrar despesa.";
             throw new Error(msg);
           }
         }
@@ -466,9 +467,10 @@ function ExpensesListContent(): React.JSX.Element {
 
       if (!res.ok) {
         const errData: unknown = await res.json();
-        const msg = errData && typeof errData === "object" && "error" in errData
-          ? String((errData as { error: unknown }).error)
-          : "Erro ao excluir despesa.";
+        const msg =
+          errData && typeof errData === "object" && "error" in errData
+            ? String((errData as { error: unknown }).error)
+            : "Erro ao excluir despesa.";
         throw new Error(msg);
       }
 
@@ -481,7 +483,7 @@ function ExpensesListContent(): React.JSX.Element {
 
   // Live preview for installments
   const liveParsedAmount = Number(totalAmount) || 0;
-  const liveInstallmentsCount = paymentType === "UPFRONT" ? 1 : (Number(installmentsCount) || 1);
+  const liveInstallmentsCount = paymentType === "UPFRONT" ? 1 : Number(installmentsCount) || 1;
   const livePerMonthAmount = liveParsedAmount / liveInstallmentsCount;
 
   const currentCount = activeTab === "EXPENSES" ? filteredExpenses.length : filteredIncomes.length;
@@ -500,9 +502,7 @@ function ExpensesListContent(): React.JSX.Element {
 
         <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-mint-slate-400/30 pb-5 gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-[#0e1717]">
-              {titleLabel}
-            </h1>
+            <h1 className="text-3xl font-bold tracking-tight text-[#0e1717]">{titleLabel}</h1>
             <p className="text-sm text-mint-slate-400 mt-1">
               {monthParam
                 ? `Visualizando lançamentos detalhados para o mês de ${monthParam}.`
@@ -511,28 +511,26 @@ function ExpensesListContent(): React.JSX.Element {
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-            {activeTab === "EXPENSES" ? (
-              role !== "VIEWER" && (
-                <button
-                  type="button"
-                  onClick={handleNewClick}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
-                >
-                  <Plus className="w-4.5 h-4.5" />
-                  Nova Despesa
-                </button>
-              )
-            ) : (
-              role !== "VIEWER" && (
-                <Link
-                  href={monthParam ? `/incomes?month=${monthParam}` : "/incomes"}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
-                >
-                  <Plus className="w-4.5 h-4.5" />
-                  Gerenciar Receitas
-                </Link>
-              )
-            )}
+            {activeTab === "EXPENSES"
+              ? role !== "VIEWER" && (
+                  <button
+                    type="button"
+                    onClick={handleNewClick}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4.5 h-4.5" />
+                    Nova Despesa
+                  </button>
+                )
+              : role !== "VIEWER" && (
+                  <Link
+                    href={monthParam ? `/incomes?month=${monthParam}` : "/incomes"}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4.5 h-4.5" />
+                    Gerenciar Receitas
+                  </Link>
+                )}
 
             <nav className="flex space-x-1.5 bg-slate-200/50 p-1.5 rounded-xl border border-slate-200/80 justify-center">
               <Link
@@ -618,26 +616,29 @@ function ExpensesListContent(): React.JSX.Element {
                     {formatBRL(monthlyFlowSummary.outflow)}
                   </h3>
                   <span className="text-[10px] text-slate-400 font-medium block leading-normal">
-                    Despesas: {formatBRL(monthlyFlowSummary.expensesTotal)} | Financ: {formatBRL(monthlyFlowSummary.financingInstallment)}
+                    Despesas: {formatBRL(monthlyFlowSummary.expensesTotal)} | Financ:{" "}
+                    {formatBRL(monthlyFlowSummary.financingInstallment)}
                   </span>
                 </div>
               </div>
 
               {/* Net Balance */}
               <div className="px-6 flex items-center gap-4">
-                <div className={`p-3 rounded-xl ${monthlyFlowSummary.netBalance >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
+                <div
+                  className={`p-3 rounded-xl ${monthlyFlowSummary.netBalance >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}
+                >
                   <DollarSign className="w-6 h-6" />
                 </div>
                 <div>
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
                     Saldo Líquido
                   </span>
-                  <h3 className={`text-2xl font-bold font-mono mt-0.5 ${monthlyFlowSummary.netBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                  <h3
+                    className={`text-2xl font-bold font-mono mt-0.5 ${monthlyFlowSummary.netBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}
+                  >
                     {formatBRL(monthlyFlowSummary.netBalance)}
                   </h3>
-                  <span className="text-[10px] text-slate-400 font-medium">
-                    Inflow - Outflow
-                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">Inflow - Outflow</span>
                 </div>
               </div>
             </section>
@@ -651,8 +652,12 @@ function ExpensesListContent(): React.JSX.Element {
                   <DollarSign className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Geral</span>
-                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.totalSum)}</h4>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                    Total Geral
+                  </span>
+                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">
+                    {formatBRL(stats.totalSum)}
+                  </h4>
                 </div>
               </div>
 
@@ -661,8 +666,12 @@ function ExpensesListContent(): React.JSX.Element {
                   <CheckCircle className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-rose-500">Confirmado</span>
-                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.confirmedSum)}</h4>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-rose-500">
+                    Confirmado
+                  </span>
+                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">
+                    {formatBRL(stats.confirmedSum)}
+                  </h4>
                 </div>
               </div>
 
@@ -671,8 +680,12 @@ function ExpensesListContent(): React.JSX.Element {
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500">Orçamento</span>
-                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">{formatBRL(stats.budgetSum)}</h4>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500">
+                    Orçamento
+                  </span>
+                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">
+                    {formatBRL(stats.budgetSum)}
+                  </h4>
                 </div>
               </div>
             </section>
@@ -711,7 +724,8 @@ function ExpensesListContent(): React.JSX.Element {
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h2 className="text-lg font-semibold text-[#0e1717]">Lançamentos</h2>
               <span className="text-xs text-mint-slate-400 font-semibold font-mono">
-                {currentCount} {currentCount === 1 ? "registro encontrado" : "registros encontrados"}
+                {currentCount}{" "}
+                {currentCount === 1 ? "registro encontrado" : "registros encontrados"}
               </span>
             </div>
 
@@ -791,7 +805,9 @@ function ExpensesListContent(): React.JSX.Element {
                                   </button>
                                 </div>
                               ) : (
-                                <span className="text-xs text-slate-400 font-medium">Apenas Leitura</span>
+                                <span className="text-xs text-slate-400 font-medium">
+                                  Apenas Leitura
+                                </span>
                               )}
                             </td>
                           </tr>
@@ -806,21 +822,21 @@ function ExpensesListContent(): React.JSX.Element {
                   <span>Nenhuma despesa lançada para este período.</span>
                 </div>
               )
-            ) : (
-              filteredIncomes.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse text-left">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-mint-slate-400/25 text-[#0e1717] font-semibold text-xs uppercase">
-                        <th className="py-3 px-6">Descrição</th>
-                        <th className="py-3 px-6 text-right">Valor</th>
-                        <th className="py-3 px-6">Recebimento</th>
-                        <th className="py-3 px-6">Categoria</th>
-                        <th className="py-3 px-6 text-center">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredIncomes.map((inc): React.JSX.Element => (
+            ) : filteredIncomes.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse text-left">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-mint-slate-400/25 text-[#0e1717] font-semibold text-xs uppercase">
+                      <th className="py-3 px-6">Descrição</th>
+                      <th className="py-3 px-6 text-right">Valor</th>
+                      <th className="py-3 px-6">Recebimento</th>
+                      <th className="py-3 px-6">Categoria</th>
+                      <th className="py-3 px-6 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredIncomes.map(
+                      (inc): React.JSX.Element => (
                         <tr key={inc.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="py-3.5 px-6 font-medium text-slate-800">
                             {inc.description}
@@ -846,16 +862,16 @@ function ExpensesListContent(): React.JSX.Element {
                             )}
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="py-16 text-center text-mint-slate-400 text-sm flex flex-col items-center gap-2">
-                  <Layers className="w-8 h-8 opacity-45" />
-                  <span>Nenhuma receita lançada para este período.</span>
-                </div>
-              )
+                      ),
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="py-16 text-center text-mint-slate-400 text-sm flex flex-col items-center gap-2">
+                <Layers className="w-8 h-8 opacity-45" />
+                <span>Nenhuma receita lançada para este período.</span>
+              </div>
             )}
           </div>
         </div>
@@ -880,7 +896,10 @@ function ExpensesListContent(): React.JSX.Element {
             </div>
 
             {/* Modal Body / Form */}
-            <form onSubmit={(e): Promise<void> => handleSave(e)} className="flex-1 overflow-y-auto p-6 space-y-5">
+            <form
+              onSubmit={(e): Promise<void> => handleSave(e)}
+              className="flex-1 overflow-y-auto p-6 space-y-5"
+            >
               {formError && (
                 <div className="p-3.5 bg-orange-50 border border-orange-200 rounded-xl text-orange-800 text-sm flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-orange-600 shrink-0" />
@@ -890,7 +909,9 @@ function ExpensesListContent(): React.JSX.Element {
 
               {/* Status Select Toggle */}
               <div className="space-y-2">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Status da Despesa</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                  Status da Despesa
+                </span>
                 <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200/50">
                   <button
                     type="button"
@@ -921,7 +942,12 @@ function ExpensesListContent(): React.JSX.Element {
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label htmlFor="description" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Descrição *</label>
+                <label
+                  htmlFor="description"
+                  className="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                >
+                  Descrição *
+                </label>
                 <input
                   id="description"
                   type="text"
@@ -936,7 +962,12 @@ function ExpensesListContent(): React.JSX.Element {
               {/* Amount and Due Date Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="totalAmount" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Valor Total (R$) *</label>
+                  <label
+                    htmlFor="totalAmount"
+                    className="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                  >
+                    Valor Total (R$) *
+                  </label>
                   <input
                     id="totalAmount"
                     type="number"
@@ -950,7 +981,12 @@ function ExpensesListContent(): React.JSX.Element {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="dueDate" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vencimento *</label>
+                  <label
+                    htmlFor="dueDate"
+                    className="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                  >
+                    Vencimento *
+                  </label>
                   <input
                     id="dueDate"
                     type="date"
@@ -966,7 +1002,9 @@ function ExpensesListContent(): React.JSX.Element {
               {!editingExpense && (
                 <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200/50">
                   <div className="space-y-1.5">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Forma de Pagamento</span>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                      Forma de Pagamento
+                    </span>
                     <div className="grid grid-cols-2 gap-2 bg-white p-1 rounded-lg border border-slate-200/60">
                       <button
                         type="button"
@@ -1006,12 +1044,20 @@ function ExpensesListContent(): React.JSX.Element {
                         <Calculator className="w-4 h-4 text-emerald-600 shrink-0" />
                         <span>
                           Projeção: {formatBRL(liveParsedAmount)} ÷ {liveInstallmentsCount} ={" "}
-                          <span className="font-bold font-mono">{formatBRL(livePerMonthAmount)}</span>/mês
+                          <span className="font-bold font-mono">
+                            {formatBRL(livePerMonthAmount)}
+                          </span>
+                          /mês
                         </span>
                       </div>
 
                       <div className="space-y-1.5">
-                        <label htmlFor="installmentsCount" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Número de Parcelas</label>
+                        <label
+                          htmlFor="installmentsCount"
+                          className="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                        >
+                          Número de Parcelas
+                        </label>
                         <input
                           id="installmentsCount"
                           type="number"
@@ -1023,7 +1069,8 @@ function ExpensesListContent(): React.JSX.Element {
                           required
                         />
                         <span className="text-[10px] text-slate-400 font-medium">
-                          Note: o sistema irá gerar {liveInstallmentsCount} parcelas subsequentes mês a mês automaticamente.
+                          Note: o sistema irá gerar {liveInstallmentsCount} parcelas subsequentes
+                          mês a mês automaticamente.
                         </span>
                       </div>
                     </div>
@@ -1033,14 +1080,20 @@ function ExpensesListContent(): React.JSX.Element {
 
               {editingExpense && (
                 <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-slate-500 text-[11px] font-semibold leading-relaxed">
-                  Nota: Ao salvar a edição, você estará atualizando especificamente esta parcela selecionada, mantendo as outras parcelas inalteradas.
+                  Nota: Ao salvar a edição, você estará atualizando especificamente esta parcela
+                  selecionada, mantendo as outras parcelas inalteradas.
                 </div>
               )}
 
               {/* Category, Priority and Room selection */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="category" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria</label>
+                  <label
+                    htmlFor="category"
+                    className="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                  >
+                    Categoria
+                  </label>
                   <select
                     id="category"
                     value={category}
@@ -1057,7 +1110,12 @@ function ExpensesListContent(): React.JSX.Element {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="priority" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Prioridade</label>
+                  <label
+                    htmlFor="priority"
+                    className="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                  >
+                    Prioridade
+                  </label>
                   <select
                     id="priority"
                     value={priority}
@@ -1072,7 +1130,12 @@ function ExpensesListContent(): React.JSX.Element {
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="roomId" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cômodo Associado</label>
+                <label
+                  htmlFor="roomId"
+                  className="text-xs font-bold text-slate-500 uppercase tracking-wider"
+                >
+                  Cômodo Associado
+                </label>
                 {isLoadingRooms ? (
                   <div className="text-xs text-slate-400 py-2.5">Buscando cômodos...</div>
                 ) : (
@@ -1083,11 +1146,13 @@ function ExpensesListContent(): React.JSX.Element {
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 outline-hidden text-slate-800 text-sm bg-white cursor-pointer"
                   >
                     <option value="">Nenhum cômodo associado</option>
-                    {rooms.map((room): React.JSX.Element => (
-                      <option key={room.id} value={room.id}>
-                        {room.name}
-                      </option>
-                    ))}
+                    {rooms.map(
+                      (room): React.JSX.Element => (
+                        <option key={room.id} value={room.id}>
+                          {room.name}
+                        </option>
+                      ),
+                    )}
                   </select>
                 )}
               </div>
@@ -1133,7 +1198,13 @@ function ExpensesListContent(): React.JSX.Element {
               <div className="space-y-1.5">
                 <h3 className="text-lg font-bold text-[#0e1717]">Excluir Despesa</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">
-                  Tem certeza de que deseja excluir a despesa <span className="font-semibold text-slate-800">"{deleteTarget.description}"</span> no valor de <span className="font-bold text-[#0e1717]">{formatBRL(Number(deleteTarget.totalAmount))}</span>? Esta ação não pode ser desfeita.
+                  Tem certeza de que deseja excluir a despesa{" "}
+                  <span className="font-semibold text-slate-800">"{deleteTarget.description}"</span>{" "}
+                  no valor de{" "}
+                  <span className="font-bold text-[#0e1717]">
+                    {formatBRL(Number(deleteTarget.totalAmount))}
+                  </span>
+                  ? Esta ação não pode ser desfeita.
                 </p>
               </div>
             </div>

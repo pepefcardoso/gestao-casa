@@ -305,12 +305,35 @@ export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
+  passwordHash: text("password_hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const selectUserSchema = createSelectSchema(users);
+export const selectUserSchema = createSelectSchema(users).omit({ passwordHash: true });
 export const insertUserSchema = createInsertSchema(users);
 export type User = z.infer<typeof selectUserSchema>;
+
+// Auth Validation Schemas (Required by GEMINI.md to be defined in schema.ts)
+export const registerUserSchema = z.object({
+  name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
+  email: z.string().email("Formato de e-mail inválido"),
+  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
+});
+
+export const loginUserSchema = z.object({
+  email: z.string().email("Formato de e-mail inválido"),
+  password: z.string().min(1, "A senha é obrigatória"),
+});
+
+export const updateUserProfileSchema = z.object({
+  name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres").optional(),
+  email: z.string().email("Formato de e-mail inválido").optional(),
+});
+
+export const changeUserPasswordSchema = z.object({
+  currentPassword: z.string().min(1, "A senha atual é obrigatória"),
+  newPassword: z.string().min(8, "A nova senha deve ter pelo menos 8 caracteres"),
+});
 
 export const houseMemberships = pgTable("house_memberships", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -333,4 +356,3 @@ export const insertHouseMembershipSchema = createInsertSchema(houseMemberships, 
 });
 
 export type HouseMembership = z.infer<typeof selectHouseMembershipSchema>;
-
