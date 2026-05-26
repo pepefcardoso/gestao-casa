@@ -1,17 +1,16 @@
-import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createRoute, OpenAPIHono, type RouteConfigToTypedResponse } from "@hono/zod-openapi";
 import { eq } from "drizzle-orm";
-import type { TypedResponse } from "hono";
 import { z } from "zod";
 import { db } from "../../db";
 import {
   financing,
-  houses,
   insertFinancingSchema,
   selectFinancingSchema,
   uuidSchema,
 } from "../../db/schema";
+import { authMiddleware, verifyHouseAccess } from "../auth";
 
-const router = new OpenAPIHono({
+const router = new OpenAPIHono<{ Variables: { userId: string } }>({
   defaultHook: (result, c): Response | undefined => {
     if (!result.success) {
       console.log("Validation Failed:", JSON.stringify(result.error, null, 2));
@@ -25,6 +24,8 @@ const router = new OpenAPIHono({
     return undefined;
   },
 });
+
+router.use("*", authMiddleware);
 
 const postFinancingRoute = createRoute({
   method: "post",
@@ -57,46 +58,31 @@ const postFinancingRoute = createRoute({
       },
       description: "Invalid input payload",
     },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Access denied",
+    },
   },
 });
 
 router.openapi(
   postFinancingRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<
-            {
-              id: string;
-              houseId: string;
-              propertyValue: string;
-              downPayment: string;
-              termMonths: number;
-              interestRate: string;
-              amortizationSystem: "SAC" | "PRICE";
-              firstParcelOverride: string | null;
-              lastParcelOverride: string | null;
-              createdAt: string;
-            },
-            200,
-            "json"
-          >
-        | TypedResponse<{ error: string }, 400, "json">
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof postFinancingRoute>> => {
     try {
+      const userId = c.var.userId;
       const payload = c.req.valid("json");
 
-      // Ensure that the referenced house exists in the database
-      await db
-        .insert(houses)
-        .values({
-          id: payload.houseId,
-          name: "Minha Casa",
-        })
-        .onConflictDoNothing();
+      // Verify write access to target house
+      const check = await verifyHouseAccess(userId, payload.houseId, ["OWNER", "COLLABORATOR"]);
+      if (!check.success) {
+        return c.json({ error: check.error || "Access denied" }, 403);
+      }
 
       const [upserted] = await db
         .insert(financing)
@@ -181,6 +167,16 @@ const getFinancingRoute = createRoute({
       },
       description: "Financing record not found",
     },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Access denied",
+    },
     400: {
       content: {
         "application/json": {
@@ -196,33 +192,15 @@ const getFinancingRoute = createRoute({
 
 router.openapi(
   getFinancingRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<
-            {
-              id: string;
-              houseId: string;
-              propertyValue: string;
-              downPayment: string;
-              termMonths: number;
-              interestRate: string;
-              amortizationSystem: "SAC" | "PRICE";
-              firstParcelOverride: string | null;
-              lastParcelOverride: string | null;
-              createdAt: string;
-            },
-            200,
-            "json"
-          >
-        | TypedResponse<{ error: string }, 404, "json">
-        | TypedResponse<{ error: string }, 400, "json">
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof getFinancingRoute>> => {
     try {
+      const userId = c.var.userId;
       const { house_id } = c.req.valid("param");
+
+      const check = await verifyHouseAccess(userId, house_id, ["OWNER", "COLLABORATOR", "VIEWER"]);
+      if (!check.success) {
+        return c.json({ error: check.error || "Access denied" }, 403);
+      }
 
       const [record] = await db.select().from(financing).where(eq(financing.houseId, house_id));
 

@@ -18,6 +18,7 @@ import {
 import { z } from "zod";
 import { projectInstallments } from "../../../../libs/shared-logic/src/utils/project-installments";
 import { Lucide } from "../../components/LucideIcon";
+import { useMobileUser } from "../globalState";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -83,6 +84,7 @@ interface FormErrors {
 
 export default function NewExpenseScreen(): React.JSX.Element {
   const router = useRouter();
+  const { userId, role } = useMobileUser();
 
   // Form Fields State
   const [description, setDescription] = useState<string>("");
@@ -108,7 +110,9 @@ export default function NewExpenseScreen(): React.JSX.Element {
     let active = true;
     const fetchRooms = async (): Promise<void> => {
       try {
-        const response = await fetch(`${API_URL}/rooms`);
+        const response = await fetch(`${API_URL}/rooms`, {
+          headers: { "x-user-id": userId }
+        });
         if (!response.ok) {
           throw new Error("Erro ao carregar cômodos");
         }
@@ -137,7 +141,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
     return (): void => {
       active = false;
     };
-  }, []);
+  }, [userId]);
 
   // Format Helper
   const formatCurrency = (val: number): string => {
@@ -199,6 +203,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
   };
 
   const handleSave = async (): Promise<void> => {
+    if (role === "VIEWER") return;
     const validatedData = validateForm();
     if (!validatedData) return;
 
@@ -224,6 +229,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "x-user-id": userId,
           },
           body: JSON.stringify(inst),
         });
@@ -616,14 +622,16 @@ export default function NewExpenseScreen(): React.JSX.Element {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[styles.saveButton, role === "VIEWER" && { backgroundColor: "#cbd5e1" }]}
               onPress={handleSave}
-              disabled={isSubmitting}
+              disabled={isSubmitting || role === "VIEWER"}
             >
               {isSubmitting ? (
                 <ActivityIndicator size="small" color="#ffffff" />
               ) : (
-                <Text style={styles.saveButtonText}>Salvar</Text>
+                <Text style={styles.saveButtonText}>
+                  {role === "VIEWER" ? "Apenas Leitura" : "Salvar"}
+                </Text>
               )}
             </TouchableOpacity>
           </View>

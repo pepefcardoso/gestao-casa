@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { Lucide } from "../components/LucideIcon";
+import { useMobileUser, PRESET_USERS } from "./globalState";
 
 interface HouseClient {
   id: string;
@@ -49,6 +50,7 @@ const FALLBACK_HOUSE_ID = "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
 
 export default function HomeScreen(): React.JSX.Element {
   const router = useRouter();
+  const { userId, role, changeUser } = useMobileUser();
   const [house, setHouse] = useState<HouseClient | null>(null);
   const [rooms, setRooms] = useState<RoomClient[]>([]);
   const [expenses, setExpenses] = useState<ExpenseClient[]>([]);
@@ -60,9 +62,9 @@ export default function HomeScreen(): React.JSX.Element {
     setError(null);
     try {
       const [houseRes, roomsRes, expensesRes] = await Promise.all([
-        fetch(`${API_URL}/houses/${FALLBACK_HOUSE_ID}`),
-        fetch(`${API_URL}/rooms`),
-        fetch(`${API_URL}/expenses`),
+        fetch(`${API_URL}/houses/${FALLBACK_HOUSE_ID}`, { headers: { "x-user-id": userId } }),
+        fetch(`${API_URL}/rooms?house_id=${FALLBACK_HOUSE_ID}`, { headers: { "x-user-id": userId } }),
+        fetch(`${API_URL}/expenses?house_id=${FALLBACK_HOUSE_ID}`, { headers: { "x-user-id": userId } }),
       ]);
 
       let houseData: HouseClient | null = null;
@@ -112,7 +114,7 @@ export default function HomeScreen(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   useFocusEffect(
     useCallback((): void => {
@@ -188,6 +190,30 @@ export default function HomeScreen(): React.JSX.Element {
           <Text style={styles.headerTitle}>Gestão Casa</Text>
         </View>
         <Text style={styles.headerSubtitle}>Seu painel residencial</Text>
+      </View>
+
+      {/* User Switcher */}
+      <View style={styles.userSwitcherRow}>
+        <Text style={styles.userSwitcherLabel}>Usuário:</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.userSwitcherScroll}>
+          {PRESET_USERS.map((u) => {
+            const isSelected = u.id === userId;
+            return (
+              <TouchableOpacity
+                key={u.id}
+                style={[styles.userPill, isSelected && styles.userPillSelected]}
+                onPress={(): Promise<void> => changeUser(u.id)}
+              >
+                <Text style={[styles.userPillText, isSelected && styles.userPillTextSelected]}>
+                  {u.name.split(" ")[0]}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+        <View style={styles.roleBadge}>
+          <Text style={styles.roleBadgeText}>{role}</Text>
+        </View>
       </View>
 
       <ScrollView
@@ -283,15 +309,19 @@ export default function HomeScreen(): React.JSX.Element {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.shortcutCard}
-              activeOpacity={0.7}
-              onPress={(): void => router.push("/rooms/new")}
+              style={[styles.shortcutCard, role === "VIEWER" && styles.shortcutCardDisabled]}
+              activeOpacity={role === "VIEWER" ? 1 : 0.7}
+              onPress={(): void => {
+                if (role !== "VIEWER") {
+                  router.push("/rooms/new");
+                }
+              }}
             >
-              <View style={styles.shortcutIconBg}>
-                <Lucide name="plus" size={22} color="#059669" />
+              <View style={[styles.shortcutIconBg, role === "VIEWER" && styles.shortcutIconBgDisabled]}>
+                <Lucide name="plus" size={22} color={role === "VIEWER" ? "#8fa3a3" : "#059669"} />
               </View>
-              <Text style={styles.shortcutTitle}>Adicionar Cômodo</Text>
-              <Text style={styles.shortcutDesc}>Criar novo cômodo</Text>
+              <Text style={[styles.shortcutTitle, role === "VIEWER" && styles.shortcutTextDisabled]}>Adicionar Cômodo</Text>
+              <Text style={styles.shortcutDesc}>{role === "VIEWER" ? "Acesso restrito" : "Criar novo cômodo"}</Text>
             </TouchableOpacity>
           </View>
 
@@ -309,15 +339,19 @@ export default function HomeScreen(): React.JSX.Element {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.shortcutCard}
-              activeOpacity={0.7}
-              onPress={(): void => router.push("/expenses/new")}
+              style={[styles.shortcutCard, role === "VIEWER" && styles.shortcutCardDisabled]}
+              activeOpacity={role === "VIEWER" ? 1 : 0.7}
+              onPress={(): void => {
+                if (role !== "VIEWER") {
+                  router.push("/expenses/new");
+                }
+              }}
             >
-              <View style={styles.shortcutIconBg}>
-                <Lucide name="plus-circle" size={22} color="#059669" />
+              <View style={[styles.shortcutIconBg, role === "VIEWER" && styles.shortcutIconBgDisabled]}>
+                <Lucide name="plus-circle" size={22} color={role === "VIEWER" ? "#8fa3a3" : "#059669"} />
               </View>
-              <Text style={styles.shortcutTitle}>Nova Despesa</Text>
-              <Text style={styles.shortcutDesc}>Registrar novo gasto</Text>
+              <Text style={[styles.shortcutTitle, role === "VIEWER" && styles.shortcutTextDisabled]}>Nova Despesa</Text>
+              <Text style={styles.shortcutDesc}>{role === "VIEWER" ? "Acesso restrito" : "Registrar novo gasto"}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -577,5 +611,68 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#8fa3a3",
     lineHeight: 14,
+  },
+  userSwitcherRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(143, 163, 163, 0.15)",
+  },
+  userSwitcherLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#8fa3a3",
+    marginRight: 8,
+  },
+  userSwitcherScroll: {
+    alignItems: "center",
+    gap: 6,
+  },
+  userPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(143, 163, 163, 0.2)",
+    backgroundColor: "#f5f7f7",
+  },
+  userPillSelected: {
+    borderColor: "#059669",
+    backgroundColor: "rgba(5, 150, 105, 0.08)",
+  },
+  userPillText: {
+    fontSize: 11,
+    color: "#8fa3a3",
+    fontWeight: "600",
+  },
+  userPillTextSelected: {
+    color: "#059669",
+  },
+  roleBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: "rgba(143, 163, 163, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(143, 163, 163, 0.2)",
+    marginLeft: 8,
+  },
+  roleBadgeText: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: "#8fa3a3",
+  },
+  shortcutCardDisabled: {
+    opacity: 0.5,
+    backgroundColor: "#f5f7f7",
+  },
+  shortcutIconBgDisabled: {
+    backgroundColor: "rgba(143, 163, 163, 0.1)",
+  },
+  shortcutTextDisabled: {
+    color: "#8fa3a3",
   },
 });

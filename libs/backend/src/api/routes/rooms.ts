@@ -1,11 +1,11 @@
-import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createRoute, OpenAPIHono, type RouteConfigToTypedResponse } from "@hono/zod-openapi";
 import { eq } from "drizzle-orm";
-import type { TypedResponse } from "hono";
 import { z } from "zod";
 import { db } from "../../db";
-import { houses, insertRoomSchema, rooms, selectRoomSchema, uuidSchema } from "../../db/schema";
+import { insertRoomSchema, rooms, selectRoomSchema, uuidSchema, houseMemberships } from "../../db/schema";
+import { authMiddleware, verifyHouseAccess } from "../auth";
 
-const router = new OpenAPIHono({
+const router = new OpenAPIHono<{ Variables: { userId: string } }>({
   defaultHook: (result, c): Response | undefined => {
     if (!result.success) {
       console.log("Validation Failed:", JSON.stringify(result.error, null, 2));
@@ -19,6 +19,8 @@ const router = new OpenAPIHono({
     return undefined;
   },
 });
+
+router.use("*", authMiddleware);
 
 const postRoomRoute = createRoute({
   method: "post",
@@ -51,46 +53,35 @@ const postRoomRoute = createRoute({
       },
       description: "Invalid input payload",
     },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Access denied",
+    },
   },
 });
 
 router.openapi(
   postRoomRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<
-            {
-              id: string;
-              houseId: string;
-              name: string;
-              area: string | null;
-              colorCode: string | null;
-              createdAt: string;
-            },
-            201,
-            "json"
-          >
-        | TypedResponse<{ error: string }, 400, "json">
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof postRoomRoute>> => {
     try {
+      const userId = c.var.userId;
       const payload = c.req.valid("json");
 
       if (!payload.houseId) {
         return c.json({ error: "houseId is required" }, 400);
       }
 
-      // Ensure that the referenced house exists in the database
-      await db
-        .insert(houses)
-        .values({
-          id: payload.houseId,
-          name: "Minha Casa",
-        })
-        .onConflictDoNothing();
+      // Verify write access to the target house
+      const check = await verifyHouseAccess(userId, payload.houseId, ["OWNER", "COLLABORATOR"]);
+      if (!check.success) {
+        return c.json({ error: check.error || "Access denied" }, 403);
+      }
 
       const [newRoom] = await db
         .insert(rooms)
@@ -107,7 +98,6 @@ router.openapi(
         return c.json({ error: "Failed to create room" }, 400);
       }
 
-      // Convert Date to string to match JSON serialized response types
       const responseRoom = {
         ...newRoom,
         createdAt: newRoom.createdAt.toISOString(),
@@ -148,45 +138,50 @@ const getRoomsRoute = createRoute({
       },
       description: "Invalid query parameters",
     },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Access denied",
+    },
   },
 });
 
 router.openapi(
   getRoomsRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<
-            {
-              id: string;
-              houseId: string;
-              name: string;
-              area: string | null;
-              colorCode: string | null;
-              createdAt: string;
-            }[],
-            200,
-            "json"
-          >
-        | TypedResponse<{ error: string }, 400, "json">
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof getRoomsRoute>> => {
     try {
+      const userId = c.var.userId;
       const { house_id } = c.req.valid("query");
 
-      if (!house_id) {
-        const allRooms = await db.select().from(rooms);
-        const serializedRooms = allRooms.map((room) => ({
-          ...room,
-          createdAt: room.createdAt.toISOString(),
-        }));
-        return c.json(serializedRooms, 200);
+      let results: (typeof rooms.$inferSelect)[] = [];
+      if (house_id) {
+        const check = await verifyHouseAccess(userId, house_id, ["OWNER", "COLLABORATOR", "VIEWER"]);
+        if (!check.success) {
+          return c.json({ error: check.error || "Access denied" }, 403);
+        }
+        results = await db.select().from(rooms).where(eq(rooms.houseId, house_id));
+      } else {
+        // Fetch all rooms the user has access to across all houses they belong to
+        results = await db
+          .select({
+            id: rooms.id,
+            houseId: rooms.houseId,
+            name: rooms.name,
+            area: rooms.area,
+            colorCode: rooms.colorCode,
+            createdAt: rooms.createdAt,
+          })
+          .from(rooms)
+          .innerJoin(houseMemberships, eq(rooms.houseId, houseMemberships.houseId))
+          .where(eq(houseMemberships.userId, userId));
       }
 
-      const filteredRooms = await db.select().from(rooms).where(eq(rooms.houseId, house_id));
-      const serializedRooms = filteredRooms.map((room) => ({
+      const serializedRooms = results.map((room) => ({
         ...room,
         createdAt: room.createdAt.toISOString(),
       }));
@@ -225,6 +220,16 @@ const getRoomRoute = createRoute({
       },
       description: "Invalid ID parameter",
     },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Access denied",
+    },
     404: {
       content: {
         "application/json": {
@@ -240,34 +245,21 @@ const getRoomRoute = createRoute({
 
 router.openapi(
   getRoomRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<
-            {
-              id: string;
-              houseId: string;
-              name: string;
-              area: string | null;
-              colorCode: string | null;
-              createdAt: string;
-            },
-            200,
-            "json"
-          >
-        | TypedResponse<{ error: string }, 400, "json">
-        | TypedResponse<{ error: string }, 404, "json">
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof getRoomRoute>> => {
     try {
+      const userId = c.var.userId;
       const { id } = c.req.valid("param");
 
       const [room] = await db.select().from(rooms).where(eq(rooms.id, id));
 
       if (!room) {
         return c.json({ error: "Room not found" }, 404);
+      }
+
+      // Verify read access to the house the room belongs to
+      const check = await verifyHouseAccess(userId, room.houseId, ["OWNER", "COLLABORATOR", "VIEWER"]);
+      if (!check.success) {
+        return c.json({ error: check.error || "Access denied" }, 403);
       }
 
       const responseRoom = {
@@ -317,6 +309,16 @@ const putRoomRoute = createRoute({
       },
       description: "Invalid input payload or ID parameter",
     },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Access denied",
+    },
     404: {
       content: {
         "application/json": {
@@ -359,6 +361,16 @@ const deleteRoomRoute = createRoute({
       },
       description: "Invalid ID parameter",
     },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Access denied",
+    },
     404: {
       content: {
         "application/json": {
@@ -374,30 +386,23 @@ const deleteRoomRoute = createRoute({
 
 router.openapi(
   putRoomRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<
-            {
-              id: string;
-              houseId: string;
-              name: string;
-              area: string | null;
-              colorCode: string | null;
-              createdAt: string;
-            },
-            200,
-            "json"
-          >
-        | TypedResponse<{ error: string }, 400, "json">
-        | TypedResponse<{ error: string }, 404, "json">
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof putRoomRoute>> => {
     try {
+      const userId = c.var.userId;
       const { id } = c.req.valid("param");
       const payload = c.req.valid("json");
+
+      const [room] = await db.select().from(rooms).where(eq(rooms.id, id));
+
+      if (!room) {
+        return c.json({ error: "Room not found" }, 404);
+      }
+
+      // Verify write access to the room's house
+      const check = await verifyHouseAccess(userId, room.houseId, ["OWNER", "COLLABORATOR"]);
+      if (!check.success) {
+        return c.json({ error: check.error || "Access denied" }, 403);
+      }
 
       const [updatedRoom] = await db
         .update(rooms)
@@ -408,10 +413,6 @@ router.openapi(
         })
         .where(eq(rooms.id, id))
         .returning();
-
-      if (!updatedRoom) {
-        return c.json({ error: "Room not found" }, 404);
-      }
 
       const responseRoom = {
         ...updatedRoom,
@@ -428,24 +429,24 @@ router.openapi(
 
 router.openapi(
   deleteRoomRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<{ success: boolean }, 200, "json">
-        | TypedResponse<{ error: string }, 400, "json">
-        | TypedResponse<{ error: string }, 404, "json">
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof deleteRoomRoute>> => {
     try {
+      const userId = c.var.userId;
       const { id } = c.req.valid("param");
 
-      const [deletedRoom] = await db.delete(rooms).where(eq(rooms.id, id)).returning();
+      const [room] = await db.select().from(rooms).where(eq(rooms.id, id));
 
-      if (!deletedRoom) {
+      if (!room) {
         return c.json({ error: "Room not found" }, 404);
       }
+
+      // Verify write access to the room's house
+      const check = await verifyHouseAccess(userId, room.houseId, ["OWNER", "COLLABORATOR"]);
+      if (!check.success) {
+        return c.json({ error: check.error || "Access denied" }, 403);
+      }
+
+      await db.delete(rooms).where(eq(rooms.id, id));
 
       return c.json({ success: true }, 200);
     } catch (error: unknown) {

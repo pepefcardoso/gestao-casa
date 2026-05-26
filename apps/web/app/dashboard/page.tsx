@@ -19,8 +19,7 @@ import {
   type FinancingInstallment,
   calculateFinancing,
 } from "../../../../libs/shared-logic/src/utils/calculate-financing";
-
-const FALLBACK_HOUSE_ID = "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
+import { useUser } from "../components/UserContext";
 
 interface Expense {
   id: string;
@@ -100,6 +99,7 @@ interface AggregatedMonthData {
 }
 
 export default function DashboardPage(): React.JSX.Element {
+  const { activeHouseId } = useUser();
   const [house, setHouse] = useState<House | null>(null);
   const [financingRecord, setFinancingRecord] = useState<FinancingRecord | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -110,14 +110,15 @@ export default function DashboardPage(): React.JSX.Element {
 
   // Fetch house, financing, expense and income data in parallel
   const fetchData = useCallback(async (): Promise<void> => {
+    if (!activeHouseId) return;
     setIsLoading(true);
     setErrorMsg(null);
     try {
       const [houseRes, financingRes, expensesRes, incomesRes] = await Promise.all([
-        fetch(`/api/houses/${FALLBACK_HOUSE_ID}`),
-        fetch(`/api/financing/${FALLBACK_HOUSE_ID}`),
-        fetch("/api/expenses"),
-        fetch("/api/incomes"),
+        fetch(`/api/houses/${activeHouseId}`),
+        fetch(`/api/financing/${activeHouseId}`),
+        fetch(`/api/expenses?house_id=${activeHouseId}`),
+        fetch(`/api/incomes?house_id=${activeHouseId}`),
       ]);
 
       if (houseRes.ok) {
@@ -155,7 +156,7 @@ export default function DashboardPage(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeHouseId]);
 
   useEffect((): void => {
     setIsMounted(true);

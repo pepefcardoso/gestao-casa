@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { z } from "zod";
 import { Lucide } from "../../components/LucideIcon";
+import { useMobileUser } from "../globalState";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -55,6 +56,7 @@ interface FormErrors {
 
 export default function NewRoomScreen(): React.JSX.Element {
   const router = useRouter();
+  const { userId, role } = useMobileUser();
   const { houseId } = useLocalSearchParams<{ houseId: string }>();
 
   const [name, setName] = useState<string>("");
@@ -90,6 +92,7 @@ export default function NewRoomScreen(): React.JSX.Element {
   };
 
   const handleSave = async (): Promise<void> => {
+    if (role === "VIEWER") return;
     const validatedData = validateForm();
     if (!validatedData) return;
 
@@ -110,6 +113,7 @@ export default function NewRoomScreen(): React.JSX.Element {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-user-id": userId,
         },
         body: JSON.stringify(payload),
       });
@@ -247,14 +251,16 @@ export default function NewRoomScreen(): React.JSX.Element {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[styles.saveButton, role === "VIEWER" && { backgroundColor: "#cbd5e1" }]}
               onPress={handleSave}
-              disabled={isSubmitting}
+              disabled={isSubmitting || role === "VIEWER"}
             >
               {isSubmitting ? (
                 <ActivityIndicator size="small" color="#ffffff" />
               ) : (
-                <Text style={styles.saveButtonText}>Salvar</Text>
+                <Text style={styles.saveButtonText}>
+                  {role === "VIEWER" ? "Apenas Leitura" : "Salvar"}
+                </Text>
               )}
             </TouchableOpacity>
           </View>

@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { Lucide } from "../../components/LucideIcon";
+import { useMobileUser } from "../globalState";
 
 interface RoomClient {
   id: string;
@@ -56,6 +57,7 @@ const PRIORITY_LABELS: Record<ExpenseClient["priority"], string> = {
 
 export default function RoomDetailScreen(): React.JSX.Element {
   const router = useRouter();
+  const { userId, role } = useMobileUser();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [room, setRoom] = useState<RoomClient | null>(null);
@@ -74,8 +76,8 @@ export default function RoomDetailScreen(): React.JSX.Element {
     setError(null);
     try {
       const [roomRes, expensesRes] = await Promise.all([
-        fetch(`${API_URL}/rooms/${id}`),
-        fetch(`${API_URL}/expenses?room_id=${id}`),
+        fetch(`${API_URL}/rooms/${id}`, { headers: { "x-user-id": userId } }),
+        fetch(`${API_URL}/expenses?room_id=${id}`, { headers: { "x-user-id": userId } }),
       ]);
 
       if (!roomRes.ok) {
@@ -104,7 +106,7 @@ export default function RoomDetailScreen(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [id, userId]);
 
   useFocusEffect(
     useCallback((): void => {
@@ -120,6 +122,7 @@ export default function RoomDetailScreen(): React.JSX.Element {
 
   const handleToggleStatus = async (expense: ExpenseClient): Promise<void> => {
     if (expense.status === "CONFIRMED") return;
+    if (role === "VIEWER") return;
 
     // Save previous state for rollback on API failure
     const previousExpenses = [...expenses];
@@ -146,6 +149,7 @@ export default function RoomDetailScreen(): React.JSX.Element {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "x-user-id": userId,
         },
         body: JSON.stringify(payload),
       });
@@ -248,7 +252,7 @@ export default function RoomDetailScreen(): React.JSX.Element {
               </Text>
             </View>
 
-            {!isConfirmed && (
+            {!isConfirmed && role !== "VIEWER" && (
               <TouchableOpacity
                 style={styles.confirmButton}
                 activeOpacity={0.7}

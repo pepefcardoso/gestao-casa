@@ -17,6 +17,7 @@ import {
   X,
   PiggyBank,
 } from "lucide-react";
+import { useUser } from "../components/UserContext";
 
 interface Income {
   id: string;
@@ -38,6 +39,7 @@ const CATEGORY_MAP: Record<string, string> = {
 function IncomesListContent(): React.JSX.Element {
   const searchParams = useSearchParams();
   const monthParam = searchParams.get("month"); // "YYYY-MM"
+  const { activeHouseId, role } = useUser();
 
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -59,10 +61,11 @@ function IncomesListContent(): React.JSX.Element {
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const fetchIncomes = useCallback(async (): Promise<void> => {
+    if (!activeHouseId) return;
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const res = await fetch("/api/incomes");
+      const res = await fetch(`/api/incomes?house_id=${activeHouseId}`);
       if (res.ok) {
         const data: unknown = await res.json();
         setIncomes(data as Income[]);
@@ -75,7 +78,7 @@ function IncomesListContent(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeHouseId]);
 
   useEffect((): void => {
     fetchIncomes();
@@ -278,14 +281,16 @@ function IncomesListContent(): React.JSX.Element {
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-            <button
-              type="button"
-              onClick={handleNewClick}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
-            >
-              <Plus className="w-4.5 h-4.5" />
-              Nova Receita
-            </button>
+            {role !== "VIEWER" && (
+              <button
+                type="button"
+                onClick={handleNewClick}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
+              >
+                <Plus className="w-4.5 h-4.5" />
+                Nova Receita
+              </button>
+            )}
 
             <nav className="flex space-x-1.5 bg-slate-200/50 p-1.5 rounded-xl border border-slate-200/80 justify-center">
               <Link
@@ -419,24 +424,28 @@ function IncomesListContent(): React.JSX.Element {
                           )}
                         </td>
                         <td className="py-3.5 px-6 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              type="button"
-                              onClick={(): void => handleEditClick(inc)}
-                              className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                              title="Editar"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(): void => setDeleteTarget(inc)}
-                              className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                              title="Excluir"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          {role !== "VIEWER" ? (
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                type="button"
+                                onClick={(): void => handleEditClick(inc)}
+                                className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                title="Editar"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(): void => setDeleteTarget(inc)}
+                                className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-400 font-medium">Apenas Leitura</span>
+                          )}
                         </td>
                       </tr>
                     ))}

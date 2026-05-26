@@ -196,6 +196,10 @@ export type InsertFinancing = z.infer<typeof insertFinancingSchema>;
 
 export const expenses = pgTable("expenses", {
   id: uuid("id").defaultRandom().primaryKey(),
+  houseId: uuid("house_id")
+    .default("9519c5f5-e74b-49dc-88d9-e484fda2c3c2")
+    .notNull()
+    .references(() => houses.id, { onDelete: "cascade" }),
   roomId: uuid("room_id").references(() => rooms.id, { onDelete: "set null" }),
   description: text("description").notNull(),
   totalAmount: numeric("total_amount").notNull(),
@@ -214,6 +218,7 @@ export const selectExpenseSchema = createSelectSchema(expenses, {
 });
 
 export const insertExpenseSchema = createInsertSchema(expenses, {
+  houseId: uuidSchema.optional(),
   roomId: uuidSchema.nullable().optional(),
   totalAmount: z
     .preprocess((val: unknown): number => {
@@ -254,6 +259,10 @@ export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 
 export const incomes = pgTable("incomes", {
   id: uuid("id").defaultRandom().primaryKey(),
+  houseId: uuid("house_id")
+    .default("9519c5f5-e74b-49dc-88d9-e484fda2c3c2")
+    .notNull()
+    .references(() => houses.id, { onDelete: "cascade" }),
   description: text("description").notNull(),
   amount: numeric("amount").notNull(),
   status: text("status").notNull(),
@@ -268,6 +277,7 @@ export const selectIncomeSchema = createSelectSchema(incomes, {
 });
 
 export const insertIncomeSchema = createInsertSchema(incomes, {
+  houseId: uuidSchema.optional(),
   amount: z.preprocess((val: unknown): number => {
     return Number(val);
   }, z.number()),
@@ -290,3 +300,37 @@ export const insertIncomeSchema = createInsertSchema(incomes, {
 
 export type Income = z.infer<typeof selectIncomeSchema>;
 export type InsertIncome = z.infer<typeof insertIncomeSchema>;
+
+export const users = pgTable("users", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const selectUserSchema = createSelectSchema(users);
+export const insertUserSchema = createInsertSchema(users);
+export type User = z.infer<typeof selectUserSchema>;
+
+export const houseMemberships = pgTable("house_memberships", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  houseId: uuid("house_id")
+    .notNull()
+    .references(() => houses.id, { onDelete: "cascade" }),
+  role: text("role").notNull(), // "OWNER", "COLLABORATOR", "VIEWER"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const selectHouseMembershipSchema = createSelectSchema(houseMemberships, {
+  role: z.enum(["OWNER", "COLLABORATOR", "VIEWER"]),
+});
+
+export const insertHouseMembershipSchema = createInsertSchema(houseMemberships, {
+  role: z.enum(["OWNER", "COLLABORATOR", "VIEWER"]),
+});
+
+export type HouseMembership = z.infer<typeof selectHouseMembershipSchema>;
+

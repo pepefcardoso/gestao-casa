@@ -1,11 +1,11 @@
-import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createRoute, OpenAPIHono, type RouteConfigToTypedResponse } from "@hono/zod-openapi";
 import { eq } from "drizzle-orm";
-import type { TypedResponse } from "hono";
 import { z } from "zod";
 import { db } from "../../db";
-import { expenses, insertExpenseSchema, selectExpenseSchema, uuidSchema } from "../../db/schema";
+import { expenses, insertExpenseSchema, selectExpenseSchema, uuidSchema, rooms, houseMemberships } from "../../db/schema";
+import { authMiddleware, verifyHouseAccess } from "../auth";
 
-const router = new OpenAPIHono({
+const router = new OpenAPIHono<{ Variables: { userId: string } }>({
   defaultHook: (result, c): Response | undefined => {
     if (!result.success) {
       console.log("Validation Failed:", JSON.stringify(result.error, null, 2));
@@ -19,6 +19,8 @@ const router = new OpenAPIHono({
     return undefined;
   },
 });
+
+router.use("*", authMiddleware);
 
 const postExpenseRoute = createRoute({
   method: "post",
@@ -51,6 +53,16 @@ const postExpenseRoute = createRoute({
       },
       description: "Invalid input payload",
     },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Access denied",
+    },
   },
 });
 
@@ -59,6 +71,7 @@ const getExpensesRoute = createRoute({
   path: "/expenses",
   request: {
     query: z.object({
+      house_id: uuidSchema.optional(),
       room_id: uuidSchema.optional(),
     }),
   },
@@ -69,7 +82,7 @@ const getExpensesRoute = createRoute({
           schema: z.array(selectExpenseSchema),
         },
       },
-      description: "List of expenses, optionally filtered by room_id",
+      description: "List of expenses, optionally filtered by house_id or room_id",
     },
     400: {
       content: {
@@ -81,41 +94,58 @@ const getExpensesRoute = createRoute({
       },
       description: "Invalid query parameters",
     },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Access denied",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Room not found",
+    },
   },
 });
 
 router.openapi(
   postExpenseRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<
-            {
-              id: string;
-              roomId: string | null;
-              description: string;
-              totalAmount: string;
-              installmentsCount: number;
-              status: "BUDGET" | "CONFIRMED";
-              category: "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION";
-              priority: "HIGH" | "MEDIUM" | "LOW";
-              dueDate: string;
-              createdAt: string;
-            },
-            201,
-            "json"
-          >
-        | TypedResponse<{ error: string }, 400, "json">
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof postExpenseRoute>> => {
     try {
+      const userId = c.var.userId;
       const payload = c.req.valid("json");
+
+      let targetHouseId = payload.houseId;
+      if (!targetHouseId && payload.roomId) {
+        const [room] = await db.select().from(rooms).where(eq(rooms.id, payload.roomId));
+        if (room) {
+          targetHouseId = room.houseId;
+        }
+      }
+
+      if (!targetHouseId) {
+        return c.json({ error: "houseId is required" }, 400);
+      }
+
+      // Verify write access to target house
+      const check = await verifyHouseAccess(userId, targetHouseId, ["OWNER", "COLLABORATOR"]);
+      if (!check.success) {
+        return c.json({ error: check.error || "Access denied" }, 403);
+      }
 
       const [newExpense] = await db
         .insert(expenses)
         .values({
+          houseId: targetHouseId,
           roomId: payload.roomId ?? null,
           description: payload.description,
           totalAmount: String(payload.totalAmount),
@@ -156,54 +186,53 @@ router.openapi(
 
 router.openapi(
   getExpensesRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<
-            {
-              id: string;
-              roomId: string | null;
-              description: string;
-              totalAmount: string;
-              installmentsCount: number;
-              status: "BUDGET" | "CONFIRMED";
-              category: "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION";
-              priority: "HIGH" | "MEDIUM" | "LOW";
-              dueDate: string;
-              createdAt: string;
-            }[],
-            200,
-            "json"
-          >
-        | TypedResponse<{ error: string }, 400, "json">
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof getExpensesRoute>> => {
     try {
-      const { room_id } = c.req.valid("query");
+      const userId = c.var.userId;
+      const { house_id, room_id } = c.req.valid("query");
 
-      if (!room_id) {
-        const allExpenses = await db.select().from(expenses);
-        const serialized = allExpenses.map((expense) => ({
-          ...expense,
-          status: expense.status as "BUDGET" | "CONFIRMED",
-          category: expense.category as
-            | "TAX"
-            | "PRODUCT"
-            | "SERVICE"
-            | "FURNITURE"
-            | "APPLIANCE"
-            | "RENOVATION",
-          priority: expense.priority as "HIGH" | "MEDIUM" | "LOW",
-          dueDate: expense.dueDate.toISOString(),
-          createdAt: expense.createdAt.toISOString(),
-        }));
-        return c.json(serialized, 200);
+      let results: (typeof expenses.$inferSelect)[] = [];
+      if (room_id) {
+        const [room] = await db.select().from(rooms).where(eq(rooms.id, room_id));
+        if (!room) {
+          return c.json({ error: "Room not found" }, 404);
+        }
+
+        const check = await verifyHouseAccess(userId, room.houseId, ["OWNER", "COLLABORATOR", "VIEWER"]);
+        if (!check.success) {
+          return c.json({ error: check.error || "Access denied" }, 403);
+        }
+
+        results = await db.select().from(expenses).where(eq(expenses.roomId, room_id));
+      } else if (house_id) {
+        const check = await verifyHouseAccess(userId, house_id, ["OWNER", "COLLABORATOR", "VIEWER"]);
+        if (!check.success) {
+          return c.json({ error: check.error || "Access denied" }, 403);
+        }
+
+        results = await db.select().from(expenses).where(eq(expenses.houseId, house_id));
+      } else {
+        // Return all expenses for all houses the user belongs to
+        results = await db
+          .select({
+            id: expenses.id,
+            houseId: expenses.houseId,
+            roomId: expenses.roomId,
+            description: expenses.description,
+            totalAmount: expenses.totalAmount,
+            installmentsCount: expenses.installmentsCount,
+            status: expenses.status,
+            category: expenses.category,
+            priority: expenses.priority,
+            dueDate: expenses.dueDate,
+            createdAt: expenses.createdAt,
+          })
+          .from(expenses)
+          .innerJoin(houseMemberships, eq(expenses.houseId, houseMemberships.houseId))
+          .where(eq(houseMemberships.userId, userId));
       }
 
-      const filtered = await db.select().from(expenses).where(eq(expenses.roomId, room_id));
-      const serialized = filtered.map((expense) => ({
+      const serialized = results.map((expense) => ({
         ...expense,
         status: expense.status as "BUDGET" | "CONFIRMED",
         category: expense.category as
@@ -259,6 +288,16 @@ const putExpenseRoute = createRoute({
       },
       description: "Invalid input payload",
     },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Access denied",
+    },
     404: {
       content: {
         "application/json": {
@@ -301,6 +340,16 @@ const deleteExpenseRoute = createRoute({
       },
       description: "Invalid ID parameter",
     },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Access denied",
+    },
     404: {
       content: {
         "application/json": {
@@ -316,38 +365,41 @@ const deleteExpenseRoute = createRoute({
 
 router.openapi(
   putExpenseRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<
-            {
-              id: string;
-              roomId: string | null;
-              description: string;
-              totalAmount: string;
-              installmentsCount: number;
-              status: "BUDGET" | "CONFIRMED";
-              category: "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION";
-              priority: "HIGH" | "MEDIUM" | "LOW";
-              dueDate: string;
-              createdAt: string;
-            },
-            200,
-            "json"
-          >
-        | TypedResponse<{ error: string }, 400, "json">
-        | TypedResponse<{ error: string }, 404, "json">
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof putExpenseRoute>> => {
     try {
+      const userId = c.var.userId;
       const { id } = c.req.valid("param");
       const payload = c.req.valid("json");
+
+      const [expense] = await db.select().from(expenses).where(eq(expenses.id, id));
+
+      if (!expense) {
+        return c.json({ error: "Expense not found" }, 404);
+      }
+
+      // Verify write access to the expense's house
+      const check = await verifyHouseAccess(userId, expense.houseId, ["OWNER", "COLLABORATOR"]);
+      if (!check.success) {
+        return c.json({ error: check.error || "Access denied" }, 403);
+      }
+
+      // Ensure that if they change roomId, the new room belongs to the same house or they have access
+      let updatedHouseId = expense.houseId;
+      if (payload.roomId && payload.roomId !== expense.roomId) {
+        const [room] = await db.select().from(rooms).where(eq(rooms.id, payload.roomId));
+        if (room) {
+          const roomCheck = await verifyHouseAccess(userId, room.houseId, ["OWNER", "COLLABORATOR"]);
+          if (!roomCheck.success) {
+            return c.json({ error: "Cannot assign expense to a room you do not have write access to." }, 403);
+          }
+          updatedHouseId = room.houseId;
+        }
+      }
 
       const [updatedExpense] = await db
         .update(expenses)
         .set({
+          houseId: updatedHouseId,
           roomId: payload.roomId ?? null,
           description: payload.description,
           totalAmount: String(payload.totalAmount),
@@ -359,10 +411,6 @@ router.openapi(
         })
         .where(eq(expenses.id, id))
         .returning();
-
-      if (!updatedExpense) {
-        return c.json({ error: "Expense not found" }, 404);
-      }
 
       const responseExpense = {
         ...updatedExpense,
@@ -389,24 +437,24 @@ router.openapi(
 
 router.openapi(
   deleteExpenseRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<{ success: boolean }, 200, "json">
-        | TypedResponse<{ error: string }, 400, "json">
-        | TypedResponse<{ error: string }, 404, "json">
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof deleteExpenseRoute>> => {
     try {
+      const userId = c.var.userId;
       const { id } = c.req.valid("param");
 
-      const [deletedExpense] = await db.delete(expenses).where(eq(expenses.id, id)).returning();
+      const [expense] = await db.select().from(expenses).where(eq(expenses.id, id));
 
-      if (!deletedExpense) {
+      if (!expense) {
         return c.json({ error: "Expense not found" }, 404);
       }
+
+      // Verify write access to the expense's house
+      const check = await verifyHouseAccess(userId, expense.houseId, ["OWNER", "COLLABORATOR"]);
+      if (!check.success) {
+        return c.json({ error: check.error || "Access denied" }, 403);
+      }
+
+      await db.delete(expenses).where(eq(expenses.id, id));
 
       return c.json({ success: true }, 200);
     } catch (error: unknown) {

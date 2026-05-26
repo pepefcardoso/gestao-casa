@@ -25,8 +25,7 @@ import {
   type FinancingInstallment,
   calculateFinancing,
 } from "../../../../libs/shared-logic/src/utils/calculate-financing";
-
-const FALLBACK_HOUSE_ID = "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
+import { useUser } from "../components/UserContext";
 
 interface Expense {
   id: string;
@@ -95,6 +94,7 @@ const PRIORITY_MAP: Record<string, { label: string; textClass: string; bgClass: 
 function ExpensesListContent(): React.JSX.Element {
   const searchParams = useSearchParams();
   const monthParam = searchParams.get("month"); // "YYYY-MM"
+  const { activeHouseId, role } = useUser();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [incomes, setIncomes] = useState<Income[]>([]);
@@ -125,10 +125,11 @@ function ExpensesListContent(): React.JSX.Element {
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const fetchExpenses = useCallback(async (): Promise<void> => {
+    if (!activeHouseId) return;
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const res = await fetch("/api/expenses");
+      const res = await fetch(`/api/expenses?house_id=${activeHouseId}`);
       if (res.ok) {
         const data: unknown = await res.json();
         setExpenses(data as Expense[]);
@@ -141,12 +142,13 @@ function ExpensesListContent(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeHouseId]);
 
   const fetchRooms = useCallback(async (): Promise<void> => {
+    if (!activeHouseId) return;
     setIsLoadingRooms(true);
     try {
-      const res = await fetch("/api/rooms");
+      const res = await fetch(`/api/rooms?house_id=${activeHouseId}`);
       if (res.ok) {
         const data: unknown = await res.json();
         setRooms(data as RoomOption[]);
@@ -156,11 +158,12 @@ function ExpensesListContent(): React.JSX.Element {
     } finally {
       setIsLoadingRooms(false);
     }
-  }, []);
+  }, [activeHouseId]);
 
   const fetchIncomes = useCallback(async (): Promise<void> => {
+    if (!activeHouseId) return;
     try {
-      const res = await fetch("/api/incomes");
+      const res = await fetch(`/api/incomes?house_id=${activeHouseId}`);
       if (res.ok) {
         const data: unknown = await res.json();
         setIncomes(data as Income[]);
@@ -168,11 +171,12 @@ function ExpensesListContent(): React.JSX.Element {
     } catch (err) {
       console.error("Erro de rede ao buscar receitas.", err);
     }
-  }, []);
+  }, [activeHouseId]);
 
   const fetchFinancing = useCallback(async (): Promise<void> => {
+    if (!activeHouseId) return;
     try {
-      const res = await fetch(`/api/financing/${FALLBACK_HOUSE_ID}`);
+      const res = await fetch(`/api/financing/${activeHouseId}`);
       if (res.ok) {
         const data: unknown = await res.json();
         setFinancingRecord(data as FinancingRecord);
@@ -182,7 +186,7 @@ function ExpensesListContent(): React.JSX.Element {
     } catch (err) {
       console.error("Erro de rede ao buscar financiamento.", err);
     }
-  }, []);
+  }, [activeHouseId]);
 
   useEffect((): void => {
     fetchExpenses();
@@ -508,22 +512,26 @@ function ExpensesListContent(): React.JSX.Element {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
             {activeTab === "EXPENSES" ? (
-              <button
-                type="button"
-                onClick={handleNewClick}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
-              >
-                <Plus className="w-4.5 h-4.5" />
-                Nova Despesa
-              </button>
+              role !== "VIEWER" && (
+                <button
+                  type="button"
+                  onClick={handleNewClick}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
+                >
+                  <Plus className="w-4.5 h-4.5" />
+                  Nova Despesa
+                </button>
+              )
             ) : (
-              <Link
-                href={monthParam ? `/incomes?month=${monthParam}` : "/incomes"}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
-              >
-                <Plus className="w-4.5 h-4.5" />
-                Gerenciar Receitas
-              </Link>
+              role !== "VIEWER" && (
+                <Link
+                  href={monthParam ? `/incomes?month=${monthParam}` : "/incomes"}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer"
+                >
+                  <Plus className="w-4.5 h-4.5" />
+                  Gerenciar Receitas
+                </Link>
+              )
             )}
 
             <nav className="flex space-x-1.5 bg-slate-200/50 p-1.5 rounded-xl border border-slate-200/80 justify-center">
@@ -763,24 +771,28 @@ function ExpensesListContent(): React.JSX.Element {
                               )}
                             </td>
                             <td className="py-3.5 px-6 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={(): void => handleEditClick(exp)}
-                                  className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                                  title="Editar"
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={(): void => setDeleteTarget(exp)}
-                                  className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                                  title="Excluir"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
+                              {role !== "VIEWER" ? (
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={(): void => handleEditClick(exp)}
+                                    className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                    title="Editar"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(): void => setDeleteTarget(exp)}
+                                    className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                    title="Excluir"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-slate-400 font-medium">Apenas Leitura</span>
+                              )}
                             </td>
                           </tr>
                         );

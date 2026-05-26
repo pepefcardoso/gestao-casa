@@ -16,6 +16,7 @@ import {
   View,
 } from "react-native";
 import { Lucide } from "../../components/LucideIcon";
+import { useMobileUser } from "../globalState";
 
 interface RoomClient {
   id: string;
@@ -65,6 +66,7 @@ const PRIORITIES = [
 
 export default function ExpenseListScreen(): React.JSX.Element {
   const router = useRouter();
+  const { userId, role } = useMobileUser();
 
   // Data State
   const [expenses, setExpenses] = useState<ExpenseClient[]>([]);
@@ -83,8 +85,8 @@ export default function ExpenseListScreen(): React.JSX.Element {
     setError(null);
     try {
       const [expensesRes, roomsRes] = await Promise.all([
-        fetch(`${API_URL}/expenses`),
-        fetch(`${API_URL}/rooms`),
+        fetch(`${API_URL}/expenses`, { headers: { "x-user-id": userId } }),
+        fetch(`${API_URL}/rooms`, { headers: { "x-user-id": userId } }),
       ]);
 
       if (!expensesRes.ok) {
@@ -113,7 +115,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   useFocusEffect(
     useCallback((): void => {
@@ -129,6 +131,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
 
   const handleToggleStatus = async (expense: ExpenseClient): Promise<void> => {
     if (expense.status === "CONFIRMED") return;
+    if (role === "VIEWER") return;
 
     // Save previous state for rollback on API failure
     const previousExpenses = [...expenses];
@@ -155,6 +158,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "x-user-id": userId,
         },
         body: JSON.stringify(payload),
       });
@@ -270,7 +274,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
               </Text>
             </View>
 
-            {!isConfirmed && (
+            {!isConfirmed && role !== "VIEWER" && (
               <TouchableOpacity
                 style={styles.confirmButton}
                 activeOpacity={0.7}
@@ -508,14 +512,16 @@ export default function ExpenseListScreen(): React.JSX.Element {
       </Modal>
 
       {/* Floating Action Button (FAB) */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={(): void => router.push("/expenses/new")}
-        activeOpacity={0.8}
-        accessibilityLabel="Nova despesa"
-      >
-        <Lucide name="plus" size={24} color="#ffffff" />
-      </TouchableOpacity>
+      {role !== "VIEWER" && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={(): void => router.push("/expenses/new")}
+          activeOpacity={0.8}
+          accessibilityLabel="Nova despesa"
+        >
+          <Lucide name="plus" size={24} color="#ffffff" />
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 }

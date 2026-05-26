@@ -17,8 +17,7 @@ import {
   type FinancingInstallment,
   calculateFinancing,
 } from "../../../../libs/shared-logic/src/utils/calculate-financing";
-
-const FALLBACK_HOUSE_ID = "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
+import { useUser } from "../components/UserContext";
 
 interface ValidationErrors {
   propertyValue?: string;
@@ -28,6 +27,8 @@ interface ValidationErrors {
 }
 
 export default function FinancingPage(): React.JSX.Element {
+  const { activeHouseId, role } = useUser();
+
   // Form states
   const [propertyValue, setPropertyValue] = useState<number>(500000);
   const [downPayment, setDownPayment] = useState<number>(100000);
@@ -47,10 +48,11 @@ export default function FinancingPage(): React.JSX.Element {
 
   // Fetch initial data
   const fetchInitialData = useCallback(async (): Promise<void> => {
+    if (!activeHouseId) return;
     setIsLoading(true);
     setFetchError(null);
     try {
-      const response = await fetch(`/api/financing/${FALLBACK_HOUSE_ID}`);
+      const response = await fetch(`/api/financing/${activeHouseId}`);
       if (response.ok) {
         const data: unknown = await response.json();
         if (data && typeof data === "object") {
@@ -83,7 +85,7 @@ export default function FinancingPage(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeHouseId]);
 
   // Client hydration check for Recharts
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -94,12 +96,12 @@ export default function FinancingPage(): React.JSX.Element {
 
   // Save changes
   const handleSave = async (): Promise<void> => {
-    if (Object.keys(validationErrors).length > 0) return;
+    if (Object.keys(validationErrors).length > 0 || !activeHouseId || role === "VIEWER") return;
     setIsSaving(true);
     setSaveStatus(null);
 
     const payload = {
-      houseId: FALLBACK_HOUSE_ID,
+      houseId: activeHouseId,
       propertyValue,
       downPayment,
       termMonths,
@@ -453,7 +455,7 @@ export default function FinancingPage(): React.JSX.Element {
             {/* Save Button */}
             <button
               onClick={handleSave}
-              disabled={isSaving || Object.keys(validationErrors).length > 0}
+              disabled={isSaving || Object.keys(validationErrors).length > 0 || role === "VIEWER"}
               className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-mint-slate-400/40 text-white text-sm font-semibold rounded-lg shadow transition-colors flex items-center justify-center gap-2"
               type="button"
             >
@@ -462,6 +464,8 @@ export default function FinancingPage(): React.JSX.Element {
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   Salvando...
                 </>
+              ) : role === "VIEWER" ? (
+                "Visualizador (Apenas Leitura)"
               ) : (
                 "Salvar Configuração"
               )}

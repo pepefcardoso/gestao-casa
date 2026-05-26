@@ -17,9 +17,19 @@ import {
   Maximize2,
   Palette,
   Settings,
+  Users,
 } from "lucide-react";
+import { useUser } from "../components/UserContext";
 
-const FALLBACK_HOUSE_ID = "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
+interface Member {
+  id: string;
+  role: "OWNER" | "COLLABORATOR" | "VIEWER";
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
 
 interface House {
   id: string;
@@ -70,6 +80,8 @@ const PRESET_COLORS: string[] = [
 ];
 
 export default function SettingsPage(): React.JSX.Element {
+  const { activeUserId, activeHouseId, role } = useUser();
+
   // House State
   const [_house, setHouse] = useState<House | null>(null);
   const [houseName, setHouseName] = useState<string>("");
@@ -85,6 +97,13 @@ export default function SettingsPage(): React.JSX.Element {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState<boolean>(true);
   const [roomsErrorMsg, setRoomsErrorMsg] = useState<string | null>(null);
+
+  // Members / Collaborators State
+  const [members, setMembers] = useState<Member[]>([]);
+  const [shareEmail, setShareEmail] = useState<string>("");
+  const [shareRole, setShareRole] = useState<"COLLABORATOR" | "VIEWER">("COLLABORATOR");
+  const [isSharing, setIsSharing] = useState<boolean>(false);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   // Modals & Actions
   const [isRoomModalOpen, setIsRoomModalOpen] = useState<boolean>(false);
@@ -105,10 +124,11 @@ export default function SettingsPage(): React.JSX.Element {
 
   // Fetch house details
   const fetchHouse = useCallback(async (): Promise<void> => {
+    if (!activeHouseId) return;
     setIsLoadingHouse(true);
     setHouseErrorMsg(null);
     try {
-      const res = await fetch(`/api/houses/${FALLBACK_HOUSE_ID}`);
+      const res = await fetch(`/api/houses/${activeHouseId}`);
       if (res.ok) {
         const data: unknown = await res.json();
         const h = data as House;
@@ -119,7 +139,7 @@ export default function SettingsPage(): React.JSX.Element {
         setHouseLatitude(h.latitude || "");
         setHouseLongitude(h.longitude || "");
       } else if (res.status === 404) {
-        setHouseErrorMsg("Casa padrão não encontrada no banco de dados.");
+        setHouseErrorMsg("Casa não encontrada.");
       } else {
         setHouseErrorMsg("Erro ao carregar dados da casa.");
       }
@@ -129,14 +149,15 @@ export default function SettingsPage(): React.JSX.Element {
     } finally {
       setIsLoadingHouse(false);
     }
-  }, []);
+  }, [activeHouseId]);
 
   // Fetch rooms list
   const fetchRooms = useCallback(async (): Promise<void> => {
+    if (!activeHouseId) return;
     setIsLoadingRooms(true);
     setRoomsErrorMsg(null);
     try {
-      const res = await fetch(`/api/rooms?house_id=${FALLBACK_HOUSE_ID}`);
+      const res = await fetch(`/api/rooms?house_id=${activeHouseId}`);
       if (res.ok) {
         const data: unknown = await res.json();
         setRooms(data as Room[]);
@@ -149,12 +170,29 @@ export default function SettingsPage(): React.JSX.Element {
     } finally {
       setIsLoadingRooms(false);
     }
-  }, []);
+  }, [activeHouseId]);
+
+  // Fetch members list
+  const fetchMembers = useCallback(async (): Promise<void> => {
+    if (!activeHouseId) return;
+    try {
+      const res = await fetch(`/api/houses/${activeHouseId}/members`);
+      if (res.ok) {
+        const data: unknown = await res.json();
+        setMembers(data as Member[]);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar membros:", err);
+    }
+  }, [activeHouseId]);
 
   useEffect((): void => {
-    fetchHouse();
-    fetchRooms();
-  }, [fetchHouse, fetchRooms]);
+    if (activeHouseId) {
+      fetchHouse();
+      fetchRooms();
+      fetchMembers();
+    }
+  }, [activeHouseId, fetchHouse, fetchRooms, fetchMembers]);
 
   // House Form Validation
   const validateHouseForm = (): boolean => {
@@ -211,7 +249,7 @@ export default function SettingsPage(): React.JSX.Element {
         longitude: houseLongitude === "" ? null : Number(houseLongitude),
       };
 
-      const res = await fetch(`/api/houses/${FALLBACK_HOUSE_ID}`, {
+      const res = await fetch(`/api/houses/${activeHouseId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -321,7 +359,7 @@ export default function SettingsPage(): React.JSX.Element {
       } else {
         // Create Room (POST)
         const payload = {
-          houseId: FALLBACK_HOUSE_ID,
+          houseId: activeHouseId,
           name: roomName.trim(),
           area: roomArea === "" ? null : Number(roomArea),
           colorCode: roomColor,
@@ -379,6 +417,61 @@ export default function SettingsPage(): React.JSX.Element {
       console.error(err);
     } finally {
       setIsDeletingRoom(false);
+    }
+  };
+
+  const handleShareSubmit = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault();
+    setShareError(null);
+    if (!shareEmail.trim()) return;
+
+    setIsSharing(true);
+    try {
+      const res = await fetch(`/api/houses/${activeHouseId}/share`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: shareEmail.trim(),
+          role: shareRole,
+        }),
+      });
+
+      if (res.ok) {
+        setShareEmail("");
+        fetchMembers();
+      } else {
+        const data: unknown = await res.json();
+        const msg = data && typeof data === "object" && "error" in data
+          ? String((data as { error: unknown }).error)
+          : "Erro ao compartilhar.";
+        setShareError(msg);
+      }
+    } catch (err) {
+      console.error(err);
+      setShareError("Erro de rede ao compartilhar.");
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const handleRemoveMember = async (membershipId: string): Promise<void> => {
+    try {
+      const res = await fetch(`/api/houses/${activeHouseId}/members/${membershipId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        fetchMembers();
+      } else {
+        const data: unknown = await res.json();
+        const msg = data && typeof data === "object" && "error" in data
+          ? String((data as { error: unknown }).error)
+          : "Erro ao remover membro.";
+        alert(msg);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erro de conexão.");
     }
   };
 
@@ -441,14 +534,15 @@ export default function SettingsPage(): React.JSX.Element {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* House Settings Panel */}
-        <section className="lg:col-span-5 bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
-          <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
-            <Home className="w-5 h-5 text-emerald-600" />
-            <h2 className="text-lg font-semibold text-[#0e1717]">
-              Dados da Casa
-            </h2>
-          </div>
+        <div className="lg:col-span-5 space-y-8">
+          {/* House Settings Panel */}
+          <section className="bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
+            <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
+              <Home className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-lg font-semibold text-[#0e1717]">
+                Dados da Casa
+              </h2>
+            </div>
 
           {houseErrorMsg && (
             <div className="p-4 bg-orange-50 text-orange-800 border border-orange-200 rounded-lg text-sm flex items-center gap-2">
@@ -488,6 +582,7 @@ export default function SettingsPage(): React.JSX.Element {
                   className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
                     validationErrors.houseName ? "border-orange-500" : "border-mint-slate-400/40"
                   }`}
+                  disabled={role === "VIEWER"}
                   required
                 />
                 {validationErrors.houseName && (
@@ -514,6 +609,7 @@ export default function SettingsPage(): React.JSX.Element {
                       setHouseSuccessMsg(null);
                     }}
                     className="w-full pl-9 pr-3.5 py-2.5 border border-mint-slate-400/40 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all"
+                    disabled={role === "VIEWER"}
                   />
                 </div>
               </div>
@@ -540,6 +636,7 @@ export default function SettingsPage(): React.JSX.Element {
                     className={`w-full pl-9 pr-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
                       validationErrors.houseArea ? "border-orange-500" : "border-mint-slate-400/40"
                     }`}
+                    disabled={role === "VIEWER"}
                   />
                 </div>
                 {validationErrors.houseArea && (
@@ -566,6 +663,7 @@ export default function SettingsPage(): React.JSX.Element {
                     className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
                       validationErrors.houseLatitude ? "border-orange-500" : "border-mint-slate-400/40"
                     }`}
+                    disabled={role === "VIEWER"}
                   />
                   {validationErrors.houseLatitude && (
                     <p className="text-xs text-orange-600 mt-1">{validationErrors.houseLatitude}</p>
@@ -589,6 +687,7 @@ export default function SettingsPage(): React.JSX.Element {
                     className={`w-full px-3.5 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-600 focus:border-transparent outline-hidden transition-all ${
                       validationErrors.houseLongitude ? "border-orange-500" : "border-mint-slate-400/40"
                     }`}
+                    disabled={role === "VIEWER"}
                   />
                   {validationErrors.houseLongitude && (
                     <p className="text-xs text-orange-600 mt-1">{validationErrors.houseLongitude}</p>
@@ -613,14 +712,14 @@ export default function SettingsPage(): React.JSX.Element {
                       setHouseLongitude(String(lng));
                       setHouseSuccessMsg(null);
                     }}
-                    interactive={true}
+                    interactive={role !== "VIEWER"}
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={isSavingHouse}
+                disabled={isSavingHouse || role === "VIEWER"}
                 className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-mint-slate-400/40 text-white text-sm font-semibold rounded-lg shadow-sm hover:shadow transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSavingHouse ? (
@@ -636,6 +735,109 @@ export default function SettingsPage(): React.JSX.Element {
           )}
         </section>
 
+        {/* Collaborators & Sharing Panel */}
+        <section className="bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
+          <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
+            <Users className="w-5 h-5 text-emerald-600" />
+            <h2 className="text-lg font-semibold text-[#0e1717]">
+              Membros e Compartilhamento
+            </h2>
+          </div>
+
+          {shareError && (
+            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-xs flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-orange-600 shrink-0" />
+              <span>{shareError}</span>
+            </div>
+          )}
+
+          {/* Invite Form (Only for OWNER) */}
+          {role === "OWNER" && (
+            <form onSubmit={handleShareSubmit} className="space-y-3 p-3.5 bg-slate-50 border border-slate-200/50 rounded-xl">
+              <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Convidar Novo Membro
+              </span>
+              <div className="space-y-2">
+                <input
+                  type="email"
+                  placeholder="Email do convidado"
+                  value={shareEmail}
+                  onChange={(e): void => setShareEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-hidden transition-all"
+                  required
+                />
+                <div className="flex gap-2">
+                  <select
+                    value={shareRole}
+                    onChange={(e): void => setShareRole(e.target.value as "COLLABORATOR" | "VIEWER")}
+                    className="px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-3xs w-full"
+                  >
+                    <option value="COLLABORATOR">Colaborador (Editar)</option>
+                    <option value="VIEWER">Visualizador (Apenas Ver)</option>
+                  </select>
+                  <button
+                    type="submit"
+                    disabled={isSharing}
+                    className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow transition-all shrink-0 cursor-pointer"
+                  >
+                    {isSharing ? "Convidando..." : "Convidar"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {/* Members List */}
+          <div className="space-y-3">
+            <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Membros Ativos ({members.length})
+            </span>
+            <div className="divide-y divide-slate-100 max-h-[250px] overflow-y-auto pr-1">
+              {members.map((member) => {
+                const isOwner = member.role === "OWNER";
+                const isCollaborator = member.role === "COLLABORATOR";
+
+                return (
+                  <div key={member.id} className="py-2.5 flex justify-between items-center gap-2">
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold text-slate-800 block truncate">
+                        {member.user.name}
+                      </span>
+                      <span className="text-[10px] text-slate-400 block truncate">
+                        {member.user.email}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md border tracking-wider ${
+                          isOwner
+                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                            : isCollaborator
+                            ? "bg-blue-50 border-blue-200 text-blue-700"
+                            : "bg-slate-50 border-slate-200 text-slate-500"
+                        }`}
+                      >
+                        {isOwner ? "Dono" : isCollaborator ? "Editar" : "Ver"}
+                      </span>
+                      {role === "OWNER" && member.user.id !== activeUserId && (
+                        <button
+                          type="button"
+                          onClick={(): void => { handleRemoveMember(member.id); }}
+                          className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-md transition-colors cursor-pointer border border-transparent hover:border-rose-100"
+                          title="Remover Membro"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      </div>
+
         {/* Room Management Panel */}
         <section className="lg:col-span-7 bg-white border border-mint-slate-400/20 rounded-xl shadow-sm p-6 space-y-6">
           <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
@@ -645,14 +847,16 @@ export default function SettingsPage(): React.JSX.Element {
                 Cômodos Cadastrados
               </h2>
             </div>
-            <button
-              onClick={handleNewRoomClick}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
-              type="button"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Novo Cômodo
-            </button>
+            {role !== "VIEWER" && (
+              <button
+                onClick={handleNewRoomClick}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
+                type="button"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Novo Cômodo
+              </button>
+            )}
           </div>
 
           {roomsErrorMsg && (
@@ -688,24 +892,26 @@ export default function SettingsPage(): React.JSX.Element {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={(): void => handleEditRoomClick(room)}
-                      className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200/50 transition-all cursor-pointer"
-                      title="Editar"
-                      type="button"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={(): void => setDeleteTargetRoom(room)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200/50 transition-all cursor-pointer"
-                      title="Excluir"
-                      type="button"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  {role !== "VIEWER" && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(): void => handleEditRoomClick(room)}
+                        className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200/50 transition-all cursor-pointer"
+                        title="Editar"
+                        type="button"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(): void => setDeleteTargetRoom(room)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200/50 transition-all cursor-pointer"
+                        title="Excluir"
+                        type="button"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

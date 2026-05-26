@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { Lucide } from "../../components/LucideIcon";
+import { useMobileUser } from "../globalState";
 
 interface RoomClient {
   id: string;
@@ -28,6 +29,7 @@ const FALLBACK_HOUSE_ID = "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
 
 export default function RoomsIndexScreen(): React.JSX.Element {
   const router = useRouter();
+  const { userId, role } = useMobileUser();
   const [rooms, setRooms] = useState<RoomClient[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -37,7 +39,9 @@ export default function RoomsIndexScreen(): React.JSX.Element {
   const fetchRooms = useCallback(async (): Promise<void> => {
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/rooms`);
+      const response = await fetch(`${API_URL}/rooms`, {
+        headers: { "x-user-id": userId }
+      });
       if (!response.ok) {
         throw new Error("Não foi possível carregar os cômodos.");
       }
@@ -55,7 +59,7 @@ export default function RoomsIndexScreen(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -165,14 +169,16 @@ export default function RoomsIndexScreen(): React.JSX.Element {
         }
       />
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={handleNavigateToNewRoom}
-        activeOpacity={0.8}
-        accessibilityLabel="Adicionar novo cômodo"
-      >
-        <Lucide name="plus" size={24} color="#ffffff" />
-      </TouchableOpacity>
+      {role !== "VIEWER" && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={handleNavigateToNewRoom}
+          activeOpacity={0.8}
+          accessibilityLabel="Adicionar novo cômodo"
+        >
+          <Lucide name="plus" size={24} color="#ffffff" />
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 }
