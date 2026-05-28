@@ -1,10 +1,11 @@
 "use client";
 
-import { Key, Loader2, Mail, Shield, User } from "lucide-react";
+import { Key, Loader2, Mail, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useState } from "react";
+import PillarLogo from "../components/PillarLogo";
 import { useUser } from "../components/UserContext";
 
 export default function RegisterPage(): React.JSX.Element {
@@ -74,11 +75,11 @@ export default function RegisterPage(): React.JSX.Element {
       <div className="w-full max-w-md bg-white border border-slate-200/80 rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 relative z-10">
         <div className="text-center space-y-2">
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl w-fit mx-auto shadow-3xs">
-            <Shield className="w-6 h-6" />
+            <PillarLogo className="w-6 h-6" />
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-800">Criar Conta Grátis</h2>
           <p className="text-xs sm:text-sm text-slate-400 font-semibold uppercase tracking-wider">
-            Gestão Casa
+            Pillar
           </p>
         </div>
 

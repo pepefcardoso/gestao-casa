@@ -672,7 +672,7 @@ router.openapi(
         financing: financingData,
       };
 
-      c.header("Content-Disposition", 'attachment; filename="gestao-casa-data-export.json"');
+      c.header("Content-Disposition", 'attachment; filename="pillar-data-export.json"');
       return c.json(exportPayload, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";

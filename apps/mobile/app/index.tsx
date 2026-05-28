@@ -155,7 +155,7 @@ export default function HomeScreen(): React.JSX.Element {
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" />
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Gestão Casa</Text>
+          <Text style={styles.headerTitle}>Pillar</Text>
         </View>
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#10B981" />
@@ -170,7 +170,7 @@ export default function HomeScreen(): React.JSX.Element {
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" />
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Gestão Casa</Text>
+          <Text style={styles.headerTitle}>Pillar</Text>
         </View>
         <View style={styles.centerContainer}>
           <Lucide name="alert-triangle" size={48} color="#ea580c" />
@@ -191,7 +191,7 @@ export default function HomeScreen(): React.JSX.Element {
       <View style={styles.header}>
         <View style={styles.headerTitleRow}>
           <Lucide name="home" size={24} color="#10B981" style={styles.headerIcon} />
-          <Text style={styles.headerTitle}>Gestão Casa</Text>
+          <Text style={styles.headerTitle}>Pillar</Text>
         </View>
         <Text style={styles.headerSubtitle}>Seu painel residencial</Text>
       </View>

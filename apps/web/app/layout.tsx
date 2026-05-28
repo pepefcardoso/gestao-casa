@@ -5,8 +5,8 @@ import Header from "./components/Header";
 import { UserProvider } from "./components/UserContext";
 
 export const metadata: Metadata = {
-  title: "Gestão Casa - Financiamento",
-  description: "Painel de controle financeiro e amortização de financiamento imobiliário.",
+  title: "Pillar - Finanças & Amortização",
+  description: "Painel de controle financeiro, amortização de financiamento imobiliário e cômodos.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }): React.JSX.Element {

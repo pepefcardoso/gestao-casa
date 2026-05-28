@@ -1,9 +1,10 @@
 {
   "expo": {
-    "name": "Gestão Casa",
-    "slug": "gestao-casa",
+    "name": "Pillar",
+    "slug": "pillar",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -13,6 +14,6 @@
       "supportsTablet": true
     },
     "plugins": ["expo-router"],
-    "scheme": "gestao-casa"
+    "scheme": "pillar"
   }
 }

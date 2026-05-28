@@ -26,7 +26,7 @@ export default function TermsOfUsePage(): React.JSX.Element {
                 Termos de Uso
               </h1>
               <p className="text-xs sm:text-sm text-slate-400 font-semibold uppercase tracking-wider">
-                Gestão Casa · Última atualização: Maio de 2026
+                Pillar · Última atualização: Maio de 2026
               </p>
             </div>
           </div>
@@ -37,7 +37,7 @@ export default function TermsOfUsePage(): React.JSX.Element {
           <section className="space-y-2">
             <h2 className="text-lg font-black text-slate-800">1. Aceitação dos Termos</h2>
             <p>
-              Ao criar uma conta ou utilizar a plataforma Gestão Casa, você concorda em cumprir e
+              Ao criar uma conta ou utilizar a plataforma Pillar, você concorda em cumprir e
               estar vinculado a estes Termos de Uso. Caso não concorde com qualquer uma das
               condições dispostas, solicitamos que não realize o cadastro ou utilize os nossos
               serviços.
@@ -47,7 +47,7 @@ export default function TermsOfUsePage(): React.JSX.Element {
           <section className="space-y-2">
             <h2 className="text-lg font-black text-slate-800">2. Descrição do Serviço</h2>
             <p>
-              O Gestão Casa é uma ferramenta digital voltada para o planejamento, controle e rateio
+              O Pillar é uma ferramenta digital voltada para o planejamento, controle e rateio
               financeiro de despesas, orçamentos, cômodos e financiamento residencial de habitações
               compartilhadas. A plataforma é fornecida "como está" e tem caráter meramente de
               suporte administrativo pessoal.
@@ -70,7 +70,7 @@ export default function TermsOfUsePage(): React.JSX.Element {
             </h2>
             <p>
               Todas as informações de despesas, receitas, valores de propriedades, juros e dados de
-              financiamento são inseridas pelos próprios usuários. O Gestão Casa não realiza
+              financiamento são inseridas pelos próprios usuários. O Pillar não realiza
               qualquer validação financeira externa, auditoria contábil ou jurídica sobre estes
               valores, não sendo responsável por eventuais erros de cálculo resultantes de inputs
               imprecisos.

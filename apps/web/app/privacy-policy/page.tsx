@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage(): React.JSX.Element {
                 Política de Privacidade
               </h1>
               <p className="text-xs sm:text-sm text-slate-400 font-semibold uppercase tracking-wider">
-                Gestão Casa · Conforme LGPD (Lei nº 13.709/18) · Maio de 2026
+                Pillar · Conforme LGPD (Lei nº 13.709/18) · Maio de 2026
               </p>
             </div>
           </div>

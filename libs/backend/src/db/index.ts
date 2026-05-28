@@ -10,7 +10,7 @@ if (isProduction && !connectionString && !isBuildPhase) {
   throw new Error("DATABASE_URL environment variable is mandatory in production configurations.");
 }
 
-const defaultUrl = "postgresql://postgres@localhost:5432/gestao_casa";
+const defaultUrl = "postgresql://postgres@localhost:5432/pillar";
 
 export const pool = new Pool({
   connectionString: connectionString || defaultUrl,

@@ -51,7 +51,7 @@ export default function ProfilePage(): React.JSX.Element {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `gestao-casa-export-${user?.name.toLowerCase().replace(/\s+/g, "-") || "data"}.json`;
+        link.download = `pillar-export-${user?.name.toLowerCase().replace(/\s+/g, "-") || "data"}.json`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

@@ -32,7 +32,7 @@ app.route("/", authRouter);
 app.doc("/doc", {
   openapi: "3.0.0",
   info: {
-    title: "Gestão Casa API",
+    title: "Pillar API",
     version: "1.0.0",
   },
 });

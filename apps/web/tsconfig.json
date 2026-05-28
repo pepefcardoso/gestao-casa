@@ -23,8 +23,8 @@
     "baseUrl": ".",
     "paths": {
       "@/components/*": ["app/components/*"],
-      "@gestao-casa/shared-logic/*": ["../../libs/shared-logic/src/*"],
-      "@gestao-casa/backend/*": ["../../libs/backend/src/*"]
+      "@pillar/shared-logic/*": ["../../libs/shared-logic/src/*"],
+      "@pillar/backend/*": ["../../libs/backend/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "declarations.d.ts"],

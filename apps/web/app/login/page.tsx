@@ -1,10 +1,11 @@
 "use client";
 
-import { ArrowRight, Key, Loader2, Mail, Shield, Sparkles } from "lucide-react";
+import { ArrowRight, Key, Loader2, Mail, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useState } from "react";
+import PillarLogo from "../components/PillarLogo";
 import { PRESET_USERS, useUser } from "../components/UserContext";
 
 export default function LoginPage(): React.JSX.Element {
@@ -75,11 +76,11 @@ export default function LoginPage(): React.JSX.Element {
       <div className="w-full max-w-md bg-white border border-slate-200/80 rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 relative z-10">
         <div className="text-center space-y-2">
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl w-fit mx-auto shadow-3xs">
-            <Shield className="w-6 h-6" />
+            <PillarLogo className="w-6 h-6" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-800">Acessar Gestão Casa</h2>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800">Acessar Pillar</h2>
           <p className="text-xs sm:text-sm text-slate-400 font-semibold uppercase tracking-wider">
-            Painel de Finanças Imobiliárias
+            Painel de Finanças & Estrutura
           </p>
         </div>
 

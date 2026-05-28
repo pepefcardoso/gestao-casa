@@ -1,10 +1,11 @@
 "use client";
 
-import { Home, Plus, Shield, User, X } from "lucide-react";
+import { Home, Plus, User, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
+import PillarLogo from "./PillarLogo";
 import { FALLBACK_HOUSE_ID, useUser } from "./UserContext";
 
 export default function Header(): React.JSX.Element {
@@ -86,14 +87,14 @@ export default function Header(): React.JSX.Element {
             className="flex items-center gap-2 group hover:opacity-90 transition-opacity"
           >
             <div className="p-2 bg-emerald-50 rounded-xl text-emerald-600 shadow-3xs group-hover:bg-emerald-100 transition-colors">
-              <Shield className="w-5 h-5" />
+              <PillarLogo className="w-5 h-5" />
             </div>
             <div>
               <span className="font-bold text-slate-800 tracking-tight text-base sm:text-lg block">
-                Gestão Casa
+                Pillar
               </span>
               <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-widest block leading-none">
-                Multiusuário
+                Finanças & Estrutura
               </span>
             </div>
           </Link>
