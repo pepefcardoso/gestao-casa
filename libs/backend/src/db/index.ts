@@ -4,8 +4,9 @@ import * as schema from "./schema";
 
 const isProduction = process.env.NODE_ENV === "production";
 const connectionString = process.env.DATABASE_URL;
+const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
-if (isProduction && !connectionString) {
+if (isProduction && !connectionString && !isBuildPhase) {
   throw new Error("DATABASE_URL environment variable is mandatory in production configurations.");
 }
 

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { handle } from "hono/vercel";
 import { authRouter } from "../../../../../libs/backend/src/api/routes/auth";
