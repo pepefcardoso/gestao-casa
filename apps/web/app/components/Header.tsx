@@ -2,12 +2,15 @@
 
 import { Home, Plus, Shield, User, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
 import { FALLBACK_HOUSE_ID, useUser } from "./UserContext";
 
 export default function Header(): React.JSX.Element {
   const { user, activeHouseId, role, housesList, changeHouse, refreshContext } = useUser();
+  const pathname = usePathname();
+  const isMarketingPage = pathname === "/" || pathname === "/login" || pathname === "/register";
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newHouseName, setNewHouseName] = useState("");
@@ -97,7 +100,31 @@ export default function Header(): React.JSX.Element {
 
           {/* User/House Selection Bar or Public CTA Links */}
           <div className="flex items-center gap-2 sm:gap-4">
-            {user ? (
+            {isMarketingPage ? (
+              user ? (
+                <Link
+                  href="/dashboard"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-3xs hover:shadow-premium transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 cursor-pointer"
+                >
+                  Acessar Dashboard
+                </Link>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Link
+                    href="/login"
+                    className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors"
+                  >
+                    Entrar
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-3xs transition-colors"
+                  >
+                    Cadastrar
+                  </Link>
+                </div>
+              )
+            ) : user ? (
               <>
                 {/* User Profile Link */}
                 <Link
