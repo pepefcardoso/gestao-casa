@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, type RouteConfigToTypedResponse } from "@hono/zod-openapi";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { deleteCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
 import { z } from "zod";
@@ -7,10 +7,14 @@ import { hashPassword, verifyPassword } from "../../../../shared-logic/src/utils
 import { db } from "../../db";
 import {
   changeUserPasswordSchema,
+  expenses,
+  financing,
   houseMemberships,
   houses,
+  incomes,
   loginUserSchema,
   registerUserSchema,
+  rooms,
   selectUserSchema,
   updateUserProfileSchema,
   users,
@@ -265,6 +269,80 @@ const putPasswordRoute = createRoute({
   },
 });
 
+// Route Configuration for Delete Account
+const deleteProfileRoute = createRoute({
+  method: "delete",
+  path: "/auth/profile",
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.boolean(),
+          }),
+        },
+      },
+      description: "Account deleted successfully",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Database or processing error",
+    },
+    401: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Unauthorized",
+    },
+  },
+});
+
+// Route Configuration for Export Data
+const getExportDataRoute = createRoute({
+  method: "get",
+  path: "/auth/export-data",
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.unknown(),
+        },
+      },
+      description: "Exported personal and financial data successfully as JSON file",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Database or processing error",
+    },
+    401: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: "Unauthorized",
+    },
+  },
+});
+
 // Implement Register Endpoint
 router.openapi(
   postRegisterRoute,
@@ -286,6 +364,7 @@ router.openapi(
           name: payload.name.trim(),
           email: normalizedEmail,
           passwordHash,
+          termsAcceptedAt: new Date(),
         })
         .returning();
 
@@ -321,6 +400,7 @@ router.openapi(
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
+        termsAcceptedAt: newUser.termsAcceptedAt ? newUser.termsAcceptedAt.toISOString() : null,
         createdAt: newUser.createdAt.toISOString(),
       };
 
@@ -369,6 +449,7 @@ router.openapi(
         id: user.id,
         name: user.name,
         email: user.email,
+        termsAcceptedAt: user.termsAcceptedAt ? user.termsAcceptedAt.toISOString() : null,
         createdAt: user.createdAt.toISOString(),
       };
 
@@ -416,6 +497,7 @@ router.openapi(getMeRoute, async (c): Promise<RouteConfigToTypedResponse<typeof 
       id: user.id,
       name: user.name,
       email: user.email,
+      termsAcceptedAt: user.termsAcceptedAt ? user.termsAcceptedAt.toISOString() : null,
       createdAt: user.createdAt.toISOString(),
     };
 
@@ -469,6 +551,9 @@ router.openapi(
         id: updatedUser.id,
         name: updatedUser.name,
         email: updatedUser.email,
+        termsAcceptedAt: updatedUser.termsAcceptedAt
+          ? updatedUser.termsAcceptedAt.toISOString()
+          : null,
         createdAt: updatedUser.createdAt.toISOString(),
       };
 
@@ -504,6 +589,91 @@ router.openapi(
       await db.update(users).set({ passwordHash: newPasswordHash }).where(eq(users.id, userId));
 
       return c.json({ success: true }, 200);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Database error";
+      return c.json({ error: message }, 400);
+    }
+  },
+);
+
+// Implement Delete Account Endpoint
+router.use("/auth/profile", authMiddleware);
+router.openapi(
+  deleteProfileRoute,
+  async (c): Promise<RouteConfigToTypedResponse<typeof deleteProfileRoute>> => {
+    try {
+      const userId = c.var.userId;
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      if (!user) {
+        return c.json({ error: "Usuário não encontrado" }, 401);
+      }
+
+      await db.delete(users).where(eq(users.id, userId));
+      deleteCookie(c, "auth_token", { path: "/" });
+
+      return c.json({ success: true }, 200);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Database error";
+      return c.json({ error: message }, 400);
+    }
+  },
+);
+
+// Implement Export Data Endpoint
+router.use("/auth/export-data", authMiddleware);
+router.openapi(
+  getExportDataRoute,
+  async (c): Promise<RouteConfigToTypedResponse<typeof getExportDataRoute>> => {
+    try {
+      const userId = c.var.userId;
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      if (!user) {
+        return c.json({ error: "Usuário não encontrado" }, 401);
+      }
+
+      const membershipsData = await db
+        .select()
+        .from(houseMemberships)
+        .where(eq(houseMemberships.userId, userId));
+
+      const houseIds = membershipsData.map((m) => m.houseId);
+
+      let housesData: unknown[] = [];
+      let roomsData: unknown[] = [];
+      let expensesData: unknown[] = [];
+      let incomesData: unknown[] = [];
+      let financingData: unknown[] = [];
+
+      if (houseIds.length > 0) {
+        housesData = await db.select().from(houses).where(inArray(houses.id, houseIds));
+        roomsData = await db.select().from(rooms).where(inArray(rooms.houseId, houseIds));
+        expensesData = await db.select().from(expenses).where(inArray(expenses.houseId, houseIds));
+        incomesData = await db.select().from(incomes).where(inArray(incomes.houseId, houseIds));
+        financingData = await db
+          .select()
+          .from(financing)
+          .where(inArray(financing.houseId, houseIds));
+      }
+
+      const exportPayload = {
+        exportedAt: new Date().toISOString(),
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          termsAcceptedAt: user.termsAcceptedAt ? user.termsAcceptedAt.toISOString() : null,
+          createdAt: user.createdAt.toISOString(),
+        },
+        memberships: membershipsData,
+        houses: housesData,
+        rooms: roomsData,
+        expenses: expensesData,
+        incomes: incomesData,
+        financing: financingData,
+      };
+
+      c.header("Content-Disposition", 'attachment; filename="gestao-casa-data-export.json"');
+      return c.json(exportPayload, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
       return c.json({ error: message }, 400);

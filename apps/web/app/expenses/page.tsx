@@ -523,7 +523,9 @@ function ExpensesListContent(): React.JSX.Element {
 
         <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center pb-5 gap-4">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">{titleLabel}</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+              {titleLabel}
+            </h1>
             <p className="text-xs text-text-muted mt-1">
               {monthParam
                 ? `Visualizando lançamentos detalhados para o mês de ${monthParam}.`
@@ -698,7 +700,7 @@ function ExpensesListContent(): React.JSX.Element {
 
               <div className="bg-surface-white rounded-3xl p-5 shadow-premium transition-all duration-300 hover:-translate-y-1 hover:shadow-premium-hover flex items-center gap-3">
                 <div className="p-2.5 bg-amber-50 rounded-full text-amber-600">
-                   <Clock className="w-5 h-5" />
+                  <Clock className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500">
@@ -774,7 +776,10 @@ function ExpensesListContent(): React.JSX.Element {
                         };
 
                         return (
-                          <tr key={exp.id} className="hover:bg-slate-50/30 transition-colors duration-200">
+                          <tr
+                            key={exp.id}
+                            className="hover:bg-slate-50/30 transition-colors duration-200"
+                          >
                             <td className="py-3.5 px-6 font-medium text-text-primary">
                               {exp.description}
                             </td>
@@ -788,7 +793,9 @@ function ExpensesListContent(): React.JSX.Element {
                               {CATEGORY_MAP[exp.category] || exp.category}
                             </td>
                             <td className="py-3.5 px-6 text-center">
-                              <span className={`inline-block text-xs font-semibold ${priority.textClass}`}>
+                              <span
+                                className={`inline-block text-xs font-semibold ${priority.textClass}`}
+                              >
                                 {priority.label}
                               </span>
                             </td>
@@ -856,7 +863,10 @@ function ExpensesListContent(): React.JSX.Element {
                   <tbody className="divide-y divide-slate-100">
                     {filteredIncomes.map(
                       (inc): React.JSX.Element => (
-                        <tr key={inc.id} className="hover:bg-slate-50/30 transition-colors duration-200">
+                        <tr
+                          key={inc.id}
+                          className="hover:bg-slate-50/30 transition-colors duration-200"
+                        >
                           <td className="py-3.5 px-6 font-medium text-text-primary">
                             {inc.description}
                           </td>
@@ -938,7 +948,7 @@ function ExpensesListContent(): React.JSX.Element {
                     className={`py-2 px-3 text-xs font-bold rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95`}
                     style={{
                       backgroundColor: status === "BUDGET" ? "#D97706" : "transparent",
-                      color: status === "BUDGET" ? "#FFFFFF" : "#4B5563"
+                      color: status === "BUDGET" ? "#FFFFFF" : "#4B5563",
                     }}
                   >
                     <PiggyBank className="w-4 h-4" />
@@ -950,7 +960,7 @@ function ExpensesListContent(): React.JSX.Element {
                     className={`py-2 px-3 text-xs font-bold rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95`}
                     style={{
                       backgroundColor: status === "CONFIRMED" ? "#10B981" : "transparent",
-                      color: status === "CONFIRMED" ? "#FFFFFF" : "#4B5563"
+                      color: status === "CONFIRMED" ? "#FFFFFF" : "#4B5563",
                     }}
                   >
                     <CheckCircle className="w-4 h-4" />
@@ -1218,7 +1228,9 @@ function ExpensesListContent(): React.JSX.Element {
                 <h3 className="text-lg font-semibold text-text-primary">Excluir Despesa</h3>
                 <p className="text-xs text-text-muted leading-relaxed">
                   Tem certeza de que deseja excluir a despesa{" "}
-                  <span className="font-semibold text-text-primary">"{deleteTarget.description}"</span>{" "}
+                  <span className="font-semibold text-text-primary">
+                    "{deleteTarget.description}"
+                  </span>{" "}
                   no valor de{" "}
                   <span className="font-bold text-text-primary tabular-nums">
                     {formatBRL(Number(deleteTarget.totalAmount))}

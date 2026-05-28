@@ -30,6 +30,7 @@ interface UserContextType {
     name: string,
     email: string,
     password: string,
+    termsAccepted: boolean,
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
 }
@@ -189,12 +190,13 @@ export function UserProvider({ children }: { children: React.ReactNode }): React
     name: string,
     email: string,
     password: string,
+    termsAccepted: boolean,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, termsAccepted }),
       });
 
       const data = await res.json();

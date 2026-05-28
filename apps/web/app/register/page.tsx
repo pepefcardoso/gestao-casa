@@ -14,6 +14,7 @@ export default function RegisterPage(): React.JSX.Element {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,11 +42,16 @@ export default function RegisterPage(): React.JSX.Element {
       return;
     }
 
+    if (!termsAccepted) {
+      setError("Você deve aceitar os termos de uso e política de privacidade.");
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
 
     try {
-      const result = await registerUser(name.trim(), email.trim(), password);
+      const result = await registerUser(name.trim(), email.trim(), password, termsAccepted);
       if (result.success) {
         router.push("/dashboard");
       } else {
@@ -153,6 +159,40 @@ export default function RegisterPage(): React.JSX.Element {
                 required
               />
             </div>
+          </div>
+
+          {/* Terms checkbox */}
+          <div className="flex items-start gap-2.5 pt-1">
+            <input
+              id="termsAccepted"
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-0.5 w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer"
+              required
+            />
+            <label
+              htmlFor="termsAccepted"
+              className="text-xs text-slate-500 font-medium leading-relaxed select-none cursor-pointer"
+            >
+              Li e concordo com os{" "}
+              <Link
+                href="/terms-of-use"
+                target="_blank"
+                className="text-emerald-600 hover:underline font-bold"
+              >
+                Termos de Uso
+              </Link>{" "}
+              e a{" "}
+              <Link
+                href="/privacy-policy"
+                target="_blank"
+                className="text-emerald-600 hover:underline font-bold"
+              >
+                Política de Privacidade
+              </Link>
+              .
+            </label>
           </div>
 
           <button

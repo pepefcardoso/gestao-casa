@@ -1,6 +1,6 @@
 {
-  "id": "78e88a56-0f47-4921-81db-1c06c41c4a58",
-  "prevId": "9d710f4a-f934-41f4-9455-ba36e249d586",
+  "id": "e09a7a20-c7a8-45b0-b9e8-d4e589dfa313",
+  "prevId": "78e88a56-0f47-4921-81db-1c06c41c4a58",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -508,6 +508,12 @@
         "password_hash": {
           "name": "password_hash",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "terms_accepted_at": {
+          "name": "terms_accepted_at",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },

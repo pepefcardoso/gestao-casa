@@ -5,10 +5,7 @@ import Link from "next/link";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Area, AreaChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import {
-  calculateFinancing,
-  type FinancingInstallment,
-} from "../../../../libs/shared-logic/src/utils/calculate-financing";
+import { calculateFinancing } from "../../../../libs/shared-logic/src/utils/calculate-financing";
 import { useUser } from "../components/UserContext";
 
 interface ValidationErrors {
@@ -429,9 +426,7 @@ export default function FinancingPage(): React.JSX.Element {
                       setSaveStatus(null);
                     }}
                     className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white outline-hidden transition-all border-0 ${
-                      validationErrors.interestRate
-                        ? "ring-2 ring-rose-500"
-                        : ""
+                      validationErrors.interestRate ? "ring-2 ring-rose-500" : ""
                     }`}
                   />
                   {validationErrors.interestRate && (
@@ -778,13 +773,11 @@ export default function FinancingPage(): React.JSX.Element {
                         let cellClass = "py-2.5 px-4 text-text-primary";
 
                         if (isFirst) {
-                          rowClass =
-                            "bg-emerald-50/70 backdrop-blur-md font-semibold";
+                          rowClass = "bg-emerald-50/70 backdrop-blur-md font-semibold";
                           cellClass =
                             "sticky top-[38px] py-3 px-4 bg-emerald-50/70 text-emerald-950 z-10";
                         } else if (isLast) {
-                          rowClass =
-                            "bg-emerald-50/70 backdrop-blur-md font-semibold";
+                          rowClass = "bg-emerald-50/70 backdrop-blur-md font-semibold";
                           cellClass =
                             "sticky bottom-0 py-3 px-4 bg-emerald-50/70 text-emerald-950 z-10";
                         }

@@ -684,9 +684,7 @@ export default function SettingsPage(): React.JSX.Element {
                       disabled={role === "VIEWER"}
                     />
                     {validationErrors.houseLatitude && (
-                      <p className="text-xs text-rose-600 mt-1">
-                        {validationErrors.houseLatitude}
-                      </p>
+                      <p className="text-xs text-rose-600 mt-1">{validationErrors.houseLatitude}</p>
                     )}
                   </div>
 

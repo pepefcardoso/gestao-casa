@@ -57,9 +57,7 @@ export function calculateFinancing(params: FinancingParams): FinancingInstallmen
   // - Linear (Caixa method): annual_rate / 12
   // - Compound (Standard method): (1 + annual_rate) ^ (1/12) - 1
   const monthlyRate =
-    interestMethod === "linear"
-      ? interestRate / 12
-      : (1 + interestRate) ** (1 / 12) - 1;
+    interestMethod === "linear" ? interestRate / 12 : (1 + interestRate) ** (1 / 12) - 1;
 
   const installments: FinancingInstallment[] = [];
   let outstandingBalance = financedAmount;

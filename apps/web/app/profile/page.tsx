@@ -34,6 +34,63 @@ export default function ProfilePage(): React.JSX.Element {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [isLoadMemberships, setIsLoadMemberships] = useState(true);
 
+  // Privacy / LGPD actions state
+  const [isExporting, setIsExporting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleExportData = async (): Promise<void> => {
+    setIsExporting(true);
+    try {
+      const res = await fetch("/api/auth/export-data");
+      if (res.ok) {
+        const data = await res.json();
+        const jsonStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `gestao-casa-export-${user?.name.toLowerCase().replace(/\s+/g, "-") || "data"}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        alert("Erro ao exportar dados do usuário.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao conectar com o servidor.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async (): Promise<void> => {
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setShowDeleteConfirm(false);
+        await logout();
+        router.push("/login");
+      } else {
+        const data = await res.json();
+        setDeleteError(data.error || "Falha ao excluir conta.");
+      }
+    } catch (err) {
+      console.error(err);
+      setDeleteError("Erro ao conectar com o servidor.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Pre-fill profile fields when user loads
   useEffect(() => {
     if (user) {
@@ -434,8 +491,99 @@ export default function ProfilePage(): React.JSX.Element {
               </div>
             </div>
           )}
+
+          {/* Card 5: Privacy & LGPD Rights */}
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-xs p-6 space-y-4">
+            <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              Privacidade & Seus Dados (LGPD)
+            </h2>
+            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+              Exerça seus direitos sob a LGPD. Exporte seus dados pessoais e de residência ou
+              solicite a exclusão definitiva da sua conta.
+            </p>
+
+            <div className="space-y-3 pt-2">
+              {/* Export Data Button */}
+              <button
+                type="button"
+                onClick={handleExportData}
+                disabled={isExporting}
+                className="w-full py-2.5 px-4 bg-slate-50 border border-slate-200 hover:bg-slate-100 disabled:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-3xs"
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Exportando...
+                  </>
+                ) : (
+                  "Exportar Meus Dados (JSON)"
+                )}
+              </button>
+
+              {/* Delete Account Button */}
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="w-full py-2.5 px-4 bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-3xs"
+              >
+                Excluir Minha Conta
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-6 animate-scale-up">
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-slate-800">Confirmar Exclusão de Conta</h3>
+              <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                Você tem certeza de que deseja excluir sua conta? Esta ação é **permanente e
+                irreversível**. Todos os seus dados pessoais e vínculos com residências serão
+                apagados definitivamente em conformidade com a LGPD.
+              </p>
+            </div>
+
+            {deleteError && (
+              <div className="p-3 bg-rose-50 border border-rose-100 text-rose-700 text-xs sm:text-sm rounded-lg font-bold">
+                {deleteError}
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteError(null);
+                }}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-600/60 text-white font-bold rounded-xl text-xs shadow-sm hover:shadow transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  "Sim, Excluir Definitivamente"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

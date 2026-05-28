@@ -204,7 +204,7 @@ describe("calculateFinancing", (): void => {
       termMonths: 420,
       interestRate: 0.0766,
       amortizationSystem: "SAC",
-      adminFee: 25.00,
+      adminFee: 25.0,
       mipRate: 0.00028513,
       dfiRate: 0,
       interestMethod: "linear",
@@ -218,7 +218,7 @@ describe("calculateFinancing", (): void => {
     // Admin Fee = 25.00
     // MIP = 229296.62 * 0.00028513 = 65.3791
     // Total = 2100.00
-    expect(result[0].installment).toBeCloseTo(2100.00, 1);
+    expect(result[0].installment).toBeCloseTo(2100.0, 1);
 
     // Last installment should be close to 574.43 (excluding tiny remaining MIP of ~0.16)
     // Amortization = 545.9443

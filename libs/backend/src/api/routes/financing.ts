@@ -114,9 +114,7 @@ router.openapi(
               ? String(payload.dfiRate)
               : null,
           trRate:
-            payload.trRate !== undefined && payload.trRate !== null
-              ? String(payload.trRate)
-              : null,
+            payload.trRate !== undefined && payload.trRate !== null ? String(payload.trRate) : null,
           interestMethod: payload.interestMethod ?? null,
         })
         .onConflictDoUpdate({

@@ -96,7 +96,6 @@ export default function LandingPage(): React.JSX.Element {
       </div>
 
       <main className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 pb-24 space-y-24">
-
         {/* HERO SECTION */}
         <section className="text-center space-y-6 max-w-4xl mx-auto">
           {/* Soft Badge Notification */}
@@ -146,7 +145,6 @@ export default function LandingPage(): React.JSX.Element {
           </div>
         </section>
 
-
         {/* INTERACTIVE DEMO / FINANCIAL SIMULATOR SECTION */}
         <section className="bg-[#FFFFFF]/70 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-10 space-y-10 transition-all duration-300 hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)]">
           <div className="text-center space-y-2 max-w-2xl mx-auto">
@@ -160,7 +158,6 @@ export default function LandingPage(): React.JSX.Element {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
             {/* Simulator Inputs (5 cols) */}
             <div className="lg:col-span-5 space-y-6 bg-[#F5F5F7]/60 p-6 rounded-2xl">
               <h3 className="font-semibold text-[#1D1D1F] text-xs uppercase tracking-wider flex items-center gap-2">
@@ -198,7 +195,11 @@ export default function LandingPage(): React.JSX.Element {
                 <div className="flex justify-between text-[11px] font-semibold text-[#86868B] uppercase tracking-wider">
                   <span>Entrada</span>
                   <span className="text-[#10B981] font-semibold tabular-nums">
-                    {formatBRL(downPayment)} (<span className="tabular-nums">{Math.round((downPayment / propertyValue) * 100)}</span>%)
+                    {formatBRL(downPayment)} (
+                    <span className="tabular-nums">
+                      {Math.round((downPayment / propertyValue) * 100)}
+                    </span>
+                    %)
                   </span>
                 </div>
                 <input
@@ -216,7 +217,9 @@ export default function LandingPage(): React.JSX.Element {
               <div className="space-y-2">
                 <div className="flex justify-between text-[11px] font-semibold text-[#86868B] uppercase tracking-wider">
                   <span>Taxa de Juros</span>
-                  <span className="text-[#10B981] font-semibold tabular-nums">{interestRate}% a.a.</span>
+                  <span className="text-[#10B981] font-semibold tabular-nums">
+                    {interestRate}% a.a.
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -234,7 +237,8 @@ export default function LandingPage(): React.JSX.Element {
                 <div className="flex justify-between text-[11px] font-semibold text-[#86868B] uppercase tracking-wider">
                   <span>Prazo</span>
                   <span className="text-[#10B981] font-semibold tabular-nums">
-                    {termMonths} meses (<span className="tabular-nums">{Math.round(termMonths / 12)}</span> anos)
+                    {termMonths} meses (
+                    <span className="tabular-nums">{Math.round(termMonths / 12)}</span> anos)
                   </span>
                 </div>
                 <input
@@ -257,20 +261,22 @@ export default function LandingPage(): React.JSX.Element {
                   <button
                     type="button"
                     onClick={() => setAmortizationSystem("SAC")}
-                    className={`py-2 px-3 rounded-full text-xs font-medium transition-all active:scale-95 cursor-pointer ${amortizationSystem === "SAC"
+                    className={`py-2 px-3 rounded-full text-xs font-medium transition-all active:scale-95 cursor-pointer ${
+                      amortizationSystem === "SAC"
                         ? "bg-[#FFFFFF] text-[#10B981] shadow-[0_8px_30px_rgb(0,0,0,0.04)] font-semibold"
                         : "text-[#86868B] hover:text-[#1D1D1F]"
-                      }`}
+                    }`}
                   >
                     SAC
                   </button>
                   <button
                     type="button"
                     onClick={() => setAmortizationSystem("PRICE")}
-                    className={`py-2 px-3 rounded-full text-xs font-medium transition-all active:scale-95 cursor-pointer ${amortizationSystem === "PRICE"
+                    className={`py-2 px-3 rounded-full text-xs font-medium transition-all active:scale-95 cursor-pointer ${
+                      amortizationSystem === "PRICE"
                         ? "bg-[#FFFFFF] text-[#10B981] shadow-[0_8px_30px_rgb(0,0,0,0.04)] font-semibold"
                         : "text-[#86868B] hover:text-[#1D1D1F]"
-                      }`}
+                    }`}
                   >
                     PRICE
                   </button>
@@ -339,14 +345,21 @@ export default function LandingPage(): React.JSX.Element {
               <div className="bg-emerald-50/70 p-4 rounded-2xl flex gap-3 text-xs text-emerald-800 leading-relaxed">
                 <CheckCircle className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold text-emerald-900 block mb-0.5">Insight do Simulador</span>
-                  No sistema <strong className="font-semibold">{amortizationSystem}</strong>, o encargo de juros acumulado soma <strong className="font-semibold tabular-nums">{formatBRL(preview.totalInterest)}</strong>. No ecossistema completo, reduza este saldo instantaneamente simulando amortizações sazonais.
+                  <span className="font-bold text-emerald-900 block mb-0.5">
+                    Insight do Simulador
+                  </span>
+                  No sistema <strong className="font-semibold">{amortizationSystem}</strong>, o
+                  encargo de juros acumulado soma{" "}
+                  <strong className="font-semibold tabular-nums">
+                    {formatBRL(preview.totalInterest)}
+                  </strong>
+                  . No ecossistema completo, reduza este saldo instantaneamente simulando
+                  amortizações sazonais.
                 </div>
               </div>
             </div>
           </div>
         </section>
-
 
         {/* CORE FEATURES GRID */}
         <section className="space-y-12">
@@ -355,7 +368,8 @@ export default function LandingPage(): React.JSX.Element {
               Arquitetura modular para sua gestão patrimonial
             </h2>
             <p className="text-xs text-[#86868B]">
-              Recursos refinados desenvolvidos para sanar a complexidade do controle financeiro imobiliário.
+              Recursos refinados desenvolvidos para sanar a complexidade do controle financeiro
+              imobiliário.
             </p>
           </div>
 
@@ -367,7 +381,8 @@ export default function LandingPage(): React.JSX.Element {
               </div>
               <h3 className="text-sm font-semibold text-[#1D1D1F]">Métricas de Amortização</h3>
               <p className="text-xs text-[#86868B] leading-relaxed">
-                Alterne dinamicamente entre cronogramas SAC e PRICE. Monitore taxas administrativas e planeje o abatimento real do saldo devedor.
+                Alterne dinamicamente entre cronogramas SAC e PRICE. Monitore taxas administrativas
+                e planeje o abatimento real do saldo devedor.
               </p>
             </div>
 
@@ -378,7 +393,8 @@ export default function LandingPage(): React.JSX.Element {
               </div>
               <h3 className="text-sm font-semibold text-[#1D1D1F]">Fluxo de Caixa Preditivo</h3>
               <p className="text-xs text-[#86868B] leading-relaxed">
-                Estruture suas obrigações financeiras em uma linha temporal de disclosure progressivo, mitigando riscos de liquidez mês a mês.
+                Estruture suas obrigações financeiras em uma linha temporal de disclosure
+                progressivo, mitigando riscos de liquidez mês a mês.
               </p>
             </div>
 
@@ -389,12 +405,12 @@ export default function LandingPage(): React.JSX.Element {
               </div>
               <h3 className="text-sm font-semibold text-[#1D1D1F]">Ambientes Colaborativos</h3>
               <p className="text-xs text-[#86868B] leading-relaxed">
-                Conecte cônjuges, engenheiros ou arquitetos sob chaves de acesso segmentadas: Proprietário, Colaborador ou Leitor.
+                Conecte cônjuges, engenheiros ou arquitetos sob chaves de acesso segmentadas:
+                Proprietário, Colaborador ou Leitor.
               </p>
             </div>
           </div>
         </section>
-
 
         {/* CALL TO ACTION BOTTOM BANNER */}
         <section className="bg-gradient-to-br from-emerald-900 to-teal-800 text-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 sm:p-14 text-center space-y-6 relative overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)]">
@@ -424,7 +440,8 @@ export default function LandingPage(): React.JSX.Element {
       {/* Footer */}
       <footer className="bg-[#FFFFFF] py-8 text-center text-xs text-[#86868B] font-medium tracking-tight">
         <p>
-          &copy; {new Date().getFullYear()} Gestão Casa. Todos os direitos reservados. Design Minimalista Premium.
+          &copy; {new Date().getFullYear()} Gestão Casa. Todos os direitos reservados. Design
+          Minimalista Premium.
         </p>
       </footer>
     </div>
