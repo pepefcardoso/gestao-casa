@@ -193,4 +193,39 @@ describe("calculateFinancing", (): void => {
     expect(overriddenResult[11].installment).toBe(0);
     expect(overriddenResult[11].outstandingBalance).toBeCloseTo(0, 5);
   });
+
+  it("should match Caixa's financing calculation math when configured with linear interest, admin fees and MIP insurance", (): void => {
+    // Property value: 340k, down payment: 110,703.38 (financed 229,296.62)
+    // Term: 420 months, Nominal interest: 7.66% a.a.
+    // Admin fee: 25.00, MIP insurance rate: ~0.028513%, DFI rate: 0
+    const result = calculateFinancing({
+      propertyValue: 340000,
+      downPayment: 110703.38,
+      termMonths: 420,
+      interestRate: 0.0766,
+      amortizationSystem: "SAC",
+      adminFee: 25.00,
+      mipRate: 0.00028513,
+      dfiRate: 0,
+      interestMethod: "linear",
+    });
+
+    expect(result).toHaveLength(420);
+
+    // 1st installment should be close to 2100.00
+    // Amortization = 229296.62 / 420 = 545.9443
+    // Interest = 229296.62 * 0.0766 / 12 = 1463.6768
+    // Admin Fee = 25.00
+    // MIP = 229296.62 * 0.00028513 = 65.3791
+    // Total = 2100.00
+    expect(result[0].installment).toBeCloseTo(2100.00, 1);
+
+    // Last installment should be close to 574.43 (excluding tiny remaining MIP of ~0.16)
+    // Amortization = 545.9443
+    // Last Interest = 545.9443 * 0.0766 / 12 = 3.4849
+    // Admin Fee = 25.00
+    // MIP = 545.9443 * 0.00028513 = 0.1557
+    // Total = 574.58
+    expect(result[419].installment).toBeCloseTo(574.58, 1);
+  });
 });

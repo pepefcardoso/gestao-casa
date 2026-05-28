@@ -6,6 +6,11 @@ export interface FinancingParams {
   amortizationSystem: "SAC" | "PRICE";
   firstParcelOverride?: number;
   lastParcelOverride?: number;
+  adminFee?: number;
+  mipRate?: number;
+  dfiRate?: number;
+  trRate?: number;
+  interestMethod?: "compound" | "linear";
 }
 
 export interface FinancingInstallment {
@@ -14,6 +19,10 @@ export interface FinancingInstallment {
   interest: number;
   amortization: number;
   outstandingBalance: number;
+  adminFee: number;
+  mip: number;
+  dfi: number;
+  trCorrection: number;
 }
 
 /**
@@ -30,6 +39,11 @@ export function calculateFinancing(params: FinancingParams): FinancingInstallmen
     amortizationSystem,
     firstParcelOverride,
     lastParcelOverride,
+    adminFee = 0,
+    mipRate = 0,
+    dfiRate = 0,
+    trRate = 0,
+    interestMethod = "compound",
   } = params;
 
   const financedAmount = propertyValue - downPayment;
@@ -39,8 +53,13 @@ export function calculateFinancing(params: FinancingParams): FinancingInstallmen
     return [];
   }
 
-  // Calculate monthly compound interest rate from annual rate: (1 + annual_rate) ^ (1/12) - 1
-  const monthlyRate = (1 + interestRate) ** (1 / 12) - 1;
+  // Calculate monthly rate:
+  // - Linear (Caixa method): annual_rate / 12
+  // - Compound (Standard method): (1 + annual_rate) ^ (1/12) - 1
+  const monthlyRate =
+    interestMethod === "linear"
+      ? interestRate / 12
+      : (1 + interestRate) ** (1 / 12) - 1;
 
   const installments: FinancingInstallment[] = [];
   let outstandingBalance = financedAmount;
@@ -49,9 +68,18 @@ export function calculateFinancing(params: FinancingParams): FinancingInstallmen
     const amortization = financedAmount / termMonths;
 
     for (let m = 1; m <= termMonths; m++) {
-      const interest = outstandingBalance * monthlyRate;
-      const installment = amortization + interest;
-      const nextOutstandingBalance = outstandingBalance - amortization;
+      // 1. Correct outstanding balance by TR
+      const trCorrection = outstandingBalance * trRate;
+      const correctedBalance = outstandingBalance + trCorrection;
+
+      // 2. Compute components
+      const interest = correctedBalance * monthlyRate;
+      const mip = correctedBalance * mipRate;
+      const dfi = propertyValue * dfiRate;
+
+      const baseInstallment = amortization + interest;
+      const installment = baseInstallment + adminFee + mip + dfi;
+      const nextOutstandingBalance = correctedBalance - amortization;
 
       installments.push({
         month: m,
@@ -59,6 +87,10 @@ export function calculateFinancing(params: FinancingParams): FinancingInstallmen
         interest,
         amortization,
         outstandingBalance: nextOutstandingBalance,
+        adminFee,
+        mip,
+        dfi,
+        trCorrection,
       });
 
       outstandingBalance = nextOutstandingBalance;
@@ -73,16 +105,29 @@ export function calculateFinancing(params: FinancingParams): FinancingInstallmen
     }
 
     for (let m = 1; m <= termMonths; m++) {
-      const interest = outstandingBalance * monthlyRate;
+      // 1. Correct outstanding balance by TR
+      const trCorrection = outstandingBalance * trRate;
+      const correctedBalance = outstandingBalance + trCorrection;
+
+      // 2. Compute components
+      const interest = correctedBalance * monthlyRate;
       const amortization = baseInstallment - interest;
-      const nextOutstandingBalance = outstandingBalance - amortization;
+      const mip = correctedBalance * mipRate;
+      const dfi = propertyValue * dfiRate;
+
+      const installment = baseInstallment + adminFee + mip + dfi;
+      const nextOutstandingBalance = correctedBalance - amortization;
 
       installments.push({
         month: m,
-        installment: baseInstallment,
+        installment,
         interest,
         amortization,
         outstandingBalance: nextOutstandingBalance,
+        adminFee,
+        mip,
+        dfi,
+        trCorrection,
       });
 
       outstandingBalance = nextOutstandingBalance;
@@ -105,7 +150,12 @@ export function calculateFinancing(params: FinancingParams): FinancingInstallmen
     totalDelta += delta;
 
     installments[0].installment = firstParcelOverride;
-    installments[0].amortization = firstParcelOverride - installments[0].interest;
+    installments[0].amortization =
+      firstParcelOverride -
+      installments[0].interest -
+      installments[0].adminFee -
+      installments[0].mip -
+      installments[0].dfi;
   }
 
   if (hasLastOverride && installments.length > 0) {
@@ -115,7 +165,12 @@ export function calculateFinancing(params: FinancingParams): FinancingInstallmen
     totalDelta += delta;
 
     installments[lastIndex].installment = lastParcelOverride;
-    installments[lastIndex].amortization = lastParcelOverride - installments[lastIndex].interest;
+    installments[lastIndex].amortization =
+      lastParcelOverride -
+      installments[lastIndex].interest -
+      installments[lastIndex].adminFee -
+      installments[lastIndex].mip -
+      installments[lastIndex].dfi;
   }
 
   // The financial engine distributes the remaining rounding delta across intermediate rows
@@ -135,7 +190,12 @@ export function calculateFinancing(params: FinancingParams): FinancingInstallmen
         const newInstallment = originalInstallment + adjustment;
 
         installments[i].installment = newInstallment;
-        installments[i].amortization = newInstallment - installments[i].interest;
+        installments[i].amortization =
+          newInstallment -
+          installments[i].interest -
+          installments[i].adminFee -
+          installments[i].mip -
+          installments[i].dfi;
       }
     }
   }
@@ -143,6 +203,9 @@ export function calculateFinancing(params: FinancingParams): FinancingInstallmen
   // Sequentially update outstanding balances because amortizations changed due to overrides
   let currentBalance = financedAmount;
   for (let i = 0; i < installments.length; i++) {
+    const trCorrection = currentBalance * trRate;
+    installments[i].trCorrection = trCorrection;
+    currentBalance += trCorrection;
     currentBalance -= installments[i].amortization;
     installments[i].outstandingBalance = currentBalance;
   }

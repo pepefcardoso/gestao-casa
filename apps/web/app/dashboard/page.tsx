@@ -55,6 +55,11 @@ interface FinancingRecord {
   amortizationSystem: "SAC" | "PRICE";
   firstParcelOverride: string | null;
   lastParcelOverride: string | null;
+  adminFee: string | null;
+  mipRate: string | null;
+  dfiRate: string | null;
+  trRate: string | null;
+  interestMethod: "compound" | "linear" | null;
   createdAt: string;
 }
 
@@ -211,6 +216,11 @@ export default function DashboardPage(): React.JSX.Element {
       lastParcelOverride: financingRecord.lastParcelOverride
         ? Number(financingRecord.lastParcelOverride)
         : undefined,
+      adminFee: financingRecord.adminFee ? Number(financingRecord.adminFee) : undefined,
+      mipRate: financingRecord.mipRate ? Number(financingRecord.mipRate) : undefined,
+      dfiRate: financingRecord.dfiRate ? Number(financingRecord.dfiRate) : undefined,
+      trRate: financingRecord.trRate ? Number(financingRecord.trRate) : undefined,
+      interestMethod: (financingRecord.interestMethod as "compound" | "linear") || "compound",
     });
   }, [financingRecord]);
 

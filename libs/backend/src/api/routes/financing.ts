@@ -101,6 +101,23 @@ router.openapi(
             payload.lastParcelOverride !== undefined && payload.lastParcelOverride !== null
               ? String(payload.lastParcelOverride)
               : null,
+          adminFee:
+            payload.adminFee !== undefined && payload.adminFee !== null
+              ? String(payload.adminFee)
+              : null,
+          mipRate:
+            payload.mipRate !== undefined && payload.mipRate !== null
+              ? String(payload.mipRate)
+              : null,
+          dfiRate:
+            payload.dfiRate !== undefined && payload.dfiRate !== null
+              ? String(payload.dfiRate)
+              : null,
+          trRate:
+            payload.trRate !== undefined && payload.trRate !== null
+              ? String(payload.trRate)
+              : null,
+          interestMethod: payload.interestMethod ?? null,
         })
         .onConflictDoUpdate({
           target: financing.houseId,
@@ -118,6 +135,23 @@ router.openapi(
               payload.lastParcelOverride !== undefined && payload.lastParcelOverride !== null
                 ? String(payload.lastParcelOverride)
                 : null,
+            adminFee:
+              payload.adminFee !== undefined && payload.adminFee !== null
+                ? String(payload.adminFee)
+                : null,
+            mipRate:
+              payload.mipRate !== undefined && payload.mipRate !== null
+                ? String(payload.mipRate)
+                : null,
+            dfiRate:
+              payload.dfiRate !== undefined && payload.dfiRate !== null
+                ? String(payload.dfiRate)
+                : null,
+            trRate:
+              payload.trRate !== undefined && payload.trRate !== null
+                ? String(payload.trRate)
+                : null,
+            interestMethod: payload.interestMethod ?? null,
           },
         })
         .returning();
@@ -129,6 +163,7 @@ router.openapi(
       const responseRecord = {
         ...upserted,
         amortizationSystem: upserted.amortizationSystem as "SAC" | "PRICE",
+        interestMethod: upserted.interestMethod as "compound" | "linear" | null,
         createdAt: upserted.createdAt.toISOString(),
       };
 
@@ -211,6 +246,7 @@ router.openapi(
       const responseRecord = {
         ...record,
         amortizationSystem: record.amortizationSystem as "SAC" | "PRICE",
+        interestMethod: record.interestMethod as "compound" | "linear" | null,
         createdAt: record.createdAt.toISOString(),
       };
 

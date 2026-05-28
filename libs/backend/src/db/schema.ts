@@ -120,11 +120,17 @@ export const financing = pgTable("financing", {
   amortizationSystem: text("amortization_system").notNull(),
   firstParcelOverride: numeric("first_parcel_override"),
   lastParcelOverride: numeric("last_parcel_override"),
+  adminFee: numeric("admin_fee"),
+  mipRate: numeric("mip_rate"),
+  dfiRate: numeric("dfi_rate"),
+  trRate: numeric("tr_rate"),
+  interestMethod: text("interest_method"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const selectFinancingSchema = createSelectSchema(financing, {
   amortizationSystem: z.enum(["SAC", "PRICE"]),
+  interestMethod: z.enum(["compound", "linear"]).nullable().optional(),
 });
 
 export const insertFinancingSchema = createInsertSchema(financing, {
@@ -159,10 +165,10 @@ export const insertFinancingSchema = createInsertSchema(financing, {
     }, z.number())
     .refine(
       (val: number): boolean => {
-        return Number.isInteger(val) && val >= 1 && val <= 360;
+        return Number.isInteger(val) && val >= 1 && val <= 420;
       },
       {
-        message: "Term months must be an integer between 1 and 360",
+        message: "Term months must be an integer between 1 and 420",
       },
     ),
   interestRate: z.preprocess((val: unknown): number => {
@@ -181,6 +187,31 @@ export const insertFinancingSchema = createInsertSchema(financing, {
       return Number(val);
     }, z.number().optional())
     .optional(),
+  adminFee: z
+    .preprocess((val: unknown): number | undefined => {
+      if (val === null || val === undefined || val === "") return undefined;
+      return Number(val);
+    }, z.number().optional())
+    .optional(),
+  mipRate: z
+    .preprocess((val: unknown): number | undefined => {
+      if (val === null || val === undefined || val === "") return undefined;
+      return Number(val);
+    }, z.number().optional())
+    .optional(),
+  dfiRate: z
+    .preprocess((val: unknown): number | undefined => {
+      if (val === null || val === undefined || val === "") return undefined;
+      return Number(val);
+    }, z.number().optional())
+    .optional(),
+  trRate: z
+    .preprocess((val: unknown): number | undefined => {
+      if (val === null || val === undefined || val === "") return undefined;
+      return Number(val);
+    }, z.number().optional())
+    .optional(),
+  interestMethod: z.enum(["compound", "linear"]).optional(),
 }).refine(
   (data): boolean => {
     return data.downPayment < data.propertyValue;

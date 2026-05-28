@@ -28,6 +28,13 @@ export default function FinancingPage(): React.JSX.Element {
   const [interestRatePercentage, setInterestRatePercentage] = useState<number>(10);
   const [amortizationSystem, setAmortizationSystem] = useState<"SAC" | "PRICE">("SAC");
 
+  // New Caixa calculation states
+  const [adminFee, setAdminFee] = useState<number | undefined>(undefined);
+  const [mipRatePercentage, setMipRatePercentage] = useState<number | undefined>(undefined);
+  const [dfiRatePercentage, setDfiRatePercentage] = useState<number | undefined>(undefined);
+  const [trRatePercentage, setTrRatePercentage] = useState<number | undefined>(undefined);
+  const [interestMethod, setInterestMethod] = useState<"compound" | "linear">("compound");
+
   // Override states
   const [firstParcelOverride, setFirstParcelOverride] = useState<number | undefined>(undefined);
   const [lastParcelOverride, setLastParcelOverride] = useState<number | undefined>(undefined);
@@ -59,6 +66,11 @@ export default function FinancingPage(): React.JSX.Element {
             amortizationSystem: "SAC" | "PRICE";
             firstParcelOverride: string | null;
             lastParcelOverride: string | null;
+            adminFee: string | null;
+            mipRate: string | null;
+            dfiRate: string | null;
+            trRate: string | null;
+            interestMethod: "compound" | "linear" | null;
           };
           setPropertyValue(Number(record.propertyValue));
           setDownPayment(Number(record.downPayment));
@@ -71,6 +83,11 @@ export default function FinancingPage(): React.JSX.Element {
           setLastParcelOverride(
             record.lastParcelOverride ? Number(record.lastParcelOverride) : undefined,
           );
+          setAdminFee(record.adminFee ? Number(record.adminFee) : undefined);
+          setMipRatePercentage(record.mipRate ? Number(record.mipRate) * 100 : undefined);
+          setDfiRatePercentage(record.dfiRate ? Number(record.dfiRate) * 100 : undefined);
+          setTrRatePercentage(record.trRate ? Number(record.trRate) * 100 : undefined);
+          setInterestMethod((record.interestMethod as "compound" | "linear") || "compound");
         }
       } else if (response.status !== 404) {
         setFetchError("Erro ao carregar dados salvos do financiamento.");
@@ -104,6 +121,11 @@ export default function FinancingPage(): React.JSX.Element {
       amortizationSystem,
       firstParcelOverride: firstParcelOverride ?? null,
       lastParcelOverride: lastParcelOverride ?? null,
+      adminFee: adminFee ?? null,
+      mipRate: mipRatePercentage !== undefined ? mipRatePercentage / 100 : null,
+      dfiRate: dfiRatePercentage !== undefined ? dfiRatePercentage / 100 : null,
+      trRate: trRatePercentage !== undefined ? trRatePercentage / 100 : null,
+      interestMethod,
     };
 
     try {
@@ -147,8 +169,8 @@ export default function FinancingPage(): React.JSX.Element {
     if (downPayment >= propertyValue) {
       errors.downPayment = "A entrada deve ser menor que o valor do imóvel.";
     }
-    if (termMonths < 1 || termMonths > 360) {
-      errors.termMonths = "O prazo deve ser entre 1 e 360 meses.";
+    if (termMonths < 1 || termMonths > 420) {
+      errors.termMonths = "O prazo deve ser entre 1 e 420 meses.";
     }
     if (interestRatePercentage < 0) {
       errors.interestRate = "A taxa de juros não pode ser negativa.";
@@ -157,7 +179,7 @@ export default function FinancingPage(): React.JSX.Element {
   }, [propertyValue, downPayment, termMonths, interestRatePercentage]);
 
   // Reactive amortization calculations (no API request required)
-  const installments = useMemo((): FinancingInstallment[] => {
+  const installments = useMemo(() => {
     if (
       propertyValue - downPayment <= 0 ||
       termMonths <= 0 ||
@@ -165,7 +187,7 @@ export default function FinancingPage(): React.JSX.Element {
     ) {
       return [];
     }
-    return calculateFinancing({
+    const calculated = calculateFinancing({
       propertyValue,
       downPayment,
       termMonths,
@@ -173,7 +195,16 @@ export default function FinancingPage(): React.JSX.Element {
       amortizationSystem,
       firstParcelOverride,
       lastParcelOverride,
+      adminFee,
+      mipRate: mipRatePercentage !== undefined ? mipRatePercentage / 100 : undefined,
+      dfiRate: dfiRatePercentage !== undefined ? dfiRatePercentage / 100 : undefined,
+      trRate: trRatePercentage !== undefined ? trRatePercentage / 100 : undefined,
+      interestMethod,
     });
+    return calculated.map((inst) => ({
+      ...inst,
+      feesAndInsurance: inst.adminFee + inst.mip + inst.dfi,
+    }));
   }, [
     propertyValue,
     downPayment,
@@ -182,6 +213,11 @@ export default function FinancingPage(): React.JSX.Element {
     amortizationSystem,
     firstParcelOverride,
     lastParcelOverride,
+    adminFee,
+    mipRatePercentage,
+    dfiRatePercentage,
+    trRatePercentage,
+    interestMethod,
     validationErrors,
   ]);
 
@@ -196,55 +232,55 @@ export default function FinancingPage(): React.JSX.Element {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 md:p-8 space-y-6">
+    <div className="max-w-[1400px] mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
       {/* Navigation & Header */}
       <div className="space-y-4">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-brand-emerald hover:opacity-85 transition-all"
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar para o Painel
         </Link>
 
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-mint-slate-400/30 pb-5 gap-4">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-[#0e1717]">
+            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
               Simulador de Financiamento
             </h1>
-            <p className="text-sm text-mint-slate-400 mt-1">
+            <p className="text-xs text-text-muted mt-1">
               Controle e projete amortizações e parcelas customizadas de maneira reativa.
             </p>
           </div>
 
-          <nav className="flex space-x-1.5 bg-slate-200/50 p-1.5 rounded-xl">
+          <nav className="flex space-x-1 bg-slate-200/40 p-1 rounded-full">
             <Link
               href="/dashboard"
-              className="px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
+              className="px-4 py-2 text-xs font-semibold rounded-full text-text-muted hover:text-text-primary hover:bg-white/40 active:scale-95 transition-all"
             >
               Fluxo de Caixa
             </Link>
             <Link
               href="/financing"
-              className="px-4 py-2 text-sm font-semibold rounded-lg bg-white shadow-sm text-emerald-700 transition-all"
+              className="px-4 py-2 text-xs font-semibold rounded-full bg-surface-white shadow-premium text-brand-emerald transition-all"
             >
               Simulador
             </Link>
             <Link
               href="/expenses"
-              className="px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
+              className="px-4 py-2 text-xs font-semibold rounded-full text-text-muted hover:text-text-primary hover:bg-white/40 active:scale-95 transition-all"
             >
               Despesas
             </Link>
             <Link
               href="/incomes"
-              className="px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
+              className="px-4 py-2 text-xs font-semibold rounded-full text-text-muted hover:text-text-primary hover:bg-white/40 active:scale-95 transition-all"
             >
               Receitas
             </Link>
             <Link
               href="/settings"
-              className="px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
+              className="px-4 py-2 text-xs font-semibold rounded-full text-text-muted hover:text-text-primary hover:bg-white/40 active:scale-95 transition-all"
             >
               Configurações
             </Link>
@@ -283,8 +319,8 @@ export default function FinancingPage(): React.JSX.Element {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left panel: form configuration */}
-          <section className="lg:col-span-4 bg-surface-white rounded-3xl shadow-premium p-6 space-y-6">
-            <h2 className="text-lg font-medium tracking-tight text-text-primary border-b border-slate-100 pb-3">
+          <section className="lg:col-span-4 bg-surface-white rounded-3xl shadow-premium p-6 space-y-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-premium-hover">
+            <h2 className="text-lg font-medium tracking-tight text-text-primary pb-3">
               Parâmetros de Entrada
             </h2>
 
@@ -305,12 +341,12 @@ export default function FinancingPage(): React.JSX.Element {
                     setPropertyValue(Number(e.target.value));
                     setSaveStatus(null);
                   }}
-                  className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white outline-hidden transition-all ${
-                    validationErrors.propertyValue ? "ring-2 ring-orange-500" : "border-transparent"
+                  className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white outline-hidden transition-all border-0 ${
+                    validationErrors.propertyValue ? "ring-2 ring-rose-500" : ""
                   }`}
                 />
                 {validationErrors.propertyValue && (
-                  <p className="text-xs text-orange-600 mt-1">{validationErrors.propertyValue}</p>
+                  <p className="text-xs text-rose-600 mt-1">{validationErrors.propertyValue}</p>
                 )}
               </div>
 
@@ -330,12 +366,12 @@ export default function FinancingPage(): React.JSX.Element {
                     setDownPayment(Number(e.target.value));
                     setSaveStatus(null);
                   }}
-                  className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white outline-hidden transition-all ${
-                    validationErrors.downPayment ? "ring-2 ring-orange-500" : "border-transparent"
+                  className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white outline-hidden transition-all border-0 ${
+                    validationErrors.downPayment ? "ring-2 ring-rose-500" : ""
                   }`}
                 />
                 {validationErrors.downPayment && (
-                  <p className="text-xs text-orange-600 mt-1">{validationErrors.downPayment}</p>
+                  <p className="text-xs text-rose-600 mt-1">{validationErrors.downPayment}</p>
                 )}
               </div>
 
@@ -343,7 +379,7 @@ export default function FinancingPage(): React.JSX.Element {
               {propertyValue - downPayment > 0 && (
                 <div className="bg-canvas-frost rounded-2xl p-4 flex justify-between items-center text-xs">
                   <span className="text-text-muted">Valor Financiado:</span>
-                  <span className="font-semibold text-text-primary font-mono tabular-nums">
+                  <span className="font-semibold text-text-primary tabular-nums">
                     {formatBRL(propertyValue - downPayment)}
                   </span>
                 </div>
@@ -366,12 +402,12 @@ export default function FinancingPage(): React.JSX.Element {
                       setTermMonths(Number(e.target.value));
                       setSaveStatus(null);
                     }}
-                    className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white outline-hidden transition-all ${
-                      validationErrors.termMonths ? "ring-2 ring-orange-500" : "border-transparent"
+                    className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white outline-hidden transition-all border-0 ${
+                      validationErrors.termMonths ? "ring-2 ring-rose-500" : ""
                     }`}
                   />
                   {validationErrors.termMonths && (
-                    <p className="text-xs text-orange-600 mt-1">{validationErrors.termMonths}</p>
+                    <p className="text-xs text-rose-600 mt-1">{validationErrors.termMonths}</p>
                   )}
                 </div>
 
@@ -392,14 +428,14 @@ export default function FinancingPage(): React.JSX.Element {
                       setInterestRatePercentage(Number(e.target.value));
                       setSaveStatus(null);
                     }}
-                    className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white outline-hidden transition-all ${
+                    className={`w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white outline-hidden transition-all border-0 ${
                       validationErrors.interestRate
-                        ? "ring-2 ring-orange-500"
-                        : "border-transparent"
+                        ? "ring-2 ring-rose-500"
+                        : ""
                     }`}
                   />
                   {validationErrors.interestRate && (
-                    <p className="text-xs text-orange-600 mt-1">{validationErrors.interestRate}</p>
+                    <p className="text-xs text-rose-600 mt-1">{validationErrors.interestRate}</p>
                   )}
                 </div>
               </div>
@@ -419,11 +455,150 @@ export default function FinancingPage(): React.JSX.Element {
                     setAmortizationSystem(e.target.value as "SAC" | "PRICE");
                     setSaveStatus(null);
                   }}
-                  className="w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white outline-hidden transition-all border-transparent"
+                  className="w-full px-3.5 py-2.5 rounded-2xl text-sm bg-gray-50 focus:ring-2 focus:ring-brand-emerald/50 focus:bg-white outline-hidden transition-all border-0"
                 >
                   <option value="SAC">SAC (Amortização Constante)</option>
                   <option value="PRICE">PRICE (Parcela Constante)</option>
                 </select>
+              </div>
+
+              {/* Caixa custom settings section */}
+              <div className="border-t border-slate-100 pt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider">
+                    Custos e Seguros (Caixa)
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAmortizationSystem("SAC");
+                      setInterestMethod("linear");
+                      setAdminFee(25);
+                      setMipRatePercentage(0.028513); // exactly matches the Caixa simulation of R$ 65.38 MIP/DFI sum
+                      setDfiRatePercentage(0);
+                      setTrRatePercentage(0);
+                      setSaveStatus(null);
+                    }}
+                    className="text-[10px] font-semibold text-brand-emerald hover:opacity-85 cursor-pointer bg-emerald-50 rounded-full px-2.5 py-0.5 active:scale-95 transition-all"
+                  >
+                    Usar Preset Caixa
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Interest Method */}
+                  <div className="col-span-2">
+                    <label
+                      htmlFor="interest-method-select"
+                      className="block text-[10px] font-semibold text-text-muted mb-1.5 uppercase"
+                    >
+                      Conversão de Juros
+                    </label>
+                    <select
+                      id="interest-method-select"
+                      value={interestMethod}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>): void => {
+                        setInterestMethod(e.target.value as "compound" | "linear");
+                        setSaveStatus(null);
+                      }}
+                      className="w-full px-3 py-2 bg-gray-50 focus:bg-white rounded-xl text-xs focus:ring-2 focus:ring-brand-emerald/50 outline-hidden border-0 transition-all text-text-primary"
+                    >
+                      <option value="compound">Composto (Padrão)</option>
+                      <option value="linear">Linear (Caixa - Nominal / 12)</option>
+                    </select>
+                  </div>
+
+                  {/* Admin Fee */}
+                  <div>
+                    <label
+                      htmlFor="admin-fee-input"
+                      className="block text-[10px] font-semibold text-text-muted mb-1.5 uppercase"
+                    >
+                      Taxa Admin (R$)
+                    </label>
+                    <input
+                      id="admin-fee-input"
+                      type="number"
+                      placeholder="0.00"
+                      value={adminFee ?? ""}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                        const val = e.target.value;
+                        setAdminFee(val === "" ? undefined : Number(val));
+                        setSaveStatus(null);
+                      }}
+                      className="w-full px-3 py-2 bg-gray-50 focus:bg-white rounded-xl text-xs focus:ring-2 focus:ring-brand-emerald/50 outline-hidden border-0 transition-all text-text-primary"
+                    />
+                  </div>
+
+                  {/* TR Rate */}
+                  <div>
+                    <label
+                      htmlFor="tr-rate-input"
+                      className="block text-[10px] font-semibold text-text-muted mb-1.5 uppercase"
+                    >
+                      Taxa TR (% a.m.)
+                    </label>
+                    <input
+                      id="tr-rate-input"
+                      type="number"
+                      step="0.0001"
+                      placeholder="0.00%"
+                      value={trRatePercentage ?? ""}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                        const val = e.target.value;
+                        setTrRatePercentage(val === "" ? undefined : Number(val));
+                        setSaveStatus(null);
+                      }}
+                      className="w-full px-3 py-2 bg-gray-50 focus:bg-white rounded-xl text-xs focus:ring-2 focus:ring-brand-emerald/50 outline-hidden border-0 transition-all text-text-primary"
+                    />
+                  </div>
+
+                  {/* MIP Rate */}
+                  <div>
+                    <label
+                      htmlFor="mip-rate-input"
+                      className="block text-[10px] font-semibold text-text-muted mb-1.5 uppercase"
+                    >
+                      Seguro MIP (% a.m.)
+                    </label>
+                    <input
+                      id="mip-rate-input"
+                      type="number"
+                      step="0.0001"
+                      placeholder="0.00%"
+                      value={mipRatePercentage ?? ""}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                        const val = e.target.value;
+                        setMipRatePercentage(val === "" ? undefined : Number(val));
+                        setSaveStatus(null);
+                      }}
+                      className="w-full px-3 py-2 bg-gray-50 focus:bg-white rounded-xl text-xs focus:ring-2 focus:ring-brand-emerald/50 outline-hidden border-0 transition-all text-text-primary"
+                    />
+                  </div>
+
+                  {/* DFI Rate */}
+                  <div>
+                    <label
+                      htmlFor="dfi-rate-input"
+                      className="block text-[10px] font-semibold text-text-muted mb-1.5 uppercase"
+                    >
+                      Seguro DFI (% a.m.)
+                    </label>
+                    <input
+                      id="dfi-rate-input"
+                      type="number"
+                      step="0.0001"
+                      placeholder="0.00%"
+                      value={dfiRatePercentage ?? ""}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                        const val = e.target.value;
+                        setDfiRatePercentage(val === "" ? undefined : Number(val));
+                        setSaveStatus(null);
+                      }}
+                      className="w-full px-3 py-2 bg-gray-50 focus:bg-white rounded-xl text-xs focus:ring-2 focus:ring-brand-emerald/50 outline-hidden border-0 transition-all text-text-primary"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="border-t border-slate-100 pt-4 space-y-3">
@@ -448,7 +623,7 @@ export default function FinancingPage(): React.JSX.Element {
                         setFirstParcelOverride(val === "" ? undefined : Number(val));
                         setSaveStatus(null);
                       }}
-                      className="w-full px-3 py-2 bg-gray-50 focus:bg-white rounded-xl text-xs focus:ring-2 focus:ring-brand-emerald/50 outline-hidden border-transparent transition-all"
+                      className="w-full px-3 py-2 bg-gray-50 focus:bg-white rounded-xl text-xs focus:ring-2 focus:ring-brand-emerald/50 outline-hidden border-0 transition-all text-text-primary"
                     />
                   </div>
                   <div>
@@ -468,7 +643,7 @@ export default function FinancingPage(): React.JSX.Element {
                         setLastParcelOverride(val === "" ? undefined : Number(val));
                         setSaveStatus(null);
                       }}
-                      className="w-full px-3 py-2 bg-gray-50 focus:bg-white rounded-xl text-xs focus:ring-2 focus:ring-brand-emerald/50 outline-hidden border-transparent transition-all"
+                      className="w-full px-3 py-2 bg-gray-50 focus:bg-white rounded-xl text-xs focus:ring-2 focus:ring-brand-emerald/50 outline-hidden border-0 transition-all text-text-primary"
                     />
                   </div>
                 </div>
@@ -479,7 +654,7 @@ export default function FinancingPage(): React.JSX.Element {
             <button
               onClick={handleSave}
               disabled={isSaving || Object.keys(validationErrors).length > 0 || role === "VIEWER"}
-              className="w-full py-3 px-4 bg-brand-emerald hover:bg-brand-emerald/90 disabled:bg-[#cbd5e1] text-white text-sm font-semibold rounded-full shadow-premium active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 px-4 bg-brand-emerald hover:bg-brand-emerald/90 disabled:bg-slate-200 border-0 text-white text-sm font-semibold rounded-full shadow-premium active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               type="button"
             >
               {isSaving ? (
@@ -498,7 +673,7 @@ export default function FinancingPage(): React.JSX.Element {
           {/* Right panel: chart and interactive table */}
           <div className="lg:col-span-8 space-y-6">
             {/* Chart */}
-            <div className="bg-surface-white rounded-3xl shadow-premium p-6">
+            <div className="bg-surface-white rounded-3xl shadow-premium p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-premium-hover">
               <h2 className="text-lg font-medium tracking-tight text-text-primary mb-4">
                 Composição das Parcelas ao Longo do Tempo
               </h2>
@@ -548,6 +723,15 @@ export default function FinancingPage(): React.JSX.Element {
                         fillOpacity={0.15}
                         name="Juros"
                       />
+                      <Area
+                        type="monotone"
+                        dataKey="feesAndInsurance"
+                        stackId="1"
+                        stroke="#F59E0B"
+                        fill="#F59E0B"
+                        fillOpacity={0.15}
+                        name="Taxas e Seguros"
+                      />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -561,12 +745,12 @@ export default function FinancingPage(): React.JSX.Element {
             </div>
 
             {/* Table */}
-            <div className="bg-surface-white rounded-3xl shadow-premium overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+            <div className="bg-surface-white rounded-3xl shadow-premium overflow-hidden transition-all duration-300 hover:shadow-premium-hover">
+              <div className="px-6 py-4 flex justify-between items-center bg-slate-50/10">
                 <h2 className="text-lg font-medium tracking-tight text-text-primary">
                   Cronograma de Pagamento
                 </h2>
-                <div className="text-xs text-text-muted font-medium font-mono">
+                <div className="text-xs text-text-muted font-semibold tabular-nums">
                   {installments.length} parcelas simuladas
                 </div>
               </div>
@@ -574,16 +758,17 @@ export default function FinancingPage(): React.JSX.Element {
               {installments.length > 0 ? (
                 <div className="max-h-[550px] overflow-y-auto relative no-scrollbar">
                   <table className="w-full text-sm border-collapse">
-                    <thead className="sticky top-0 bg-white/70 backdrop-blur-xl border-b border-slate-100 z-20 text-text-primary font-semibold text-xs uppercase">
+                    <thead className="sticky top-0 bg-surface-white/70 backdrop-blur-xl z-20 text-text-primary font-semibold text-xs uppercase">
                       <tr>
                         <th className="py-3 px-4 text-left">Mês</th>
                         <th className="py-3 px-4 text-right">Parcela</th>
                         <th className="py-3 px-4 text-right">Juros</th>
                         <th className="py-3 px-4 text-right">Amortização</th>
+                        <th className="py-3 px-4 text-right">Taxas/Seguros</th>
                         <th className="py-3 px-4 text-right">Saldo Devedor</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-mono tabular-nums text-right">
+                    <tbody className="divide-y divide-slate-100 tabular-nums text-right text-text-primary">
                       {installments.map((inst): React.JSX.Element => {
                         const isFirst = inst.month === 1;
                         const isLast = inst.month === termMonths;
@@ -594,14 +779,14 @@ export default function FinancingPage(): React.JSX.Element {
 
                         if (isFirst) {
                           rowClass =
-                            "bg-emerald-50/70 backdrop-blur-md border-b border-emerald-100 font-semibold";
+                            "bg-emerald-50/70 backdrop-blur-md font-semibold";
                           cellClass =
-                            "sticky top-[38px] py-3 px-4 bg-emerald-50/70 text-emerald-950 z-10 border-b border-emerald-200/50";
+                            "sticky top-[38px] py-3 px-4 bg-emerald-50/70 text-emerald-950 z-10";
                         } else if (isLast) {
                           rowClass =
-                            "bg-emerald-50/70 backdrop-blur-md border-t border-emerald-100 font-semibold";
+                            "bg-emerald-50/70 backdrop-blur-md font-semibold";
                           cellClass =
-                            "sticky bottom-0 py-3 px-4 bg-emerald-50/70 text-emerald-950 z-10 border-t border-emerald-200/50";
+                            "sticky bottom-0 py-3 px-4 bg-emerald-50/70 text-emerald-950 z-10";
                         }
 
                         return (
@@ -625,7 +810,7 @@ export default function FinancingPage(): React.JSX.Element {
                                       setFirstParcelOverride(val === "" ? undefined : Number(val));
                                       setSaveStatus(null);
                                     }}
-                                    className="w-28 text-right px-2 py-1 bg-white hover:border-brand-emerald border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-emerald/50 outline-hidden text-xs transition-all"
+                                    className="w-28 text-right px-2 py-1 bg-white/80 border-0 rounded-full focus:ring-2 focus:ring-brand-emerald/50 outline-hidden text-xs transition-all shadow-premium"
                                   />
                                 </div>
                               ) : isLast ? (
@@ -641,7 +826,7 @@ export default function FinancingPage(): React.JSX.Element {
                                       setLastParcelOverride(val === "" ? undefined : Number(val));
                                       setSaveStatus(null);
                                     }}
-                                    className="w-28 text-right px-2 py-1 bg-white hover:border-brand-emerald border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-emerald/50 outline-hidden text-xs transition-all"
+                                    className="w-28 text-right px-2 py-1 bg-white/80 border-0 rounded-full focus:ring-2 focus:ring-brand-emerald/50 outline-hidden text-xs transition-all shadow-premium"
                                   />
                                 </div>
                               ) : (
@@ -650,6 +835,7 @@ export default function FinancingPage(): React.JSX.Element {
                             </td>
                             <td className={cellClass}>{formatBRL(inst.interest)}</td>
                             <td className={cellClass}>{formatBRL(inst.amortization)}</td>
+                            <td className={cellClass}>{formatBRL(inst.feesAndInsurance)}</td>
                             <td className={cellClass}>
                               {formatBRL(Math.max(0, inst.outstandingBalance))}
                             </td>

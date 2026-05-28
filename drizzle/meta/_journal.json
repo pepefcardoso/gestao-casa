@@ -43,6 +43,13 @@
       "when": 1779816292500,
       "tag": "0005_dark_naoko",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779976328163,
+      "tag": "0006_nasty_paibok",
+      "breakpoints": true
     }
   ]
 }
