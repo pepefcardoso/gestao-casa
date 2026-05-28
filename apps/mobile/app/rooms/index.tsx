@@ -62,7 +62,7 @@ export default function RoomsIndexScreen(): React.JSX.Element {
   }, [userId]);
 
   useFocusEffect(
-    useCallback(() => {
+    useCallback((): void => {
       fetchRooms();
     }, [fetchRooms]),
   );
@@ -270,6 +270,7 @@ const styles = StyleSheet.create({
   roomArea: {
     fontSize: 13,
     color: "#86868B",
+    fontVariant: ["tabular-nums"],
   },
   arrowContainer: {
     width: 32,

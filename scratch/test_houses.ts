@@ -17,7 +17,7 @@ async function run(): Promise<void> {
   const housesRes = await housesRouter.request("/houses", {
     method: "GET",
     headers: {
-      "Authorization": `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 

@@ -1,4 +1,13 @@
-import type { InsertExpense } from "../../../backend/src/db/schema";
+export interface ProjectedInstallment {
+  description: string;
+  totalAmount: number;
+  installmentsCount: number;
+  status: "BUDGET" | "CONFIRMED";
+  category: "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION";
+  priority: "HIGH" | "MEDIUM" | "LOW";
+  roomId: string | null;
+  dueDate: Date;
+}
 
 export interface ProjectInstallmentsParams {
   description: string;
@@ -29,14 +38,14 @@ function addMonths(date: Date, months: number): Date {
  * Projects a base expense into multiple installments.
  *
  * @param params Details of the expense and installment configuration.
- * @returns An array of InsertExpense objects representing each installment.
+ * @returns An array of ProjectedInstallment objects representing each installment.
  */
-export function projectInstallments(params: ProjectInstallmentsParams): InsertExpense[] {
+export function projectInstallments(params: ProjectInstallmentsParams): ProjectedInstallment[] {
   if (params.totalAmount <= 0 || params.installmentsCount <= 0) {
     throw new Error("Total amount and installments count must be greater than 0");
   }
 
-  const installments: InsertExpense[] = [];
+  const installments: ProjectedInstallment[] = [];
   const baseDate = typeof params.dueDate === "string" ? new Date(params.dueDate) : params.dueDate;
   const singleAmount = params.totalAmount / params.installmentsCount;
 

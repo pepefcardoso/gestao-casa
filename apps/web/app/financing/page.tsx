@@ -217,7 +217,7 @@ export default function FinancingPage(): React.JSX.Element {
             </p>
           </div>
 
-          <nav className="flex space-x-1.5 bg-slate-200/50 p-1.5 rounded-xl border border-slate-200/80">
+          <nav className="flex space-x-1.5 bg-slate-200/50 p-1.5 rounded-xl">
             <Link
               href="/dashboard"
               className="px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
@@ -254,10 +254,10 @@ export default function FinancingPage(): React.JSX.Element {
 
       {saveStatus && (
         <div
-          className={`px-4 py-2.5 rounded-lg text-sm font-medium border flex items-center justify-between gap-2 animate-fade-in ${
+          className={`px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-between gap-2 animate-fade-in ${
             saveStatus.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : "bg-orange-50 text-orange-800 border-orange-200"
+              ? "bg-emerald-50 text-emerald-800"
+              : "bg-orange-50 text-orange-800"
           }`}
         >
           <span>{saveStatus.message}</span>
@@ -272,9 +272,7 @@ export default function FinancingPage(): React.JSX.Element {
       )}
 
       {fetchError && (
-        <div className="p-4 bg-orange-50 text-orange-800 border border-orange-200 rounded-lg text-sm">
-          {fetchError}
-        </div>
+        <div className="p-4 bg-orange-50 text-orange-800 rounded-lg text-sm">{fetchError}</div>
       )}
 
       {isLoading ? (

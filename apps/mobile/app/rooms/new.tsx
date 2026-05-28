@@ -162,7 +162,7 @@ export default function NewRoomScreen(): React.JSX.Element {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {errors.submit && (
             <View style={styles.errorBanner}>
-              <Lucide name="alert-triangle" size={20} color="#ffffff" style={styles.errorIcon} />
+              <Lucide name="alert-triangle" size={20} color="#ea580c" style={styles.errorIcon} />
               <Text style={styles.errorBannerText}>{errors.submit}</Text>
             </View>
           )}
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   errorBanner: {
-    backgroundColor: "#ea580c",
+    backgroundColor: "rgba(234, 88, 12, 0.1)",
     padding: 12,
     borderRadius: 8,
     flexDirection: "row",
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   errorBannerText: {
-    color: "#ffffff",
+    color: "#ea580c",
     fontSize: 14,
     fontWeight: "600",
     flex: 1,

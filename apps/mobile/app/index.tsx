@@ -204,7 +204,7 @@ export default function HomeScreen(): React.JSX.Element {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.userSwitcherScroll}
         >
-          {PRESET_USERS.map((u) => {
+          {PRESET_USERS.map((u): React.JSX.Element => {
             const isSelected = u.id === userId;
             return (
               <TouchableOpacity
@@ -510,6 +510,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#1D1D1F",
+    fontVariant: ["tabular-nums"],
   },
   sectionTitle: {
     fontSize: 16,
@@ -546,6 +547,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1D1D1F",
     fontFamily: "System",
+    fontVariant: ["tabular-nums"],
   },
   outflowSubtext: {
     fontSize: 11,
@@ -584,6 +586,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     color: "#1D1D1F",
+    fontVariant: ["tabular-nums"],
   },
   statMiniSubtext: {
     fontSize: 10,

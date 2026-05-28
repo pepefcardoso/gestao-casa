@@ -256,7 +256,13 @@ function ExpensesListContent(): React.JSX.Element {
   }, [monthParam, financingRecord, getFinancingInstallment]);
 
   // Calculate consolidated flow summary for target month
-  const monthlyFlowSummary = useMemo(() => {
+  const monthlyFlowSummary = useMemo((): {
+    inflow: number;
+    outflow: number;
+    netBalance: number;
+    expensesTotal: number;
+    financingInstallment: number;
+  } | null => {
     if (!monthParam) return null;
 
     const totalExpenses = filteredExpenses.reduce(
@@ -279,7 +285,12 @@ function ExpensesListContent(): React.JSX.Element {
   }, [monthParam, filteredExpenses, filteredIncomes, monthFinancingInstallment]);
 
   // Calculate quick stats (fallback if no month parameter)
-  const stats = useMemo(() => {
+  const stats = useMemo((): {
+    confirmedSum: number;
+    budgetSum: number;
+    totalSum: number;
+    count: number;
+  } => {
     let confirmedSum = 0;
     let budgetSum = 0;
 
@@ -532,7 +543,7 @@ function ExpensesListContent(): React.JSX.Element {
                   </Link>
                 )}
 
-            <nav className="flex space-x-1.5 bg-slate-200/50 p-1.5 rounded-xl border border-slate-200/80 justify-center">
+            <nav className="flex space-x-1.5 bg-slate-200/50 p-1.5 rounded-xl justify-center">
               <Link
                 href="/dashboard"
                 className="px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
@@ -569,7 +580,7 @@ function ExpensesListContent(): React.JSX.Element {
       </div>
 
       {errorMsg && (
-        <div className="p-4 bg-orange-50 text-orange-800 border border-orange-200 rounded-lg text-sm flex items-center gap-2">
+        <div className="p-4 bg-orange-50 text-orange-800 rounded-lg text-sm flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-orange-600" />
           <span>{errorMsg}</span>
         </div>
@@ -594,7 +605,7 @@ function ExpensesListContent(): React.JSX.Element {
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
                     Entradas (Receitas)
                   </span>
-                  <h3 className="text-2xl font-bold font-mono text-[#0e1717] mt-0.5">
+                  <h3 className="text-2xl font-bold font-mono text-[#0e1717] mt-0.5 tabular-nums">
                     {formatBRL(monthlyFlowSummary.inflow)}
                   </h3>
                   <span className="text-[10px] text-slate-400 font-medium">
@@ -612,7 +623,7 @@ function ExpensesListContent(): React.JSX.Element {
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
                     Saídas (Total)
                   </span>
-                  <h3 className="text-2xl font-bold font-mono text-[#0e1717] mt-0.5">
+                  <h3 className="text-2xl font-bold font-mono text-[#0e1717] mt-0.5 tabular-nums">
                     {formatBRL(monthlyFlowSummary.outflow)}
                   </h3>
                   <span className="text-[10px] text-slate-400 font-medium block leading-normal">
@@ -634,7 +645,7 @@ function ExpensesListContent(): React.JSX.Element {
                     Saldo Líquido
                   </span>
                   <h3
-                    className={`text-2xl font-bold font-mono mt-0.5 ${monthlyFlowSummary.netBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}
+                    className={`text-2xl font-bold font-mono mt-0.5 tabular-nums ${monthlyFlowSummary.netBalance >= 0 ? "text-emerald-700" : "text-rose-700"}`}
                   >
                     {formatBRL(monthlyFlowSummary.netBalance)}
                   </h3>
@@ -648,42 +659,42 @@ function ExpensesListContent(): React.JSX.Element {
           {!monthlyFlowSummary && (
             <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="bg-white rounded-xl p-5 shadow-premium flex items-center gap-3">
-                <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-600">
+                <div className="p-2.5 bg-slate-50 rounded-lg text-slate-600">
                   <DollarSign className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
                     Total Geral
                   </span>
-                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">
+                  <h4 className="text-lg font-bold font-mono text-[#0e1717] tabular-nums">
                     {formatBRL(stats.totalSum)}
                   </h4>
                 </div>
               </div>
 
               <div className="bg-white rounded-xl p-5 shadow-premium flex items-center gap-3">
-                <div className="p-2.5 bg-rose-50 border border-rose-100 rounded-lg text-rose-600">
+                <div className="p-2.5 bg-rose-50 rounded-lg text-rose-600">
                   <CheckCircle className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold tracking-wider text-rose-500">
                     Confirmado
                   </span>
-                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">
+                  <h4 className="text-lg font-bold font-mono text-[#0e1717] tabular-nums">
                     {formatBRL(stats.confirmedSum)}
                   </h4>
                 </div>
               </div>
 
               <div className="bg-white rounded-xl p-5 shadow-premium flex items-center gap-3">
-                <div className="p-2.5 bg-amber-50 border border-amber-100 rounded-lg text-amber-600">
+                <div className="p-2.5 bg-amber-50 rounded-lg text-amber-600">
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500">
                     Orçamento
                   </span>
-                  <h4 className="text-lg font-bold font-mono text-[#0e1717]">
+                  <h4 className="text-lg font-bold font-mono text-[#0e1717] tabular-nums">
                     {formatBRL(stats.budgetSum)}
                   </h4>
                 </div>
@@ -760,7 +771,7 @@ function ExpensesListContent(): React.JSX.Element {
                             <td className="py-3.5 px-6 text-right font-mono font-bold text-[#0e1717] tabular-nums">
                               {formatBRL(Number(exp.totalAmount))}
                             </td>
-                            <td className="py-3.5 px-6 font-mono text-slate-500 text-xs">
+                            <td className="py-3.5 px-6 font-mono text-slate-500 text-xs tabular-nums">
                               {formatDate(exp.dueDate)}
                             </td>
                             <td className="py-3.5 px-6 text-xs text-slate-600">

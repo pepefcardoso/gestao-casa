@@ -149,7 +149,7 @@ export default function LandingPage(): React.JSX.Element {
         </section>
 
         {/* INTERACTIVE DEMO / FINANCIAL SIMULATOR SECTION */}
-        <section className="bg-white/75 backdrop-blur-md border border-slate-200/80 rounded-3xl shadow-2xl p-6 sm:p-10 space-y-10">
+        <section className="bg-white/75 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-10 space-y-10">
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-800">
               Experimente em tempo real
@@ -162,7 +162,7 @@ export default function LandingPage(): React.JSX.Element {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Simulator Inputs (5 cols) */}
-            <div className="lg:col-span-5 space-y-6 bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+            <div className="lg:col-span-5 space-y-6 bg-slate-50/50 p-6 rounded-2xl">
               <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider flex items-center gap-2">
                 <Calculator className="w-4.5 h-4.5 text-emerald-600" />
                 Parâmetros do Financiamento
@@ -288,11 +288,11 @@ export default function LandingPage(): React.JSX.Element {
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/50">
+                <div className="bg-slate-800/60 p-4 rounded-xl">
                   <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     Primeira Parcela
                   </span>
-                  <span className="text-xl sm:text-2xl font-black text-white block mt-1">
+                  <span className="text-xl sm:text-2xl font-black text-white block mt-1 tabular-nums">
                     {formatBRL(preview.firstInstallment)}
                   </span>
                   <span className="text-[10px] text-slate-400 block mt-1">
@@ -302,11 +302,11 @@ export default function LandingPage(): React.JSX.Element {
                   </span>
                 </div>
 
-                <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/50">
+                <div className="bg-slate-800/60 p-4 rounded-xl">
                   <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     Última Parcela
                   </span>
-                  <span className="text-xl sm:text-2xl font-black text-white block mt-1">
+                  <span className="text-xl sm:text-2xl font-black text-white block mt-1 tabular-nums">
                     {formatBRL(preview.lastInstallment)}
                   </span>
                   <span className="text-[10px] text-slate-400 block mt-1">
@@ -318,25 +318,25 @@ export default function LandingPage(): React.JSX.Element {
               <div className="border-t border-slate-800 pt-6 space-y-4">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-slate-400">Financiado (Principal):</span>
-                  <span className="font-mono text-slate-200">
+                  <span className="font-mono text-slate-200 tabular-nums">
                     {formatBRL(propertyValue - downPayment)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-slate-400">Total Pago em Juros:</span>
-                  <span className="font-mono text-emerald-400 font-bold">
+                  <span className="font-mono text-emerald-400 font-bold tabular-nums">
                     {formatBRL(preview.totalInterest)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-base font-bold border-t border-dashed border-slate-800 pt-4">
                   <span className="text-slate-300">Custo Total de Quitação:</span>
-                  <span className="font-mono text-emerald-400 text-lg">
+                  <span className="font-mono text-emerald-400 text-lg tabular-nums">
                     {formatBRL(preview.totalPaid)}
                   </span>
                 </div>
               </div>
 
-              <div className="bg-emerald-950/40 border border-emerald-900/50 p-4 rounded-xl flex gap-3 text-xs text-emerald-300 leading-relaxed">
+              <div className="bg-emerald-950/40 p-4 rounded-xl flex gap-3 text-xs text-emerald-300 leading-relaxed">
                 <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-bold text-emerald-200 block mb-0.5">Dica Financeira</span>
@@ -364,7 +364,7 @@ export default function LandingPage(): React.JSX.Element {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Feature 1 */}
-            <div className="bg-white border border-slate-200 p-8 rounded-2xl space-y-4 hover:shadow-lg transition-all">
+            <div className="bg-white p-8 rounded-2xl space-y-4 hover:shadow-lg transition-all">
               <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600 w-fit">
                 <Calculator className="w-6 h-6" />
               </div>
@@ -376,7 +376,7 @@ export default function LandingPage(): React.JSX.Element {
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-white border border-slate-200 p-8 rounded-2xl space-y-4 hover:shadow-lg transition-all">
+            <div className="bg-white p-8 rounded-2xl space-y-4 hover:shadow-lg transition-all">
               <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600 w-fit">
                 <PiggyBank className="w-6 h-6" />
               </div>
@@ -388,7 +388,7 @@ export default function LandingPage(): React.JSX.Element {
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-white border border-slate-200 p-8 rounded-2xl space-y-4 hover:shadow-lg transition-all">
+            <div className="bg-white p-8 rounded-2xl space-y-4 hover:shadow-lg transition-all">
               <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600 w-fit">
                 <Users className="w-6 h-6" />
               </div>

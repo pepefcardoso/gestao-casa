@@ -229,7 +229,8 @@ router.openapi(
   getIncomesRoute,
   async (c): Promise<RouteConfigToTypedResponse<typeof getIncomesRoute>> => {
     try {
-      console.log("INCOMES ROUTE HIT"); const userId = c.var.userId;
+      console.log("INCOMES ROUTE HIT");
+      const userId = c.var.userId;
       const { house_id, month } = c.req.valid("query");
 
       const checkHouseId = house_id;
@@ -318,7 +319,8 @@ router.openapi(
   postIncomeRoute,
   async (c): Promise<RouteConfigToTypedResponse<typeof postIncomeRoute>> => {
     try {
-      console.log("INCOMES ROUTE HIT"); const userId = c.var.userId;
+      console.log("INCOMES ROUTE HIT");
+      const userId = c.var.userId;
       const payload = c.req.valid("json");
 
       const targetHouseId = payload.houseId;
@@ -368,7 +370,8 @@ router.openapi(
   putIncomeRoute,
   async (c): Promise<RouteConfigToTypedResponse<typeof putIncomeRoute>> => {
     try {
-      console.log("INCOMES ROUTE HIT"); const userId = c.var.userId;
+      console.log("INCOMES ROUTE HIT");
+      const userId = c.var.userId;
       const { id } = c.req.valid("param");
       const payload = c.req.valid("json");
 
@@ -433,7 +436,8 @@ router.openapi(
   deleteIncomeRoute,
   async (c): Promise<RouteConfigToTypedResponse<typeof deleteIncomeRoute>> => {
     try {
-      console.log("INCOMES ROUTE HIT"); const userId = c.var.userId;
+      console.log("INCOMES ROUTE HIT");
+      const userId = c.var.userId;
       const { id } = c.req.valid("param");
 
       const [income] = await db.select().from(incomes).where(eq(incomes.id, id));

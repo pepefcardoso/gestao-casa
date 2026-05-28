@@ -141,7 +141,7 @@ export default function HouseMap({
   return (
     <div
       ref={mapContainerRef}
-      className="w-full h-full min-h-[300px] rounded-lg border border-mint-slate-400/20"
+      className="w-full h-full min-h-[300px] rounded-2xl"
       style={{ zIndex: 1 }}
     />
   );

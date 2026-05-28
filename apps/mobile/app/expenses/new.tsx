@@ -280,7 +280,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {errors.submit && (
             <View style={styles.errorBanner}>
-              <Lucide name="alert-triangle" size={20} color="#ffffff" style={styles.errorIcon} />
+              <Lucide name="alert-triangle" size={20} color="#ea580c" style={styles.errorIcon} />
               <Text style={styles.errorBannerText}>{errors.submit}</Text>
             </View>
           )}
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   errorBanner: {
-    backgroundColor: "#ea580c",
+    backgroundColor: "rgba(234, 88, 12, 0.1)",
     padding: 12,
     borderRadius: 8,
     flexDirection: "row",
@@ -684,7 +684,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   errorBannerText: {
-    color: "#ffffff",
+    color: "#ea580c",
     fontSize: 14,
     fontWeight: "600",
     flex: 1,
@@ -817,10 +817,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#1D1D1F",
     fontWeight: "500",
+    fontVariant: ["tabular-nums"],
   },
   livePreviewHighlighted: {
     color: "#10B981",
     fontWeight: "700",
+    fontVariant: ["tabular-nums"],
   },
   sliderTextInputRow: {
     flexDirection: "row",
@@ -843,6 +845,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#1D1D1F",
+    fontVariant: ["tabular-nums"],
   },
   helperText: {
     fontSize: 11,

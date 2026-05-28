@@ -293,8 +293,18 @@ export default function DashboardPage(): React.JSX.Element {
     });
   };
 
-  // 12-month totals summary card computations
-  const totals = useMemo(() => {
+  // Compute the 12-month totals for financial categories to show inside the KPI summary cards.
+  const totals = useMemo((): {
+    totalOutflow: number;
+    totalFinancing: number;
+    totalConfirmed: number;
+    totalBudget: number;
+    totalInflow: number;
+    totalConfirmedIncome: number;
+    totalBudgetIncome: number;
+    netBalance: number;
+    hasFinancing: boolean;
+  } => {
     let totalOutflow = 0;
     let totalFinancing = 0;
     let totalConfirmed = 0;
@@ -344,7 +354,7 @@ export default function DashboardPage(): React.JSX.Element {
           </p>
         </div>
 
-        <nav className="flex space-x-1 bg-white/50 backdrop-blur-md p-1 rounded-full border border-white/40 shadow-premium">
+        <nav className="flex space-x-1 bg-white/50 backdrop-blur-md p-1 rounded-full shadow-premium">
           <Link
             href="/dashboard"
             className="px-4 py-2 text-xs font-semibold rounded-full bg-surface-white shadow-premium text-brand-emerald transition-all"
@@ -633,7 +643,7 @@ export default function DashboardPage(): React.JSX.Element {
 
               <Link
                 href="/settings"
-                className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-canvas-frost hover:bg-[#E8E8ED] text-text-primary text-xs font-semibold rounded-full active:scale-95 transition-all cursor-pointer shadow- premium border border-transparent"
+                className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-canvas-frost hover:bg-[#E8E8ED] text-text-primary text-xs font-semibold rounded-full active:scale-95 transition-all cursor-pointer shadow-premium"
               >
                 <Settings className="w-4 h-4 text-text-muted" />
                 Configurar Residência

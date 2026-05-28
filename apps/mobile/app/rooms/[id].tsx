@@ -545,6 +545,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     marginTop: 1,
+    fontVariant: ["tabular-nums"],
   },
   sectionHeader: {
     flexDirection: "row",
@@ -581,10 +582,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   confirmedCard: {
-    backgroundColor: "#FFF1F2",
+    backgroundColor: "#ffffff",
   },
   budgetedCard: {
-    backgroundColor: "#FFFBEB",
+    backgroundColor: "#ffffff",
   },
   confirmedAccent: {},
   budgetedAccent: {},
@@ -660,11 +661,13 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     color: "#1D1D1F",
+    fontVariant: ["tabular-nums"],
   },
   installmentsText: {
     fontSize: 11,
     color: "#86868B",
     marginTop: 2,
+    fontVariant: ["tabular-nums"],
   },
   cardFooterRight: {
     alignItems: "flex-end",
