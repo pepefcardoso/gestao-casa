@@ -1,39 +1,6 @@
-Greetings! As your Software Engineering collaborator, I am here to help you write, review, and refactor code, optimize your architecture, and ensure strict alignment with your project guidelines.
-
-Let's dive into creating the `docs/conventions.md` file. Following our **RPI (Research, Plan, Implement)** workflow, I have analyzed the repository structure, boundary rules, and non-negotiables specified in your documentation.
-
----
-
-## 1. Research & Clarification
-
-Before writing out the complete `conventions.md`, I want to highlight the core requirements pulled from your existing manifests (`GEMINI.md`, `project-architecture-blueprint.md`, `mvp-spec.md`):
-
-- **Monorepo boundaries** must be strictly documented to avoid import pollution (e.g., preventing `react-dom` inside `apps/mobile`).
-- **TypeScript configuration** mandates strict types, explicit return types for _every_ function, and zero `any`.
-- **Clean Code standards** require early returns and clear, self-documenting code with comments restricted to explaining _why_ (intent) rather than _what_.
-- **Database & API conventions** require Drizzle as the single source of truth, Zod schema derivations via `drizzle-zod`, and automated OpenAPI configurations with Hono.
-
----
-
-## 2. Plan (Architecture & Layout)
-
-The `docs/conventions.md` file will serve as a definitive guide for both human developers and AI agents. It will be organized into the following clear sections:
-
-1. **Naming Conventions:** System-wide rules for directories, files, components, and variables.
-2. **Code Templates & Structural Blueprints:** Concrete code examples for backend schemas, Hono routes, Next.js components, and React Native layouts.
-3. **Strict Import & Boundary Rules:** Clear instructions mapping out what can be imported where.
-4. **Commenting & Documentation Standards:** Guidelines adhering to the _Clean Code Commenting Standard_.
-
----
-
-## 3. Implement (Code & Document)
-
-Here is the complete, ready-to-ship `docs/conventions.md` file based on your monorepo parameters. You can copy and paste this directly into your repository.
-
-````markdown
 # Coding Conventions & Project Patterns
 
-This document outlines the strict coding standards, architectural patterns, and naming conventions required for the `gestao-casa` monorepo. All development—whether by humans or AI agents—must adhere to these rules to maintain compile-time safety and architectural velocity.
+This document outlines the strict coding standards, architectural patterns, and naming conventions required for the `gestao-casa` monorepo. All development — whether by humans or AI agents — must adhere to these rules to maintain compile-time safety and architectural velocity.
 
 ---
 
@@ -41,16 +8,28 @@ This document outlines the strict coding standards, architectural patterns, and 
 
 ### 1.1 Files and Directories
 
-- **Folders / Directories:** Always use `kebab-case` (e.g., `shared-logic`, `api-routes`).
-- **Non-UI Source Files:** Always use `kebab-case` for utility files, hooks, routes, and schemas (e.g., `calculate-financing.ts`, `schema.ts`).
-- **React UI Components (Web & Mobile):** Always use `kebab-case` for file names containing React components (e.g., `checkout-button.tsx`, `expense-card.tsx`).
-- **Next.js App Router Files:** Strictly follow framework defaults (`page.tsx`, `layout.tsx`, `loading.tsx`).
+- **Folders / Directories:** Always `kebab-case` (e.g., `shared-logic`, `api-routes`).
+- **Non-UI Source Files:** Always `kebab-case` for utility files, hooks, routes, and schemas (e.g., `calculate-financing.ts`, `schema.ts`).
+- **React UI Components (Web & Mobile):** Always `kebab-case` for file names (e.g., `checkout-button.tsx`, `expense-card.tsx`).
+- **Next.js App Router Files:** Strictly follow framework defaults (`page.tsx`, `layout.tsx`, `loading.tsx`, `actions.ts`).
 
 ### 1.2 Code Identifiers
 
-- **TypeScript Types / Interfaces / Enums:** Always use `PascalCase` (e.g., `FinancingInstallment`, `House`).
-- **Functions & Variables:** Always use `camelCase` (e.g., `calculateTotalWithTax`, `outstandingBalance`).
-- **Database Tables & Columns:** Always use `snake_case` to match standard PostgreSQL naming strategies (e.g., `property_value`, `installments_count`).
+- **TypeScript Types / Interfaces / Enums:** Always `PascalCase` (e.g., `FinancingInstallment`, `House`).
+- **Functions & Variables:** Always `camelCase` (e.g., `calculateTotalWithTax`, `outstandingBalance`).
+- **Database Tables & Columns:** Always `snake_case` to match standard PostgreSQL naming (e.g., `property_value`, `installments_count`).
+
+### 1.3 Exports
+
+- **No default exports anywhere.** Named exports are mandatory in every file. This prevents agents from inventing inconsistent import aliases and ensures automated refactoring tools work correctly.
+
+```typescript
+// ❌ BAD
+export default function UserCard() {}
+
+// ✅ GOOD
+export function UserCard() {}
+```
 
 ---
 
@@ -58,11 +37,12 @@ This document outlines the strict coding standards, architectural patterns, and 
 
 ### 2.1 Backend: Drizzle Schema Definition
 
-All schemas must serve as the single source of truth. Derive Zod validation elements using `drizzle-zod`. Do not duplicate definitions.
+Use `$inferSelect` / `$inferInsert` for pure TypeScript types. Use `drizzle-zod` only when a runtime Zod validator is required (API input, form validation). Never define Zod schemas for DB entities manually.
 
 ```typescript
+// libs/backend/src/db/schema.ts
 import { pgTable, uuid, text, numeric, timestamp } from "drizzle-orm/pg-core";
-import { createSelectSchema, createInsertSchema } from "drizzle-zod";
+import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const houses = pgTable("houses", {
@@ -72,26 +52,51 @@ export const houses = pgTable("houses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Explicit schema derivation
-export const selectHouseSchema = createSelectSchema(houses);
+// Preferred: $inferSelect / $inferInsert for TypeScript types (no drizzle-zod needed)
+export type House = typeof houses.$inferSelect;
+export type NewHouse = typeof houses.$inferInsert;
+
+// drizzle-zod only when runtime validation is required
 export const insertHouseSchema = createInsertSchema(houses).extend({
   name: z.string().min(1, "House name cannot be empty"),
 });
-
-// Explicit type exportations
-export type House = z.infer<typeof selectHouseSchema>;
-export type InsertHouse = z.infer<typeof insertHouseSchema>;
+export type InsertHouseInput = z.infer<typeof insertHouseSchema>;
 ```
-````
 
-### 2.2 Backend: Hono OpenAPI Router
+### 2.2 Backend: Centralized Error Factory
 
-Every route must declare an explicit return type of `Promise<Response>` or `Response`. Use `@hono/zod-openapi` structures.
+All routes must use the error factory in `libs/backend/src/api/errors.ts`. Agents must never construct inline error objects in route handlers.
 
 ```typescript
-import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
-import { insertHouseSchema, selectHouseSchema } from "../../db/schema";
+// libs/backend/src/api/errors.ts
 import { z } from "zod";
+
+export const ErrorSchema = z.object({ error: z.string(), code: z.string().optional() });
+export type ApiError = z.infer<typeof ErrorSchema>;
+
+export function notFound(resource: string): ApiError {
+  return { error: `${resource} not found`, code: "NOT_FOUND" };
+}
+
+export function badRequest(message: string): ApiError {
+  return { error: message, code: "BAD_REQUEST" };
+}
+
+export function internalError(): ApiError {
+  return { error: "An unexpected error occurred", code: "INTERNAL_ERROR" };
+}
+```
+
+### 2.3 Backend: Hono OpenAPI Router
+
+Every route file must follow this structure. Return type `Promise<Response>` is mandatory on every handler. All error responses use the shared `ErrorSchema` from the error factory.
+
+```typescript
+// libs/backend/src/api/routes/houses.ts
+import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { insertHouseSchema } from "../../db/schema";
+import type { House } from "../../db/schema";
+import { ErrorSchema, notFound, badRequest } from "../errors";
 
 const router = new OpenAPIHono();
 
@@ -105,11 +110,11 @@ const createHouseRoute = createRoute({
   },
   responses: {
     201: {
-      content: { "application/json": { schema: selectHouseSchema } },
+      content: { "application/json": { schema: insertHouseSchema } },
       description: "House created successfully",
     },
     400: {
-      content: { "application/json": { schema: z.object({ error: z.string() }) } },
+      content: { "application/json": { schema: ErrorSchema } },
       description: "Invalid input payload",
     },
   },
@@ -117,18 +122,20 @@ const createHouseRoute = createRoute({
 
 router.openapi(createHouseRoute, async (c): Promise<Response> => {
   const payload = c.req.valid("json");
-  // Database infrastructure calls happen here
-  return c.json({ id: "uuid", ...payload, createdAt: new Date() }, 201);
+  // db logic here
+  const house: House = { id: "uuid", createdAt: new Date(), totalArea: null, ...payload };
+  return c.json(house, 201);
 });
 
 export { router as housesRouter };
 ```
 
-### 2.3 Shared Logic: Pure Utility Functions
+### 2.4 Shared Logic: Pure Utility Functions
 
-Shared functions must possess **explicit return types** and implement **early returns** over nested statements. No side effects or platform bindings are permitted.
+All functions in `libs/shared-logic` must be pure (no side effects, no platform bindings) and use explicit return types and early returns. Every utility must have a corresponding `.test.ts` file.
 
 ```typescript
+// libs/shared-logic/src/utils/calculate-tax.ts
 export interface TaxConfig {
   rate: number;
   exemptIds: string[];
@@ -137,17 +144,64 @@ export interface TaxConfig {
 export function calculateTotalWithTax(subtotal: number, userId: string, config: TaxConfig): number {
   if (subtotal <= 0) return 0;
   if (config.exemptIds.includes(userId)) return subtotal;
-
   return subtotal * (1 + config.rate);
 }
 ```
 
-### 2.4 Web Architecture (`apps/web`)
+```typescript
+// libs/shared-logic/src/utils/calculate-tax.test.ts
+import { describe, it, expect } from "vitest";
+import { calculateTotalWithTax } from "./calculate-tax";
 
-- Default to Server Components. Use `'use client'` explicitly only when utilizing component state or runtime React hooks.
-- Enforce Tailwind CSS atomic styles. No raw inline styling dictionaries.
+const config = { rate: 0.1, exemptIds: ["exempt-user"] } satisfies Parameters<typeof calculateTotalWithTax>[2];
+
+describe("calculateTotalWithTax", () => {
+  it("returns 0 for non-positive subtotals", () => {
+    expect(calculateTotalWithTax(0, "user-1", config)).toBe(0);
+    expect(calculateTotalWithTax(-5, "user-1", config)).toBe(0);
+  });
+  it("returns subtotal unchanged for exempt users", () => {
+    expect(calculateTotalWithTax(100, "exempt-user", config)).toBe(100);
+  });
+  it("applies tax rate to non-exempt users", () => {
+    expect(calculateTotalWithTax(100, "user-1", config)).toBe(110);
+  });
+});
+```
+
+### 2.5 Web: Data Fetching & Mutations
+
+Server components fetch data directly. Mutations go through `actions.ts` files with the `'use server'` directive. No raw `fetch()` calls inside client or shared components — always use the generated API client.
 
 ```typescript
+// apps/web/app/houses/page.tsx
+import { apiClient } from "@gestao-casa/shared-logic/api-client";
+import type { House } from "@gestao-casa/backend/db";
+
+export default async function HousesPage(): Promise<React.JSX.Element> {
+  const houses = await apiClient.get<House[]>("/houses");
+  return <main className="min-h-screen bg-[#F5F5F7] px-6 py-8">{/* render houses */}</main>;
+}
+```
+
+```typescript
+// apps/web/app/houses/actions.ts
+"use server";
+
+import { apiClient } from "@gestao-casa/shared-logic/api-client";
+import type { InsertHouseInput } from "@gestao-casa/backend/db";
+
+export async function createHouseAction(payload: InsertHouseInput): Promise<void> {
+  await apiClient.post("/houses", payload);
+}
+```
+
+### 2.6 Web: Client Components
+
+Default to Server Components. Add `'use client'` only when using state or browser APIs. Tailwind atomic utilities only — no inline `style` objects.
+
+```typescript
+// apps/web/app/components/features/interaction-counter.tsx
 "use client";
 
 import { useState } from "react";
@@ -160,9 +214,9 @@ export function InteractionCounter({ initialCount }: CounterProps): React.JSX.El
   const [count, setCount] = useState<number>(initialCount);
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-sm border border-mint-slate-400">
-      <p className="text-sm font-mono text-slate-800">Total: {count}</p>
-      <button onClick={() => setCount((prev) => prev + 1)} className="mt-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded">
+    <div className="p-4 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+      <p className="text-sm font-medium tabular-nums text-[#1D1D1F]">Total: {count}</p>
+      <button onClick={() => setCount((prev) => prev + 1)} className="mt-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-full active:scale-95 transition-transform">
         Increment
       </button>
     </div>
@@ -170,14 +224,13 @@ export function InteractionCounter({ initialCount }: CounterProps): React.JSX.El
 }
 ```
 
-### 2.5 Mobile Architecture (`apps/mobile`)
+### 2.7 Mobile: Components
 
-- Strictly leverage primitive layout sheets from React Native.
-- Never declare, run, or call DOM utilities or `react-dom` modules.
+Use only React Native primitives. Never import `react-dom` or any DOM-dependent package. Use `StyleSheet.create()` with explicit types.
 
 ```typescript
-import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+// apps/mobile/components/info-card.tsx
+import { StyleSheet, Text, View } from "react-native";
 
 interface InfoCardProps {
   label: string;
@@ -197,61 +250,95 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#ffffff",
     padding: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#8fa3a3",
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 30,
+    elevation: 2,
   },
   label: {
     fontSize: 12,
-    color: "#8fa3a3",
+    color: "#86868B",
     marginBottom: 4,
   },
   value: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0e1717",
+    color: "#1D1D1F",
   },
 });
 ```
 
 ---
 
-## 3. Strict Import & Boundary Rules
+## 3. Import Rules
 
-Nx graph boundary rules are strictly validated during compilation sweeps. Ensure compliance prior to establishing new file imports:
+### 3.1 Boundary Summary
 
-- **`apps/web`** can consume `libs/shared-logic`. It can only consume structural TypeScript types from `libs/backend` via API network links. **Never import `react-native` packages here.**
-- **`apps/mobile`** can consume `libs/shared-logic`. It can only consume structural TypeScript types from `libs/backend` via API network links. **Never import `react-dom` or web browser constructs here.**
-- **`libs/backend`** can consume `libs/shared-logic`. It has **no access** to React contexts, frontend web frameworks, or mobile view trees.
-- **`libs/shared-logic`** is fully platform-agnostic. It cannot import from any application platform wrapper or backend infrastructure layout.
+- **`apps/web`** → may import `libs/shared-logic` (runtime) and `libs/backend` (`import type` only). Never import `react-native` or any RN package.
+- **`apps/mobile`** → may import `libs/shared-logic` (runtime) and `libs/backend` (`import type` only). Never import `react-dom` or any DOM package.
+- **`libs/backend`** → may import `libs/shared-logic`. No React, no `react-dom`, no `react-native`.
+- **`libs/shared-logic`** → no internal imports. No platform APIs (`window`, `document`, `AsyncStorage`, `expo-*`).
+
+### 3.2 No Barrel Files
+
+Barrel `index.ts` files are banned in all `libs/` packages. Always use direct path imports. This prevents circular dependencies and avoids forcing agents to load entire library surfaces.
+
+```typescript
+// ❌ BAD
+import { calculateTotalWithTax } from "@gestao-casa/shared-logic";
+
+// ✅ GOOD
+import { calculateTotalWithTax } from "@gestao-casa/shared-logic/utils/calculate-tax";
+```
+
+### 3.3 `import type` for Cross-Boundary Types
+
+When consuming types from `libs/backend` in an app package, always use `import type`. This is the only permitted form and is enforced by `@nx/enforce-module-boundaries`.
+
+```typescript
+// ✅ GOOD — type-only import, erased at compile time
+import type { House } from "@gestao-casa/backend/db";
+
+// ❌ BAD — imports runtime code across the boundary
+import { houses } from "@gestao-casa/backend/db";
+```
 
 ---
 
 ## 4. Commenting & Documentation Standards
 
-Code must remain self-documenting through highly expressive naming conventions for functions, variables, and modules.
+Code must remain self-documenting through expressive naming conventions. Comments are restricted to explaining **why** — never what.
 
 ### 4.1 What to Avoid
 
-Do not write repetitive or redundant comments that explain _what_ the code is executing line-by-line:
-
 ```typescript
-// ❌ BAD
+// ❌ BAD — explains what the code does, not why
 // Increment the counter by one
 setCount(count + 1);
 ```
 
 ### 4.2 What to Document
 
-Restrict inline block code comments **exclusively** to describing _why_ a particular snippet is implemented (business logic overrides, architectural edge-cases, non-obvious mathematical steps, or platform workarounds):
-
 ```typescript
-// ✅ GOOD
+// ✅ GOOD — explains a non-obvious business rule
 // The financial engine distributes the remaining rounding delta across intermediate rows
 // (2 to N-1) as mandated by mortgage amortization rules to ensure overall balance parity.
 const distributedDelta = remainingDelta / (totalMonths - 2);
 ```
 
-```
+---
 
-```
+## 5. Testing Conventions
+
+All testing uses **Vitest**. The DI pattern makes pure function tests trivial — no mocking infrastructure required.
+
+| Scope          | Location                                         | Notes                                      |
+| -------------- | ------------------------------------------------ | ------------------------------------------ |
+| Pure utils     | `libs/shared-logic/src/utils/<name>.test.ts`     | Input/output only, zero mocks              |
+| Shared hooks   | `libs/shared-logic/src/hooks/<name>.test.ts`     | `renderHook` from `@testing-library/react` |
+| API routes     | `libs/backend/src/api/routes/<resource>.test.ts` | Hono `app.request()` test helper           |
+| Web components | `apps/web/app/components/**/<name>.test.tsx`     | `@testing-library/react`                   |
+
+Every new function added to `libs/shared-logic` must be accompanied by a co-located `.test.ts` file.
