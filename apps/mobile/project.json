@@ -2,6 +2,7 @@
   "name": "mobile",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
+  "tags": ["type:app", "platform:mobile"],
   "sourceRoot": "apps/mobile",
   "targets": {
     "lint": {

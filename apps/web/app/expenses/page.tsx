@@ -1,5 +1,11 @@
 "use client";
 
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
+import {
+  calculateFinancing,
+  type FinancingInstallment,
+} from "@gestao-casa/shared-logic/utils/calculate-financing";
+import { projectInstallments } from "@gestao-casa/shared-logic/utils/project-installments";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -20,11 +26,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type React from "react";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import {
-  calculateFinancing,
-  type FinancingInstallment,
-} from "../../../../libs/shared-logic/src/utils/calculate-financing";
-import { projectInstallments } from "../../../../libs/shared-logic/src/utils/project-installments";
 import { useUser } from "../components/UserContext";
 
 interface Expense {
@@ -136,15 +137,12 @@ function ExpensesListContent(): React.JSX.Element {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const res = await fetch(`/api/expenses?house_id=${activeHouseId}`);
-      if (res.ok) {
-        const data: unknown = await res.json();
-        setExpenses(data as Expense[]);
-      } else {
-        setErrorMsg("Erro ao buscar despesas do servidor.");
-      }
+      const data = await apiClient.get("/api/expenses", {
+        query: { house_id: activeHouseId },
+      });
+      setExpenses(data as Expense[]);
     } catch (err) {
-      setErrorMsg("Erro de rede ao buscar despesas.");
+      setErrorMsg("Erro ao buscar despesas do servidor.");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -155,11 +153,10 @@ function ExpensesListContent(): React.JSX.Element {
     if (!activeHouseId) return;
     setIsLoadingRooms(true);
     try {
-      const res = await fetch(`/api/rooms?house_id=${activeHouseId}`);
-      if (res.ok) {
-        const data: unknown = await res.json();
-        setRooms(data as RoomOption[]);
-      }
+      const data = await apiClient.get("/api/rooms", {
+        query: { house_id: activeHouseId },
+      });
+      setRooms(data as RoomOption[]);
     } catch (err) {
       console.error("Erro de rede ao buscar cômodos.", err);
     } finally {
@@ -170,11 +167,10 @@ function ExpensesListContent(): React.JSX.Element {
   const fetchIncomes = useCallback(async (): Promise<void> => {
     if (!activeHouseId) return;
     try {
-      const res = await fetch(`/api/incomes?house_id=${activeHouseId}`);
-      if (res.ok) {
-        const data: unknown = await res.json();
-        setIncomes(data as Income[]);
-      }
+      const data = await apiClient.get("/api/incomes", {
+        query: { house_id: activeHouseId },
+      });
+      setIncomes(data as Income[]);
     } catch (err) {
       console.error("Erro de rede ao buscar receitas.", err);
     }
@@ -183,14 +179,12 @@ function ExpensesListContent(): React.JSX.Element {
   const fetchFinancing = useCallback(async (): Promise<void> => {
     if (!activeHouseId) return;
     try {
-      const res = await fetch(`/api/financing/${activeHouseId}`);
-      if (res.ok) {
-        const data: unknown = await res.json();
-        setFinancingRecord(data as FinancingRecord);
-      } else {
-        setFinancingRecord(null);
-      }
+      const data = await apiClient.get("/api/financing/{house_id}", {
+        params: { house_id: activeHouseId },
+      });
+      setFinancingRecord(data as FinancingRecord);
     } catch (err) {
+      setFinancingRecord(null);
       console.error("Erro de rede ao buscar financiamento.", err);
     }
   }, [activeHouseId]);
@@ -411,23 +405,13 @@ function ExpensesListContent(): React.JSX.Element {
           status,
           category,
           priority,
-          dueDate: new Date(dueDate),
+          dueDate: new Date(dueDate).toISOString(),
         };
 
-        const res = await fetch(`/api/expenses/${editingExpense.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+        await apiClient.put("/api/expenses/{id}", {
+          params: { id: editingExpense.id },
+          body: payload,
         });
-
-        if (!res.ok) {
-          const errData: unknown = await res.json();
-          const msg =
-            errData && typeof errData === "object" && "error" in errData
-              ? String((errData as { error: unknown }).error)
-              : "Erro ao salvar alterações da despesa.";
-          throw new Error(msg);
-        }
 
         setIsModalOpen(false);
         fetchExpenses();
@@ -452,20 +436,12 @@ function ExpensesListContent(): React.JSX.Element {
         });
 
         for (const inst of projected) {
-          const res = await fetch("/api/expenses", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(inst),
+          await apiClient.post("/api/expenses", {
+            body: {
+              ...inst,
+              dueDate: inst.dueDate.toISOString(),
+            },
           });
-
-          if (!res.ok) {
-            const errData: unknown = await res.json();
-            const msg =
-              errData && typeof errData === "object" && "error" in errData
-                ? String((errData as { error: unknown }).error)
-                : "Erro ao registrar despesa.";
-            throw new Error(msg);
-          }
         }
 
         setIsModalOpen(false);
@@ -482,18 +458,9 @@ function ExpensesListContent(): React.JSX.Element {
     if (!deleteTarget) return;
 
     try {
-      const res = await fetch(`/api/expenses/${deleteTarget.id}`, {
-        method: "DELETE",
+      await apiClient.delete("/api/expenses/{id}", {
+        params: { id: deleteTarget.id },
       });
-
-      if (!res.ok) {
-        const errData: unknown = await res.json();
-        const msg =
-          errData && typeof errData === "object" && "error" in errData
-            ? String((errData as { error: unknown }).error)
-            : "Erro ao excluir despesa.";
-        throw new Error(msg);
-      }
 
       setDeleteTarget(null);
       fetchExpenses();

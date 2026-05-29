@@ -1,3 +1,5 @@
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
+import { projectInstallments } from "@gestao-casa/shared-logic/utils/project-installments";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
 import type React from "react";
@@ -16,11 +18,8 @@ import {
   View,
 } from "react-native";
 import { z } from "zod";
-import { projectInstallments } from "../../../../libs/shared-logic/src/utils/project-installments";
 import { Lucide } from "../../components/LucideIcon";
 import { useMobileUser } from "../globalState";
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 type CategoryType = "TAX" | "PRODUCT" | "SERVICE" | "FURNITURE" | "APPLIANCE" | "RENOVATION";
 type PriorityType = "HIGH" | "MEDIUM" | "LOW";
@@ -84,7 +83,7 @@ interface FormErrors {
 
 export default function NewExpenseScreen(): React.JSX.Element {
   const router = useRouter();
-  const { userId, role } = useMobileUser();
+  const { role } = useMobileUser();
 
   // Form Fields State
   const [description, setDescription] = useState<string>("");
@@ -110,13 +109,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
     let active = true;
     const fetchRooms = async (): Promise<void> => {
       try {
-        const response = await fetch(`${API_URL}/rooms`, {
-          headers: { "x-user-id": userId },
-        });
-        if (!response.ok) {
-          throw new Error("Erro ao carregar cômodos");
-        }
-        const data: unknown = await response.json();
+        const data = await apiClient.get("/api/rooms");
         if (active && Array.isArray(data)) {
           const mappedRooms = (
             data as { id: string; name: string; colorCode: string | null }[]
@@ -141,7 +134,7 @@ export default function NewExpenseScreen(): React.JSX.Element {
     return (): void => {
       active = false;
     };
-  }, [userId]);
+  }, []);
 
   // Format Helper
   const formatCurrency = (val: number): string => {
@@ -225,23 +218,18 @@ export default function NewExpenseScreen(): React.JSX.Element {
 
       // 2. POST all entries to the backend API route in sequence
       for (const inst of installments) {
-        const response = await fetch(`${API_URL}/expenses`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-user-id": userId,
+        await apiClient.post("/api/expenses", {
+          body: {
+            description: inst.description,
+            totalAmount: inst.totalAmount,
+            installmentsCount: inst.installmentsCount,
+            status: inst.status,
+            category: inst.category,
+            priority: inst.priority,
+            roomId: inst.roomId,
+            dueDate: inst.dueDate.toISOString(),
           },
-          body: JSON.stringify(inst),
         });
-
-        if (!response.ok) {
-          const responseData: unknown = await response.json();
-          const errorMsg =
-            responseData && typeof responseData === "object" && "error" in responseData
-              ? String((responseData as { error: unknown }).error)
-              : "Falha ao registrar despesa.";
-          throw new Error(errorMsg);
-        }
       }
 
       // 3. Go back on success

@@ -1,3 +1,4 @@
+import { apiClient, configureApiClient } from "@gestao-casa/shared-logic/api-client/index";
 import { useEffect, useState } from "react";
 
 export interface User {
@@ -28,6 +29,16 @@ let activeUserId: string = PRESET_USERS[0].id;
 let activeUserRole: "OWNER" | "COLLABORATOR" | "VIEWER" = "OWNER";
 
 const listeners = new Set<() => void>();
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
+configureApiClient({
+  baseUrl: API_URL,
+  getHeaders: (): Record<string, string> => {
+    return {
+      "x-user-id": activeUserId,
+    };
+  },
+});
 
 export const globalState = {
   getActiveUserId(): string {
@@ -75,18 +86,14 @@ export function useMobileUser(): {
 
   const changeUser = async (newUserId: string): Promise<void> => {
     globalState.setActiveUserId(newUserId);
-    // Fetch role from backend
+    // Fetch role from backend using apiClient
     try {
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
-      const res = await fetch(`${API_URL}/houses/9519c5f5-e74b-49dc-88d9-e484fda2c3c2/members`, {
-        headers: { "x-user-id": newUserId },
+      const members = await apiClient.get("/api/houses/{id}/members", {
+        params: { id: "9519c5f5-e74b-49dc-88d9-e484fda2c3c2" },
       });
-      if (res.ok) {
-        const members: { role: string; user: { id: string } }[] = await res.json();
-        const match = members.find((m) => m.user.id === newUserId);
-        if (match) {
-          globalState.setActiveUserRole(match.role as "OWNER" | "COLLABORATOR" | "VIEWER");
-        }
+      const match = members.find((m) => m.user.id === newUserId);
+      if (match) {
+        globalState.setActiveUserRole(match.role as "OWNER" | "COLLABORATOR" | "VIEWER");
       }
     } catch (err) {
       console.error("Failed to fetch role for mobile user:", err);

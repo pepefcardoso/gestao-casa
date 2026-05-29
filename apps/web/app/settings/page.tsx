@@ -1,5 +1,6 @@
 "use client";
 
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -59,7 +60,7 @@ interface ValidationErrors {
   roomArea?: string;
 }
 
-const HouseMap = dynamic(() => import("../components/HouseMap"), {
+const HouseMap = dynamic(() => import("../components/HouseMap").then((m) => m.HouseMap), {
   ssr: false,
   loading: (): React.JSX.Element => (
     <div className="h-[250px] w-full bg-slate-100 rounded-lg flex items-center justify-center animate-pulse">
@@ -128,24 +129,24 @@ export default function SettingsPage(): React.JSX.Element {
     setIsLoadingHouse(true);
     setHouseErrorMsg(null);
     try {
-      const res = await fetch(`/api/houses/${activeHouseId}`);
-      if (res.ok) {
-        const data: unknown = await res.json();
-        const h = data as House;
+      const h = await apiClient.get("/api/houses/{id}", {
+        params: { id: activeHouseId },
+      });
+      if (h) {
         setHouse(h);
         setHouseName(h.name);
         setHouseLocation(h.location || "");
         setHouseArea(h.totalArea || "");
         setHouseLatitude(h.latitude || "");
         setHouseLongitude(h.longitude || "");
-      } else if (res.status === 404) {
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("404") || message.toLowerCase().includes("not found")) {
         setHouseErrorMsg("Casa não encontrada.");
       } else {
         setHouseErrorMsg("Erro ao carregar dados da casa.");
       }
-    } catch (err) {
-      setHouseErrorMsg("Erro de conexão ao carregar dados da casa.");
-      console.error(err);
     } finally {
       setIsLoadingHouse(false);
     }
@@ -157,15 +158,12 @@ export default function SettingsPage(): React.JSX.Element {
     setIsLoadingRooms(true);
     setRoomsErrorMsg(null);
     try {
-      const res = await fetch(`/api/rooms?house_id=${activeHouseId}`);
-      if (res.ok) {
-        const data: unknown = await res.json();
-        setRooms(data as Room[]);
-      } else {
-        setRoomsErrorMsg("Erro ao carregar cômodos.");
-      }
+      const data = await apiClient.get("/api/rooms", {
+        query: { house_id: activeHouseId },
+      });
+      setRooms(data as Room[]);
     } catch (err) {
-      setRoomsErrorMsg("Erro de conexão ao carregar cômodos.");
+      setRoomsErrorMsg("Erro ao carregar cômodos.");
       console.error(err);
     } finally {
       setIsLoadingRooms(false);
@@ -176,11 +174,10 @@ export default function SettingsPage(): React.JSX.Element {
   const fetchMembers = useCallback(async (): Promise<void> => {
     if (!activeHouseId) return;
     try {
-      const res = await fetch(`/api/houses/${activeHouseId}/members`);
-      if (res.ok) {
-        const data: unknown = await res.json();
-        setMembers(data as Member[]);
-      }
+      const data = await apiClient.get("/api/houses/{id}/members", {
+        params: { id: activeHouseId },
+      });
+      setMembers(data as Member[]);
     } catch (err) {
       console.error("Erro ao buscar membros:", err);
     }
@@ -249,15 +246,12 @@ export default function SettingsPage(): React.JSX.Element {
         longitude: houseLongitude === "" ? null : Number(houseLongitude),
       };
 
-      const res = await fetch(`/api/houses/${activeHouseId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      const updated = await apiClient.put("/api/houses/{id}", {
+        params: { id: activeHouseId },
+        body: payload,
       });
 
-      if (res.ok) {
-        const data: unknown = await res.json();
-        const updated = data as House;
+      if (updated) {
         setHouse(updated);
         setHouseName(updated.name);
         setHouseLocation(updated.location || "");
@@ -265,17 +259,10 @@ export default function SettingsPage(): React.JSX.Element {
         setHouseLatitude(updated.latitude || "");
         setHouseLongitude(updated.longitude || "");
         setHouseSuccessMsg("Configurações da casa atualizadas com sucesso!");
-      } else {
-        const data: unknown = await res.json();
-        const msg =
-          data && typeof data === "object" && "error" in data
-            ? String((data as { error: unknown }).error)
-            : "Erro ao salvar alterações da casa.";
-        setHouseErrorMsg(msg);
       }
-    } catch (err) {
-      setHouseErrorMsg("Erro de conexão ao salvar alterações da casa.");
-      console.error(err);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao salvar alterações da casa.";
+      setHouseErrorMsg(msg);
     } finally {
       setIsSavingHouse(false);
     }
@@ -339,24 +326,14 @@ export default function SettingsPage(): React.JSX.Element {
           colorCode: roomColor,
         };
 
-        const res = await fetch(`/api/rooms/${editingRoom.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+        const updated = await apiClient.put("/api/rooms/{id}", {
+          params: { id: editingRoom.id },
+          body: payload,
         });
 
-        if (res.ok) {
-          const data: unknown = await res.json();
-          const updated = data as Room;
+        if (updated) {
           setRooms((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
           setIsRoomModalOpen(false);
-        } else {
-          const data: unknown = await res.json();
-          const msg =
-            data && typeof data === "object" && "error" in data
-              ? String((data as { error: unknown }).error)
-              : "Erro ao atualizar cômodo.";
-          setRoomFormError(msg);
         }
       } else {
         // Create Room (POST)
@@ -367,29 +344,18 @@ export default function SettingsPage(): React.JSX.Element {
           colorCode: roomColor,
         };
 
-        const res = await fetch("/api/rooms", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+        const created = await apiClient.post("/api/rooms", {
+          body: payload,
         });
 
-        if (res.ok) {
-          const data: unknown = await res.json();
-          const created = data as Room;
+        if (created) {
           setRooms((prev) => [...prev, created]);
           setIsRoomModalOpen(false);
-        } else {
-          const data: unknown = await res.json();
-          const msg =
-            data && typeof data === "object" && "error" in data
-              ? String((data as { error: unknown }).error)
-              : "Erro ao criar cômodo.";
-          setRoomFormError(msg);
         }
       }
-    } catch (err) {
-      setRoomFormError("Erro de conexão ao salvar cômodo.");
-      console.error(err);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao salvar cômodo.";
+      setRoomFormError(msg);
     } finally {
       setIsSavingRoom(false);
     }
@@ -401,24 +367,14 @@ export default function SettingsPage(): React.JSX.Element {
 
     setIsDeletingRoom(true);
     try {
-      const res = await fetch(`/api/rooms/${deleteTargetRoom.id}`, {
-        method: "DELETE",
+      await apiClient.delete("/api/rooms/{id}", {
+        params: { id: deleteTargetRoom.id },
       });
-
-      if (res.ok) {
-        setRooms((prev) => prev.filter((r) => r.id !== deleteTargetRoom.id));
-        setDeleteTargetRoom(null);
-      } else {
-        const data: unknown = await res.json();
-        const msg =
-          data && typeof data === "object" && "error" in data
-            ? String((data as { error: unknown }).error)
-            : "Erro ao excluir cômodo.";
-        alert(msg);
-      }
-    } catch (err) {
-      alert("Erro de conexão ao excluir cômodo.");
-      console.error(err);
+      setRooms((prev) => prev.filter((r) => r.id !== deleteTargetRoom.id));
+      setDeleteTargetRoom(null);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao excluir cômodo.";
+      alert(msg);
     } finally {
       setIsDeletingRoom(false);
     }
@@ -431,29 +387,19 @@ export default function SettingsPage(): React.JSX.Element {
 
     setIsSharing(true);
     try {
-      const res = await fetch(`/api/houses/${activeHouseId}/share`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      await apiClient.post("/api/houses/{id}/share", {
+        params: { id: activeHouseId },
+        body: {
           email: shareEmail.trim(),
           role: shareRole,
-        }),
+        },
       });
 
-      if (res.ok) {
-        setShareEmail("");
-        fetchMembers();
-      } else {
-        const data: unknown = await res.json();
-        const msg =
-          data && typeof data === "object" && "error" in data
-            ? String((data as { error: unknown }).error)
-            : "Erro ao compartilhar.";
-        setShareError(msg);
-      }
-    } catch (err) {
-      console.error(err);
-      setShareError("Erro de rede ao compartilhar.");
+      setShareEmail("");
+      fetchMembers();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao compartilhar.";
+      setShareError(msg);
     } finally {
       setIsSharing(false);
     }
@@ -461,23 +407,13 @@ export default function SettingsPage(): React.JSX.Element {
 
   const handleRemoveMember = async (membershipId: string): Promise<void> => {
     try {
-      const res = await fetch(`/api/houses/${activeHouseId}/members/${membershipId}`, {
-        method: "DELETE",
+      await apiClient.delete("/api/houses/{id}/members/{membershipId}", {
+        params: { id: activeHouseId, membershipId },
       });
-
-      if (res.ok) {
-        fetchMembers();
-      } else {
-        const data: unknown = await res.json();
-        const msg =
-          data && typeof data === "object" && "error" in data
-            ? String((data as { error: unknown }).error)
-            : "Erro ao remover membro.";
-        alert(msg);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Erro de conexão.");
+      fetchMembers();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao remover membro.";
+      alert(msg);
     }
   };
 

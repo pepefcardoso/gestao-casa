@@ -1,5 +1,4 @@
-import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import type { TypedResponse } from "hono";
+import { createRoute, OpenAPIHono, type RouteConfigToTypedResponse } from "@hono/zod-openapi";
 import { z } from "zod";
 import { pool } from "../../db";
 
@@ -50,30 +49,7 @@ const getHealthRoute = createRoute({
 
 router.openapi(
   getHealthRoute,
-  async (
-    c,
-  ): Promise<
-    Response &
-      (
-        | TypedResponse<
-            {
-              status: string;
-              database: string;
-            },
-            200,
-            "json"
-          >
-        | TypedResponse<
-            {
-              status: string;
-              database: string;
-              error?: string;
-            },
-            503,
-            "json"
-          >
-      )
-  > => {
+  async (c): Promise<RouteConfigToTypedResponse<typeof getHealthRoute>> => {
     try {
       const client = await pool.connect();
       try {

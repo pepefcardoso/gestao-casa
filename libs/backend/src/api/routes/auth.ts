@@ -1,9 +1,9 @@
+import { hashPassword, verifyPassword } from "@gestao-casa/shared-logic/utils/auth-helpers";
 import { createRoute, OpenAPIHono, type RouteConfigToTypedResponse } from "@hono/zod-openapi";
 import { eq, inArray } from "drizzle-orm";
 import { deleteCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
 import { z } from "zod";
-import { hashPassword, verifyPassword } from "../../../../shared-logic/src/utils/auth-helpers";
 import { db } from "../../db";
 import {
   changeUserPasswordSchema,
@@ -20,6 +20,7 @@ import {
   users,
 } from "../../db/schema";
 import { authMiddleware } from "../auth";
+import { badRequest, ErrorSchema, unauthorized } from "../errors";
 
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key-12345";
 
@@ -65,9 +66,7 @@ const postRegisterRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Registration failed or email already in use",
@@ -103,9 +102,7 @@ const postLoginRoute = createRoute({
     401: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid email or password",
@@ -113,9 +110,7 @@ const postLoginRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid inputs",
@@ -167,9 +162,7 @@ const getMeRoute = createRoute({
     401: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Unauthorized",
@@ -202,9 +195,7 @@ const putProfileRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid inputs or email already in use",
@@ -212,9 +203,7 @@ const putProfileRoute = createRoute({
     401: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Unauthorized",
@@ -249,9 +238,7 @@ const putPasswordRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Incorrect current password or invalid input",
@@ -259,9 +246,7 @@ const putPasswordRoute = createRoute({
     401: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Unauthorized",
@@ -287,9 +272,7 @@ const deleteProfileRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Database or processing error",
@@ -297,9 +280,7 @@ const deleteProfileRoute = createRoute({
     401: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Unauthorized",
@@ -323,9 +304,7 @@ const getExportDataRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Database or processing error",
@@ -333,9 +312,7 @@ const getExportDataRoute = createRoute({
     401: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Unauthorized",
@@ -354,7 +331,7 @@ router.openapi(
       const [existingUser] = await db.select().from(users).where(eq(users.email, normalizedEmail));
 
       if (existingUser) {
-        return c.json({ error: "E-mail já cadastrado" }, 400);
+        return c.json(badRequest("E-mail já cadastrado"), 400);
       }
 
       const passwordHash = hashPassword(payload.password);
@@ -369,7 +346,7 @@ router.openapi(
         .returning();
 
       if (!newUser) {
-        return c.json({ error: "Falha ao criar usuário" }, 400);
+        return c.json(badRequest("Falha ao criar usuário"), 400);
       }
 
       const FALLBACK_HOUSE_ID = "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
@@ -407,7 +384,7 @@ router.openapi(
       return c.json({ user: responseUser, token }, 201);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -423,12 +400,12 @@ router.openapi(
       const [user] = await db.select().from(users).where(eq(users.email, normalizedEmail));
 
       if (!user?.passwordHash) {
-        return c.json({ error: "E-mail ou senha inválidos" }, 401);
+        return c.json(unauthorized("E-mail ou senha inválidos"), 401);
       }
 
       const isValidPassword = verifyPassword(payload.password, user.passwordHash);
       if (!isValidPassword) {
-        return c.json({ error: "E-mail ou senha inválidos" }, 401);
+        return c.json(unauthorized("E-mail ou senha inválidos"), 401);
       }
 
       const jwtPayload = {
@@ -456,7 +433,7 @@ router.openapi(
       return c.json({ user: responseUser, token }, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -479,7 +456,7 @@ router.openapi(getMeRoute, async (c): Promise<RouteConfigToTypedResponse<typeof 
     const [user] = await db.select().from(users).where(eq(users.id, userId));
 
     if (!user) {
-      return c.json({ error: "Usuário não encontrado" }, 401);
+      return c.json(unauthorized("Usuário não encontrado"), 401);
     }
 
     const membershipsData = await db
@@ -504,7 +481,7 @@ router.openapi(getMeRoute, async (c): Promise<RouteConfigToTypedResponse<typeof 
     return c.json({ user: responseUser, memberships: membershipsData }, 200);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Database error";
-    return c.json({ error: message }, 401);
+    return c.json(unauthorized(message), 401);
   }
 });
 
@@ -520,7 +497,7 @@ router.openapi(
       const [user] = await db.select().from(users).where(eq(users.id, userId));
 
       if (!user) {
-        return c.json({ error: "Usuário não encontrado" }, 401);
+        return c.json(unauthorized("Usuário não encontrado"), 401);
       }
 
       let emailToUpdate: string | undefined;
@@ -532,7 +509,7 @@ router.openapi(
             .from(users)
             .where(eq(users.email, normalizedEmail));
           if (emailInUse) {
-            return c.json({ error: "E-mail já está em uso" }, 400);
+            return c.json(badRequest("E-mail já está em uso"), 400);
           }
           emailToUpdate = normalizedEmail;
         }
@@ -560,7 +537,7 @@ router.openapi(
       return c.json(responseUser, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -577,12 +554,12 @@ router.openapi(
       const [user] = await db.select().from(users).where(eq(users.id, userId));
 
       if (!user?.passwordHash) {
-        return c.json({ error: "Usuário não autorizado" }, 401);
+        return c.json(unauthorized("Usuário não autorizado"), 401);
       }
 
       const isValid = verifyPassword(payload.currentPassword, user.passwordHash);
       if (!isValid) {
-        return c.json({ error: "Senha atual incorreta" }, 400);
+        return c.json(badRequest("Senha atual incorreta"), 400);
       }
 
       const newPasswordHash = hashPassword(payload.newPassword);
@@ -591,7 +568,7 @@ router.openapi(
       return c.json({ success: true }, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -605,7 +582,7 @@ router.openapi(
       const userId = c.var.userId;
       const [user] = await db.select().from(users).where(eq(users.id, userId));
       if (!user) {
-        return c.json({ error: "Usuário não encontrado" }, 401);
+        return c.json(unauthorized("Usuário não encontrado"), 401);
       }
 
       await db.delete(users).where(eq(users.id, userId));
@@ -614,7 +591,7 @@ router.openapi(
       return c.json({ success: true }, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -628,7 +605,7 @@ router.openapi(
       const userId = c.var.userId;
       const [user] = await db.select().from(users).where(eq(users.id, userId));
       if (!user) {
-        return c.json({ error: "Usuário não encontrado" }, 401);
+        return c.json(unauthorized("Usuário não encontrado"), 401);
       }
 
       const membershipsData = await db
@@ -676,7 +653,7 @@ router.openapi(
       return c.json(exportPayload, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );

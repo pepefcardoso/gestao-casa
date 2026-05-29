@@ -1,3 +1,4 @@
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
 import { useFocusEffect, useRouter } from "expo-router";
 import type React from "react";
 import { useCallback, useState } from "react";
@@ -24,12 +25,11 @@ interface RoomClient {
   createdAt: string;
 }
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 const FALLBACK_HOUSE_ID = "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
 
 export default function RoomsIndexScreen(): React.JSX.Element {
   const router = useRouter();
-  const { userId, role } = useMobileUser();
+  const { role } = useMobileUser();
   const [rooms, setRooms] = useState<RoomClient[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -39,13 +39,7 @@ export default function RoomsIndexScreen(): React.JSX.Element {
   const fetchRooms = useCallback(async (): Promise<void> => {
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/rooms`, {
-        headers: { "x-user-id": userId },
-      });
-      if (!response.ok) {
-        throw new Error("Não foi possível carregar os cômodos.");
-      }
-      const data: unknown = await response.json();
+      const data = await apiClient.get("/api/rooms");
       if (Array.isArray(data)) {
         setRooms(data as RoomClient[]);
         if (data.length > 0 && data[0].houseId) {
@@ -59,7 +53,7 @@ export default function RoomsIndexScreen(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
 
   useFocusEffect(
     useCallback((): void => {

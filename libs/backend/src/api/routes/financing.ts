@@ -9,6 +9,7 @@ import {
   uuidSchema,
 } from "../../db/schema";
 import { authMiddleware, verifyHouseAccess } from "../auth";
+import { badRequest, ErrorSchema, forbidden, notFound } from "../errors";
 
 const router = new OpenAPIHono<{ Variables: { userId: string } }>({
   defaultHook: (result, c): Response | undefined => {
@@ -51,9 +52,7 @@ const postFinancingRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid input payload",
@@ -61,9 +60,7 @@ const postFinancingRoute = createRoute({
     403: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Access denied",
@@ -81,7 +78,7 @@ router.openapi(
       // Verify write access to target house
       const check = await verifyHouseAccess(userId, payload.houseId, ["OWNER", "COLLABORATOR"]);
       if (!check.success) {
-        return c.json({ error: check.error || "Access denied" }, 403);
+        return c.json(forbidden(check.error || "Access denied"), 403);
       }
 
       const [upserted] = await db
@@ -155,7 +152,7 @@ router.openapi(
         .returning();
 
       if (!upserted) {
-        return c.json({ error: "Failed to upsert financing record" }, 400);
+        return c.json(badRequest("Failed to upsert financing record"), 400);
       }
 
       const responseRecord = {
@@ -168,7 +165,7 @@ router.openapi(
       return c.json(responseRecord, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -193,9 +190,7 @@ const getFinancingRoute = createRoute({
     404: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Financing record not found",
@@ -203,9 +198,7 @@ const getFinancingRoute = createRoute({
     403: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Access denied",
@@ -213,9 +206,7 @@ const getFinancingRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid parameter format",
@@ -232,13 +223,13 @@ router.openapi(
 
       const check = await verifyHouseAccess(userId, house_id, ["OWNER", "COLLABORATOR", "VIEWER"]);
       if (!check.success) {
-        return c.json({ error: check.error || "Access denied" }, 403);
+        return c.json(forbidden(check.error || "Access denied"), 403);
       }
 
       const [record] = await db.select().from(financing).where(eq(financing.houseId, house_id));
 
       if (!record) {
-        return c.json({ error: "Financing record not found" }, 404);
+        return c.json(notFound("Financing record"), 404);
       }
 
       const responseRecord = {
@@ -251,7 +242,7 @@ router.openapi(
       return c.json(responseRecord, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );

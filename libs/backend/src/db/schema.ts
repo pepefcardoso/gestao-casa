@@ -71,7 +71,8 @@ export const insertHouseSchema = createInsertSchema(houses, {
     },
   );
 
-export type House = z.infer<typeof selectHouseSchema>;
+export type House = typeof houses.$inferSelect;
+export type NewHouse = typeof houses.$inferInsert;
 
 export const rooms = pgTable("rooms", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -105,7 +106,8 @@ export const insertRoomSchema = createInsertSchema(rooms, {
   },
 );
 
-export type Room = z.infer<typeof selectRoomSchema>;
+export type Room = typeof rooms.$inferSelect;
+export type NewRoom = typeof rooms.$inferInsert;
 
 export const financing = pgTable("financing", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -222,8 +224,8 @@ export const insertFinancingSchema = createInsertSchema(financing, {
   },
 );
 
-export type Financing = z.infer<typeof selectFinancingSchema>;
-export type InsertFinancing = z.infer<typeof insertFinancingSchema>;
+export type Financing = typeof financing.$inferSelect;
+export type InsertFinancing = typeof financing.$inferInsert;
 
 export const expenses = pgTable("expenses", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -285,8 +287,8 @@ export const insertExpenseSchema = createInsertSchema(expenses, {
   }, z.date()),
 });
 
-export type Expense = z.infer<typeof selectExpenseSchema>;
-export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+export type Expense = typeof expenses.$inferSelect;
+export type InsertExpense = typeof expenses.$inferInsert;
 
 export const incomes = pgTable("incomes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -329,8 +331,8 @@ export const insertIncomeSchema = createInsertSchema(incomes, {
   },
 );
 
-export type Income = z.infer<typeof selectIncomeSchema>;
-export type InsertIncome = z.infer<typeof insertIncomeSchema>;
+export type Income = typeof incomes.$inferSelect;
+export type InsertIncome = typeof incomes.$inferInsert;
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -343,7 +345,8 @@ export const users = pgTable("users", {
 
 export const selectUserSchema = createSelectSchema(users).omit({ passwordHash: true });
 export const insertUserSchema = createInsertSchema(users);
-export type User = z.infer<typeof selectUserSchema>;
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
 
 // Auth Validation Schemas (Required by GEMINI.md to be defined in schema.ts)
 export const registerUserSchema = z.object({
@@ -390,4 +393,5 @@ export const insertHouseMembershipSchema = createInsertSchema(houseMemberships, 
   role: z.enum(["OWNER", "COLLABORATOR", "VIEWER"]),
 });
 
-export type HouseMembership = z.infer<typeof selectHouseMembershipSchema>;
+export type HouseMembership = typeof houseMemberships.$inferSelect;
+export type InsertHouseMembership = typeof houseMemberships.$inferInsert;

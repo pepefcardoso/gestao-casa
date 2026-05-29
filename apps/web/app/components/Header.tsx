@@ -1,14 +1,15 @@
 "use client";
 
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
 import { Home, Plus, User, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
-import PillarLogo from "./PillarLogo";
+import { PillarLogo } from "./PillarLogo";
 import { FALLBACK_HOUSE_ID, useUser } from "./UserContext";
 
-export default function Header(): React.JSX.Element {
+export function Header(): React.JSX.Element {
   const { user, activeHouseId, role, housesList, changeHouse, refreshContext } = useUser();
   const pathname = usePathname();
   const isMarketingPage = pathname === "/" || pathname === "/login" || pathname === "/register";
@@ -45,31 +46,22 @@ export default function Header(): React.JSX.Element {
 
     setIsSaving(true);
     try {
-      const res = await fetch("/api/houses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const createdHouse = await apiClient.post("/api/houses", {
+        body: {
           name: newHouseName.trim(),
           location: newHouseLoc.trim() || null,
-        }),
+        },
       });
 
-      if (res.ok) {
-        const createdHouse = await res.json();
-        setNewHouseName("");
-        setNewHouseLoc("");
-        setIsCreateModalOpen(false);
-        // Switch to the newly created house
-        await refreshContext();
-        changeHouse(createdHouse.id);
-      } else {
-        alert("Erro ao criar nova residência. Certifique-se de que você tem permissão.");
-      }
+      setNewHouseName("");
+      setNewHouseLoc("");
+      setIsCreateModalOpen(false);
+      // Switch to the newly created house
+      await refreshContext();
+      changeHouse(createdHouse.id);
     } catch (err) {
       console.error(err);
-      alert("Erro de conexão ao criar nova residência.");
+      alert("Erro ao criar nova residência. Certifique-se de que você tem permissão.");
     } finally {
       setIsSaving(false);
     }

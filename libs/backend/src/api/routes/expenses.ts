@@ -11,6 +11,7 @@ import {
   uuidSchema,
 } from "../../db/schema";
 import { authMiddleware, verifyHouseAccess } from "../auth";
+import { badRequest, ErrorSchema, forbidden, notFound } from "../errors";
 
 const router = new OpenAPIHono<{ Variables: { userId: string } }>({
   defaultHook: (result, c): Response | undefined => {
@@ -53,9 +54,7 @@ const postExpenseRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid input payload",
@@ -63,9 +62,7 @@ const postExpenseRoute = createRoute({
     403: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Access denied",
@@ -94,9 +91,7 @@ const getExpensesRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid query parameters",
@@ -104,9 +99,7 @@ const getExpensesRoute = createRoute({
     403: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Access denied",
@@ -114,9 +107,7 @@ const getExpensesRoute = createRoute({
     404: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Room not found",
@@ -140,13 +131,13 @@ router.openapi(
       }
 
       if (!targetHouseId) {
-        return c.json({ error: "houseId is required" }, 400);
+        return c.json(badRequest("houseId is required"), 400);
       }
 
       // Verify write access to target house
       const check = await verifyHouseAccess(userId, targetHouseId, ["OWNER", "COLLABORATOR"]);
       if (!check.success) {
-        return c.json({ error: check.error || "Access denied" }, 403);
+        return c.json(forbidden(check.error || "Access denied"), 403);
       }
 
       const [newExpense] = await db
@@ -165,7 +156,7 @@ router.openapi(
         .returning();
 
       if (!newExpense) {
-        return c.json({ error: "Failed to create expense" }, 400);
+        return c.json(badRequest("Failed to create expense"), 400);
       }
 
       const responseExpense = {
@@ -186,7 +177,7 @@ router.openapi(
       return c.json(responseExpense, 201);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -202,7 +193,7 @@ router.openapi(
       if (room_id) {
         const [room] = await db.select().from(rooms).where(eq(rooms.id, room_id));
         if (!room) {
-          return c.json({ error: "Room not found" }, 404);
+          return c.json(notFound("Room"), 404);
         }
 
         const check = await verifyHouseAccess(userId, room.houseId, [
@@ -211,7 +202,7 @@ router.openapi(
           "VIEWER",
         ]);
         if (!check.success) {
-          return c.json({ error: check.error || "Access denied" }, 403);
+          return c.json(forbidden(check.error || "Access denied"), 403);
         }
 
         results = await db.select().from(expenses).where(eq(expenses.roomId, room_id));
@@ -222,7 +213,7 @@ router.openapi(
           "VIEWER",
         ]);
         if (!check.success) {
-          return c.json({ error: check.error || "Access denied" }, 403);
+          return c.json(forbidden(check.error || "Access denied"), 403);
         }
 
         results = await db.select().from(expenses).where(eq(expenses.houseId, house_id));
@@ -264,7 +255,7 @@ router.openapi(
       return c.json(serialized, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -296,9 +287,7 @@ const putExpenseRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid input payload",
@@ -306,9 +295,7 @@ const putExpenseRoute = createRoute({
     403: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Access denied",
@@ -316,9 +303,7 @@ const putExpenseRoute = createRoute({
     404: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Expense not found",
@@ -348,9 +333,7 @@ const deleteExpenseRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid ID parameter",
@@ -358,9 +341,7 @@ const deleteExpenseRoute = createRoute({
     403: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Access denied",
@@ -368,9 +349,7 @@ const deleteExpenseRoute = createRoute({
     404: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Expense not found",
@@ -389,13 +368,13 @@ router.openapi(
       const [expense] = await db.select().from(expenses).where(eq(expenses.id, id));
 
       if (!expense) {
-        return c.json({ error: "Expense not found" }, 404);
+        return c.json(notFound("Expense"), 404);
       }
 
       // Verify write access to the expense's house
       const check = await verifyHouseAccess(userId, expense.houseId, ["OWNER", "COLLABORATOR"]);
       if (!check.success) {
-        return c.json({ error: check.error || "Access denied" }, 403);
+        return c.json(forbidden(check.error || "Access denied"), 403);
       }
 
       // Ensure that if they change roomId, the new room belongs to the same house or they have access
@@ -409,7 +388,7 @@ router.openapi(
           ]);
           if (!roomCheck.success) {
             return c.json(
-              { error: "Cannot assign expense to a room you do not have write access to." },
+              forbidden("Cannot assign expense to a room you do not have write access to."),
               403,
             );
           }
@@ -451,7 +430,7 @@ router.openapi(
       return c.json(responseExpense, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -466,13 +445,13 @@ router.openapi(
       const [expense] = await db.select().from(expenses).where(eq(expenses.id, id));
 
       if (!expense) {
-        return c.json({ error: "Expense not found" }, 404);
+        return c.json(notFound("Expense"), 404);
       }
 
       // Verify write access to the expense's house
       const check = await verifyHouseAccess(userId, expense.houseId, ["OWNER", "COLLABORATOR"]);
       if (!check.success) {
-        return c.json({ error: check.error || "Access denied" }, 403);
+        return c.json(forbidden(check.error || "Access denied"), 403);
       }
 
       await db.delete(expenses).where(eq(expenses.id, id));
@@ -480,7 +459,7 @@ router.openapi(
       return c.json({ success: true }, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );

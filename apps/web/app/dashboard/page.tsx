@@ -1,5 +1,10 @@
 "use client";
 
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
+import {
+  calculateFinancing,
+  type FinancingInstallment,
+} from "@gestao-casa/shared-logic/utils/calculate-financing";
 import {
   AlertTriangle,
   ArrowRight,
@@ -16,10 +21,6 @@ import Link from "next/link";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import {
-  calculateFinancing,
-  type FinancingInstallment,
-} from "../../../../libs/shared-logic/src/utils/calculate-financing";
 import { useUser } from "../components/UserContext";
 
 interface Expense {
@@ -73,7 +74,7 @@ interface House {
   createdAt: string;
 }
 
-const HouseMap = dynamic(() => import("../components/HouseMap"), {
+const HouseMap = dynamic(() => import("../components/HouseMap").then((m) => m.HouseMap), {
   ssr: false,
   loading: (): React.JSX.Element => (
     <div className="h-[250px] w-full bg-slate-100 rounded-lg flex items-center justify-center animate-pulse">
@@ -120,42 +121,27 @@ export default function DashboardPage(): React.JSX.Element {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const [houseRes, financingRes, expensesRes, incomesRes] = await Promise.all([
-        fetch(`/api/houses/${activeHouseId}`),
-        fetch(`/api/financing/${activeHouseId}`),
-        fetch(`/api/expenses?house_id=${activeHouseId}`),
-        fetch(`/api/incomes?house_id=${activeHouseId}`),
+      const [houseData, finData, expData, incData] = await Promise.all([
+        apiClient.get("/api/houses/{id}", { params: { id: activeHouseId } }).catch((err) => {
+          console.warn("House details fetch failed:", err);
+          return null;
+        }),
+        apiClient
+          .get("/api/financing/{house_id}", { params: { house_id: activeHouseId } })
+          .catch((err) => {
+            console.warn("Financing record fetch failed:", err);
+            return null;
+          }),
+        apiClient.get("/api/expenses", { query: { house_id: activeHouseId } }),
+        apiClient.get("/api/incomes", { query: { house_id: activeHouseId } }),
       ]);
 
-      if (houseRes.ok) {
-        const houseData: unknown = await houseRes.json();
+      if (houseData) {
         setHouse(houseData as House);
-      } else {
-        console.warn("House details fetch returned status:", houseRes.status);
       }
-
-      if (financingRes.ok) {
-        const finData: unknown = await financingRes.json();
-        setFinancingRecord(finData as FinancingRecord);
-      } else if (financingRes.status === 404) {
-        setFinancingRecord(null);
-      } else {
-        console.warn("Financing record fetch returned status:", financingRes.status);
-      }
-
-      if (expensesRes.ok) {
-        const expData: unknown = await expensesRes.json();
-        setExpenses(expData as Expense[]);
-      } else {
-        setErrorMsg("Erro ao carregar despesas.");
-      }
-
-      if (incomesRes.ok) {
-        const incData: unknown = await incomesRes.json();
-        setIncomes(incData as Income[]);
-      } else {
-        setErrorMsg("Erro ao carregar receitas.");
-      }
+      setFinancingRecord(finData as FinancingRecord | null);
+      setExpenses(expData as Expense[]);
+      setIncomes(incData as Income[]);
     } catch (err) {
       setErrorMsg("Erro ao conectar ao servidor.");
       console.error(err);

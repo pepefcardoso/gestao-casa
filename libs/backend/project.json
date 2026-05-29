@@ -2,6 +2,7 @@
   "name": "backend",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
+  "tags": ["type:lib", "platform:backend"],
   "sourceRoot": "libs/backend",
   "targets": {
     "lint": {

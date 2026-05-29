@@ -5,7 +5,7 @@ interface PillarLogoProps {
   size?: number;
 }
 
-export default function PillarLogo({ className = "", size = 24 }: PillarLogoProps): React.JSX.Element {
+export function PillarLogo({ className = "", size = 24 }: PillarLogoProps): React.JSX.Element {
   return (
     <svg
       viewBox="0 0 24 24"

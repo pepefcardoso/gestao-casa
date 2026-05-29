@@ -1,11 +1,12 @@
 "use client";
 
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
+import { calculateFinancing } from "@gestao-casa/shared-logic/utils/calculate-financing";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Area, AreaChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { calculateFinancing } from "../../../../libs/shared-logic/src/utils/calculate-financing";
 import { useUser } from "../components/UserContext";
 
 interface ValidationErrors {
@@ -51,46 +52,32 @@ export default function FinancingPage(): React.JSX.Element {
     setIsLoading(true);
     setFetchError(null);
     try {
-      const response = await fetch(`/api/financing/${activeHouseId}`);
-      if (response.ok) {
-        const data: unknown = await response.json();
-        if (data && typeof data === "object") {
-          const record = data as {
-            propertyValue: string;
-            downPayment: string;
-            termMonths: number;
-            interestRate: string;
-            amortizationSystem: "SAC" | "PRICE";
-            firstParcelOverride: string | null;
-            lastParcelOverride: string | null;
-            adminFee: string | null;
-            mipRate: string | null;
-            dfiRate: string | null;
-            trRate: string | null;
-            interestMethod: "compound" | "linear" | null;
-          };
-          setPropertyValue(Number(record.propertyValue));
-          setDownPayment(Number(record.downPayment));
-          setTermMonths(record.termMonths);
-          setInterestRatePercentage(Number(record.interestRate) * 100);
-          setAmortizationSystem(record.amortizationSystem);
-          setFirstParcelOverride(
-            record.firstParcelOverride ? Number(record.firstParcelOverride) : undefined,
-          );
-          setLastParcelOverride(
-            record.lastParcelOverride ? Number(record.lastParcelOverride) : undefined,
-          );
-          setAdminFee(record.adminFee ? Number(record.adminFee) : undefined);
-          setMipRatePercentage(record.mipRate ? Number(record.mipRate) * 100 : undefined);
-          setDfiRatePercentage(record.dfiRate ? Number(record.dfiRate) * 100 : undefined);
-          setTrRatePercentage(record.trRate ? Number(record.trRate) * 100 : undefined);
-          setInterestMethod((record.interestMethod as "compound" | "linear") || "compound");
-        }
-      } else if (response.status !== 404) {
+      const record = await apiClient.get("/api/financing/{house_id}", {
+        params: { house_id: activeHouseId },
+      });
+      if (record) {
+        setPropertyValue(Number(record.propertyValue));
+        setDownPayment(Number(record.downPayment));
+        setTermMonths(record.termMonths);
+        setInterestRatePercentage(Number(record.interestRate) * 100);
+        setAmortizationSystem(record.amortizationSystem);
+        setFirstParcelOverride(
+          record.firstParcelOverride ? Number(record.firstParcelOverride) : undefined,
+        );
+        setLastParcelOverride(
+          record.lastParcelOverride ? Number(record.lastParcelOverride) : undefined,
+        );
+        setAdminFee(record.adminFee ? Number(record.adminFee) : undefined);
+        setMipRatePercentage(record.mipRate ? Number(record.mipRate) * 100 : undefined);
+        setDfiRatePercentage(record.dfiRate ? Number(record.dfiRate) * 100 : undefined);
+        setTrRatePercentage(record.trRate ? Number(record.trRate) * 100 : undefined);
+        setInterestMethod((record.interestMethod as "compound" | "linear") || "compound");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "";
+      if (!message.includes("404") && !message.toLowerCase().includes("not found")) {
         setFetchError("Erro ao carregar dados salvos do financiamento.");
       }
-    } catch {
-      setFetchError("Erro ao conectar ao servidor para carregar dados.");
     } finally {
       setIsLoading(false);
     }
@@ -126,29 +113,17 @@ export default function FinancingPage(): React.JSX.Element {
     };
 
     try {
-      const response = await fetch("/api/financing", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      await apiClient.post("/api/financing", {
+        body: payload,
       });
 
-      if (response.ok) {
-        setSaveStatus({
-          type: "success",
-          message: "Configuração do financiamento salva com sucesso!",
-        });
-      } else {
-        const data: unknown = await response.json();
-        const errorMsg =
-          data && typeof data === "object" && "error" in data
-            ? String((data as { error: unknown }).error)
-            : "Erro ao salvar dados.";
-        setSaveStatus({ type: "error", message: errorMsg });
-      }
-    } catch {
-      setSaveStatus({ type: "error", message: "Erro de conexão ao salvar." });
+      setSaveStatus({
+        type: "success",
+        message: "Configuração do financiamento salva com sucesso!",
+      });
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Erro ao salvar dados.";
+      setSaveStatus({ type: "error", message: errorMsg });
     } finally {
       setIsSaving(false);
     }

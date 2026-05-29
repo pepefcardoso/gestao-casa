@@ -37,10 +37,9 @@ export default function TermsOfUsePage(): React.JSX.Element {
           <section className="space-y-2">
             <h2 className="text-lg font-black text-slate-800">1. Aceitação dos Termos</h2>
             <p>
-              Ao criar uma conta ou utilizar a plataforma Pillar, você concorda em cumprir e
-              estar vinculado a estes Termos de Uso. Caso não concorde com qualquer uma das
-              condições dispostas, solicitamos que não realize o cadastro ou utilize os nossos
-              serviços.
+              Ao criar uma conta ou utilizar a plataforma Pillar, você concorda em cumprir e estar
+              vinculado a estes Termos de Uso. Caso não concorde com qualquer uma das condições
+              dispostas, solicitamos que não realize o cadastro ou utilize os nossos serviços.
             </p>
           </section>
 
@@ -70,10 +69,9 @@ export default function TermsOfUsePage(): React.JSX.Element {
             </h2>
             <p>
               Todas as informações de despesas, receitas, valores de propriedades, juros e dados de
-              financiamento são inseridas pelos próprios usuários. O Pillar não realiza
-              qualquer validação financeira externa, auditoria contábil ou jurídica sobre estes
-              valores, não sendo responsável por eventuais erros de cálculo resultantes de inputs
-              imprecisos.
+              financiamento são inseridas pelos próprios usuários. O Pillar não realiza qualquer
+              validação financeira externa, auditoria contábil ou jurídica sobre estes valores, não
+              sendo responsável por eventuais erros de cálculo resultantes de inputs imprecisos.
             </p>
           </section>
 

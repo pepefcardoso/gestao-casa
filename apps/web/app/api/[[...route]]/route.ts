@@ -1,16 +1,16 @@
 export const dynamic = "force-dynamic";
 
+import { authRouter } from "@gestao-casa/backend/api/routes/auth";
+import { expensesRouter } from "@gestao-casa/backend/api/routes/expenses";
+import { financingRouter } from "@gestao-casa/backend/api/routes/financing";
+import { healthRouter } from "@gestao-casa/backend/api/routes/health";
+import { housesRouter } from "@gestao-casa/backend/api/routes/houses";
+import { incomesRouter } from "@gestao-casa/backend/api/routes/incomes";
+import { roomsRouter } from "@gestao-casa/backend/api/routes/rooms";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { handle } from "hono/vercel";
-import { authRouter } from "../../../../../libs/backend/src/api/routes/auth";
-import { expensesRouter } from "../../../../../libs/backend/src/api/routes/expenses";
-import { financingRouter } from "../../../../../libs/backend/src/api/routes/financing";
-import { healthRouter } from "../../../../../libs/backend/src/api/routes/health";
-import { housesRouter } from "../../../../../libs/backend/src/api/routes/houses";
-import { incomesRouter } from "../../../../../libs/backend/src/api/routes/incomes";
-import { roomsRouter } from "../../../../../libs/backend/src/api/routes/rooms";
 
-const app = new OpenAPIHono().basePath("/api");
+export const app = new OpenAPIHono().basePath("/api");
 
 // Catch unhandled errors, such as JSON parse errors from empty bodies in zod-openapi
 app.onError((err, c) => {
@@ -29,7 +29,7 @@ app.route("/", housesRouter);
 app.route("/", incomesRouter);
 app.route("/", authRouter);
 
-app.doc("/doc", {
+app.doc("/openapi.json", {
   openapi: "3.0.0",
   info: {
     title: "Pillar API",

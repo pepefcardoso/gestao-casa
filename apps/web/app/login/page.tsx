@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useState } from "react";
-import PillarLogo from "../components/PillarLogo";
+import { PillarLogo } from "../components/PillarLogo";
 import { PRESET_USERS, useUser } from "../components/UserContext";
 
 export default function LoginPage(): React.JSX.Element {

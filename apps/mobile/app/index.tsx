@@ -1,3 +1,4 @@
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
 import { useFocusEffect, useRouter } from "expo-router";
 import type React from "react";
 import { useCallback, useState } from "react";
@@ -45,7 +46,6 @@ interface ExpenseClient {
   createdAt: string;
 }
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 const FALLBACK_HOUSE_ID = "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
 
 export default function HomeScreen(): React.JSX.Element {
@@ -61,43 +61,27 @@ export default function HomeScreen(): React.JSX.Element {
   const fetchDashboardData = useCallback(async (): Promise<void> => {
     setError(null);
     try {
-      const [houseRes, roomsRes, expensesRes] = await Promise.all([
-        fetch(`${API_URL}/houses/${FALLBACK_HOUSE_ID}`, { headers: { "x-user-id": userId } }),
-        fetch(`${API_URL}/rooms?house_id=${FALLBACK_HOUSE_ID}`, {
-          headers: { "x-user-id": userId },
-        }),
-        fetch(`${API_URL}/expenses?house_id=${FALLBACK_HOUSE_ID}`, {
-          headers: { "x-user-id": userId },
-        }),
+      const [houseData, roomsData, expensesData] = await Promise.all([
+        apiClient
+          .get("/api/houses/{id}", { params: { id: FALLBACK_HOUSE_ID } })
+          .catch((err: unknown): HouseClient => {
+            const message = err instanceof Error ? err.message : "";
+            if (message.includes("404") || message.toLowerCase().includes("not found")) {
+              return {
+                id: FALLBACK_HOUSE_ID,
+                name: "Minha Casa",
+                location: "Localização não configurada",
+                totalArea: null,
+                createdAt: new Date().toISOString(),
+              };
+            }
+            throw err;
+          }),
+        apiClient.get("/api/rooms", { query: { house_id: FALLBACK_HOUSE_ID } }),
+        apiClient.get("/api/expenses", { query: { house_id: FALLBACK_HOUSE_ID } }),
       ]);
 
-      let houseData: HouseClient | null = null;
-      if (houseRes.status === 404) {
-        houseData = {
-          id: FALLBACK_HOUSE_ID,
-          name: "Minha Casa",
-          location: "Localização não configurada",
-          totalArea: null,
-          createdAt: new Date().toISOString(),
-        };
-      } else if (!houseRes.ok) {
-        throw new Error("Não foi possível carregar os dados da casa.");
-      } else {
-        const data: unknown = await houseRes.json();
-        houseData = data as HouseClient;
-      }
-
-      if (!roomsRes.ok) {
-        throw new Error("Não foi possível carregar os cômodos.");
-      }
-      const roomsData: unknown = await roomsRes.json();
-
-      if (!expensesRes.ok) {
-        throw new Error("Não foi possível carregar as despesas.");
-      }
-      const expensesData: unknown = await expensesRes.json();
-
-      setHouse(houseData);
+      setHouse(houseData as HouseClient);
 
       if (Array.isArray(roomsData)) {
         const filteredRooms = (roomsData as RoomClient[]).filter(
@@ -118,7 +102,7 @@ export default function HomeScreen(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
 
   useFocusEffect(
     useCallback((): void => {

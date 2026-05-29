@@ -1,3 +1,4 @@
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
 import { useFocusEffect, useRouter } from "expo-router";
 import type React from "react";
 import { useCallback, useState } from "react";
@@ -40,8 +41,6 @@ interface ExpenseClient {
   createdAt: string;
 }
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
-
 const CATEGORY_LABELS: Record<ExpenseClient["category"], string> = {
   TAX: "Imposto",
   PRODUCT: "Produto",
@@ -66,7 +65,7 @@ const PRIORITIES = [
 
 export default function ExpenseListScreen(): React.JSX.Element {
   const router = useRouter();
-  const { userId, role } = useMobileUser();
+  const { role } = useMobileUser();
 
   // Data State
   const [expenses, setExpenses] = useState<ExpenseClient[]>([]);
@@ -86,20 +85,10 @@ export default function ExpenseListScreen(): React.JSX.Element {
   const fetchData = useCallback(async (): Promise<void> => {
     setError(null);
     try {
-      const [expensesRes, roomsRes] = await Promise.all([
-        fetch(`${API_URL}/expenses`, { headers: { "x-user-id": userId } }),
-        fetch(`${API_URL}/rooms`, { headers: { "x-user-id": userId } }),
+      const [expensesData, roomsData] = await Promise.all([
+        apiClient.get("/api/expenses"),
+        apiClient.get("/api/rooms"),
       ]);
-
-      if (!expensesRes.ok) {
-        throw new Error("Não foi possível carregar as despesas.");
-      }
-      if (!roomsRes.ok) {
-        throw new Error("Não foi possível carregar os cômodos.");
-      }
-
-      const expensesData: unknown = await expensesRes.json();
-      const roomsData: unknown = await roomsRes.json();
 
       if (Array.isArray(expensesData)) {
         setExpenses(expensesData as ExpenseClient[]);
@@ -117,7 +106,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
 
   useFocusEffect(
     useCallback((): void => {
@@ -150,24 +139,16 @@ export default function ExpenseListScreen(): React.JSX.Element {
         description: expense.description,
         totalAmount: Number(expense.totalAmount),
         installmentsCount: expense.installmentsCount,
-        status: "CONFIRMED",
+        status: "CONFIRMED" as const,
         category: expense.category,
         priority: expense.priority,
         dueDate: expense.dueDate,
       };
 
-      const response = await fetch(`${API_URL}/expenses/${expense.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": userId,
-        },
-        body: JSON.stringify(payload),
+      await apiClient.put("/api/expenses/{id}", {
+        params: { id: expense.id },
+        body: payload,
       });
-
-      if (!response.ok) {
-        throw new Error("Não foi possível atualizar a despesa no servidor.");
-      }
     } catch (err: unknown) {
       // Revert state on failure
       setExpenses(previousExpenses);
@@ -202,7 +183,7 @@ export default function ExpenseListScreen(): React.JSX.Element {
     return matchesRoom && matchesPriority;
   });
 
-  const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
+  const selectedRoom = rooms.find((r): boolean => r.id === selectedRoomId);
 
   const keyExtractor = (item: ExpenseClient): string => item.id;
 

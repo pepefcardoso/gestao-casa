@@ -1,5 +1,6 @@
 "use client";
 
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -65,15 +66,12 @@ function IncomesListContent(): React.JSX.Element {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const res = await fetch(`/api/incomes?house_id=${activeHouseId}`);
-      if (res.ok) {
-        const data: unknown = await res.json();
-        setIncomes(data as Income[]);
-      } else {
-        setErrorMsg("Erro ao buscar receitas do servidor.");
-      }
+      const data = await apiClient.get("/api/incomes", {
+        query: { house_id: activeHouseId },
+      });
+      setIncomes(data as Income[]);
     } catch (err) {
-      setErrorMsg("Erro de rede ao buscar receitas.");
+      setErrorMsg("Erro ao buscar receitas do servidor.");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -186,44 +184,23 @@ function IncomesListContent(): React.JSX.Element {
         amount: amountNum,
         status,
         category,
-        dueDate: new Date(dueDate),
+        dueDate: new Date(dueDate).toISOString(),
       };
 
       if (editingIncome) {
         // Edit single record via PUT
-        const res = await fetch(`/api/incomes/${editingIncome.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+        await apiClient.put("/api/incomes/{id}", {
+          params: { id: editingIncome.id },
+          body: payload,
         });
-
-        if (!res.ok) {
-          const errData: unknown = await res.json();
-          const msg =
-            errData && typeof errData === "object" && "error" in errData
-              ? String((errData as { error: unknown }).error)
-              : "Erro ao salvar alterações da receita.";
-          throw new Error(msg);
-        }
 
         setIsModalOpen(false);
         fetchIncomes();
       } else {
         // Add new record via POST
-        const res = await fetch("/api/incomes", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+        await apiClient.post("/api/incomes", {
+          body: payload,
         });
-
-        if (!res.ok) {
-          const errData: unknown = await res.json();
-          const msg =
-            errData && typeof errData === "object" && "error" in errData
-              ? String((errData as { error: unknown }).error)
-              : "Erro ao registrar receita.";
-          throw new Error(msg);
-        }
 
         setIsModalOpen(false);
         fetchIncomes();
@@ -239,18 +216,9 @@ function IncomesListContent(): React.JSX.Element {
     if (!deleteTarget) return;
 
     try {
-      const res = await fetch(`/api/incomes/${deleteTarget.id}`, {
-        method: "DELETE",
+      await apiClient.delete("/api/incomes/{id}", {
+        params: { id: deleteTarget.id },
       });
-
-      if (!res.ok) {
-        const errData: unknown = await res.json();
-        const msg =
-          errData && typeof errData === "object" && "error" in errData
-            ? String((errData as { error: unknown }).error)
-            : "Erro ao excluir receita.";
-        throw new Error(msg);
-      }
 
       setDeleteTarget(null);
       fetchIncomes();

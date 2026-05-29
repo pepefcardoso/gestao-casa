@@ -1,3 +1,4 @@
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import type React from "react";
 import { useCallback, useState } from "react";
@@ -38,8 +39,6 @@ interface ExpenseClient {
   createdAt: string;
 }
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
-
 const CATEGORY_LABELS: Record<ExpenseClient["category"], string> = {
   TAX: "Imposto",
   PRODUCT: "Produto",
@@ -57,7 +56,7 @@ const PRIORITY_LABELS: Record<ExpenseClient["priority"], string> = {
 
 export default function RoomDetailScreen(): React.JSX.Element {
   const router = useRouter();
-  const { userId, role } = useMobileUser();
+  const { role } = useMobileUser();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [room, setRoom] = useState<RoomClient | null>(null);
@@ -75,24 +74,10 @@ export default function RoomDetailScreen(): React.JSX.Element {
 
     setError(null);
     try {
-      const [roomRes, expensesRes] = await Promise.all([
-        fetch(`${API_URL}/rooms/${id}`, { headers: { "x-user-id": userId } }),
-        fetch(`${API_URL}/expenses?room_id=${id}`, { headers: { "x-user-id": userId } }),
+      const [roomData, expensesData] = await Promise.all([
+        apiClient.get("/api/rooms/{id}", { params: { id } }),
+        apiClient.get("/api/expenses", { query: { room_id: id } }),
       ]);
-
-      if (!roomRes.ok) {
-        if (roomRes.status === 404) {
-          throw new Error("Cômodo não encontrado.");
-        }
-        throw new Error("Erro ao carregar dados do cômodo.");
-      }
-
-      if (!expensesRes.ok) {
-        throw new Error("Erro ao carregar despesas do cômodo.");
-      }
-
-      const roomData: unknown = await roomRes.json();
-      const expensesData: unknown = await expensesRes.json();
 
       setRoom(roomData as RoomClient);
 
@@ -106,7 +91,7 @@ export default function RoomDetailScreen(): React.JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }, [id, userId]);
+  }, [id]);
 
   useFocusEffect(
     useCallback((): void => {
@@ -139,24 +124,16 @@ export default function RoomDetailScreen(): React.JSX.Element {
         description: expense.description,
         totalAmount: Number(expense.totalAmount),
         installmentsCount: expense.installmentsCount,
-        status: "CONFIRMED",
+        status: "CONFIRMED" as const,
         category: expense.category,
         priority: expense.priority,
         dueDate: expense.dueDate,
       };
 
-      const response = await fetch(`${API_URL}/expenses/${expense.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": userId,
-        },
-        body: JSON.stringify(payload),
+      await apiClient.put("/api/expenses/{id}", {
+        params: { id: expense.id },
+        body: payload,
       });
-
-      if (!response.ok) {
-        throw new Error("Não foi possível atualizar a despesa no servidor.");
-      }
     } catch (err: unknown) {
       // Revert state on failure
       setExpenses(previousExpenses);

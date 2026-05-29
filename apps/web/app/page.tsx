@@ -440,8 +440,8 @@ export default function LandingPage(): React.JSX.Element {
       {/* Footer */}
       <footer className="bg-[#FFFFFF] py-8 text-center text-xs text-[#86868B] font-medium tracking-tight">
         <p>
-          &copy; {new Date().getFullYear()} Pillar. Todos os direitos reservados. Design
-          Minimalista Premium.
+          &copy; {new Date().getFullYear()} Pillar. Todos os direitos reservados. Design Minimalista
+          Premium.
         </p>
       </footer>
     </div>

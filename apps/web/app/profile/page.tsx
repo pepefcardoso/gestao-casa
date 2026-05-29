@@ -1,5 +1,6 @@
 "use client";
 
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
 import { Home, Key, Loader2, LogOut, Mail, ShieldCheck, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
@@ -43,25 +44,20 @@ export default function ProfilePage(): React.JSX.Element {
   const handleExportData = async (): Promise<void> => {
     setIsExporting(true);
     try {
-      const res = await fetch("/api/auth/export-data");
-      if (res.ok) {
-        const data = await res.json();
-        const jsonStr = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonStr], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `pillar-export-${user?.name.toLowerCase().replace(/\s+/g, "-") || "data"}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      } else {
-        alert("Erro ao exportar dados do usuário.");
-      }
+      const data = await apiClient.get("/api/auth/export-data");
+      const jsonStr = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `pillar-export-${user?.name.toLowerCase().replace(/\s+/g, "-") || "data"}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
-      alert("Erro ao conectar com o servidor.");
+      alert("Erro ao exportar dados do usuário.");
     } finally {
       setIsExporting(false);
     }
@@ -71,21 +67,13 @@ export default function ProfilePage(): React.JSX.Element {
     setIsDeleting(true);
     setDeleteError(null);
     try {
-      const res = await fetch("/api/auth/profile", {
-        method: "DELETE",
-      });
-
-      if (res.ok) {
-        setShowDeleteConfirm(false);
-        await logout();
-        router.push("/login");
-      } else {
-        const data = await res.json();
-        setDeleteError(data.error || "Falha ao excluir conta.");
-      }
-    } catch (err) {
-      console.error(err);
-      setDeleteError("Erro ao conectar com o servidor.");
+      await apiClient.delete("/api/auth/profile");
+      setShowDeleteConfirm(false);
+      await logout();
+      router.push("/login");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Falha ao excluir conta.";
+      setDeleteError(message);
     } finally {
       setIsDeleting(false);
     }
@@ -103,11 +91,8 @@ export default function ProfilePage(): React.JSX.Element {
     // Load user profile & memberships on mount
     const loadProfileDetails = async (): Promise<void> => {
       try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          setMemberships(data.memberships || []);
-        }
+        const data = await apiClient.get("/api/auth/me");
+        setMemberships(data.memberships || []);
       } catch (err) {
         console.error("Failed to load user memberships:", err);
       } finally {
@@ -128,22 +113,14 @@ export default function ProfilePage(): React.JSX.Element {
     setIsUpdatingProfile(true);
 
     try {
-      const res = await fetch("/api/auth/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), email: email.trim() }),
+      await apiClient.put("/api/auth/profile", {
+        body: { name: name.trim(), email: email.trim() },
       });
-
-      const data = await res.json();
-      if (res.ok) {
-        setProfileMsg({ text: "Perfil atualizado com sucesso!", isError: false });
-        await refreshContext();
-      } else {
-        setProfileMsg({ text: data.error || "Erro ao atualizar perfil.", isError: true });
-      }
-    } catch (err) {
-      console.error(err);
-      setProfileMsg({ text: "Erro ao conectar com o servidor.", isError: true });
+      setProfileMsg({ text: "Perfil atualizado com sucesso!", isError: false });
+      await refreshContext();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao atualizar perfil.";
+      setProfileMsg({ text: message, isError: true });
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -170,24 +147,16 @@ export default function ProfilePage(): React.JSX.Element {
     setIsUpdatingPassword(true);
 
     try {
-      const res = await fetch("/api/auth/password", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword, newPassword }),
+      await apiClient.put("/api/auth/password", {
+        body: { currentPassword, newPassword },
       });
-
-      const data = await res.json();
-      if (res.ok) {
-        setPasswordMsg({ text: "Senha alterada com sucesso!", isError: false });
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-      } else {
-        setPasswordMsg({ text: data.error || "Falha ao alterar senha.", isError: true });
-      }
-    } catch (err) {
-      console.error(err);
-      setPasswordMsg({ text: "Erro ao conectar com o servidor.", isError: true });
+      setPasswordMsg({ text: "Senha alterada com sucesso!", isError: false });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Falha ao alterar senha.";
+      setPasswordMsg({ text: message, isError: true });
     } finally {
       setIsUpdatingPassword(false);
     }

@@ -11,6 +11,7 @@ import {
   uuidSchema,
 } from "../../db/schema";
 import { authMiddleware, verifyHouseAccess } from "../auth";
+import { badRequest, ErrorSchema, forbidden, notFound } from "../errors";
 
 const router = new OpenAPIHono<{ Variables: { userId: string } }>({
   defaultHook: (result, c): Response | undefined => {
@@ -44,9 +45,7 @@ const getHousesRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Database error",
@@ -74,9 +73,7 @@ const getHouseRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid ID parameter",
@@ -84,9 +81,7 @@ const getHouseRoute = createRoute({
     403: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Access denied",
@@ -94,9 +89,7 @@ const getHouseRoute = createRoute({
     404: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "House not found",
@@ -128,9 +121,7 @@ const postHouseRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid input payload",
@@ -165,9 +156,7 @@ const putHouseRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid input payload or ID parameter",
@@ -175,9 +164,7 @@ const putHouseRoute = createRoute({
     403: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Access denied",
@@ -185,9 +172,7 @@ const putHouseRoute = createRoute({
     404: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "House not found",
@@ -225,9 +210,7 @@ const getHouseMembersRoute = createRoute({
     403: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Access denied",
@@ -235,9 +218,7 @@ const getHouseMembersRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid input or database error",
@@ -278,9 +259,7 @@ const shareHouseRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid inputs",
@@ -288,9 +267,7 @@ const shareHouseRoute = createRoute({
     403: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Access denied",
@@ -321,9 +298,7 @@ const deleteHouseMemberRoute = createRoute({
     403: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Access denied",
@@ -331,9 +306,7 @@ const deleteHouseMemberRoute = createRoute({
     404: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Membership not found",
@@ -341,9 +314,7 @@ const deleteHouseMemberRoute = createRoute({
     400: {
       content: {
         "application/json": {
-          schema: z.object({
-            error: z.string(),
-          }),
+          schema: ErrorSchema,
         },
       },
       description: "Invalid request or sole owner check failure",
@@ -378,7 +349,7 @@ router.openapi(
       return c.json(serialized, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -402,7 +373,7 @@ router.openapi(
         .returning();
 
       if (!newHouse) {
-        return c.json({ error: "Failed to create house" }, 400);
+        return c.json(badRequest("Failed to create house"), 400);
       }
 
       // Add creator as owner
@@ -420,7 +391,7 @@ router.openapi(
       return c.json(responseHouse, 201);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -434,13 +405,13 @@ router.openapi(
 
       const check = await verifyHouseAccess(userId, id, ["OWNER", "COLLABORATOR", "VIEWER"]);
       if (!check.success) {
-        return c.json({ error: check.error || "Access denied" }, 403);
+        return c.json(forbidden(check.error || "Access denied"), 403);
       }
 
       const [house] = await db.select().from(houses).where(eq(houses.id, id));
 
       if (!house) {
-        return c.json({ error: "House not found" }, 404);
+        return c.json(notFound("House"), 404);
       }
 
       const responseHouse = {
@@ -451,7 +422,7 @@ router.openapi(
       return c.json(responseHouse, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -466,7 +437,7 @@ router.openapi(
 
       const check = await verifyHouseAccess(userId, id, ["OWNER", "COLLABORATOR"]);
       if (!check.success) {
-        return c.json({ error: check.error || "Access denied" }, 403);
+        return c.json(forbidden(check.error || "Access denied"), 403);
       }
 
       const [updatedHouse] = await db
@@ -491,7 +462,7 @@ router.openapi(
         .returning();
 
       if (!updatedHouse) {
-        return c.json({ error: "House not found" }, 404);
+        return c.json(notFound("House"), 404);
       }
 
       const responseHouse = {
@@ -502,7 +473,7 @@ router.openapi(
       return c.json(responseHouse, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -516,7 +487,7 @@ router.openapi(
 
       const check = await verifyHouseAccess(userId, id, ["OWNER", "COLLABORATOR", "VIEWER"]);
       if (!check.success) {
-        return c.json({ error: check.error || "Access denied" }, 403);
+        return c.json(forbidden(check.error || "Access denied"), 403);
       }
 
       const membersList = await db
@@ -536,7 +507,7 @@ router.openapi(
       return c.json(membersList, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -551,7 +522,7 @@ router.openapi(
 
       const check = await verifyHouseAccess(userId, id, ["OWNER"]);
       if (!check.success) {
-        return c.json({ error: check.error || "Access denied" }, 403);
+        return c.json(forbidden(check.error || "Access denied"), 403);
       }
 
       // 1. Find user by email, or create a mock collaborator user if not found
@@ -568,7 +539,7 @@ router.openapi(
           .returning();
 
         if (!newCollabUser) {
-          return c.json({ error: "Failed to create invited user" }, 400);
+          return c.json(badRequest("Failed to create invited user"), 400);
         }
         targetUser = newCollabUser;
       }
@@ -601,13 +572,13 @@ router.openapi(
         .returning();
 
       if (!newMembership) {
-        return c.json({ error: "Failed to create membership mapping" }, 400);
+        return c.json(badRequest("Failed to create membership mapping"), 400);
       }
 
       return c.json({ success: true, membershipId: newMembership.id }, 201);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );
@@ -634,7 +605,7 @@ router.openapi(
           );
 
         if (!userMembership) {
-          return c.json({ error: "Access denied. Insufficient permissions." }, 403);
+          return c.json(forbidden("Access denied. Insufficient permissions."), 403);
         }
       }
 
@@ -645,7 +616,7 @@ router.openapi(
         .where(and(eq(houseMemberships.id, membershipId), eq(houseMemberships.houseId, id)));
 
       if (!targetMembership) {
-        return c.json({ error: "Membership mapping not found" }, 404);
+        return c.json(notFound("Membership"), 404);
       }
 
       // Enforce that a house must have at least one owner remaining
@@ -656,7 +627,7 @@ router.openapi(
           .where(and(eq(houseMemberships.houseId, id), eq(houseMemberships.role, "OWNER")));
 
         if (ownersCount.length <= 1) {
-          return c.json({ error: "Cannot remove the sole owner of the house." }, 400);
+          return c.json(badRequest("Cannot remove the sole owner of the house."), 400);
         }
       }
 
@@ -665,7 +636,7 @@ router.openapi(
       return c.json({ success: true }, 200);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Database error";
-      return c.json({ error: message }, 400);
+      return c.json(badRequest(message), 400);
     }
   },
 );

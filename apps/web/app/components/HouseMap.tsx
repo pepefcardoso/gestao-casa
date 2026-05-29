@@ -12,7 +12,7 @@ interface HouseMapProps {
   interactive?: boolean;
 }
 
-export default function HouseMap({
+export function HouseMap({
   latitude,
   longitude,
   onChange,

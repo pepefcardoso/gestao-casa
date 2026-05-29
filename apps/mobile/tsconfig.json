@@ -10,8 +10,9 @@
     "ignoreDeprecations": "5.0",
     "baseUrl": ".",
     "paths": {
-      "@pillar/shared-logic/*": ["../../libs/shared-logic/src/*"],
-      "@pillar/backend/*": ["../../libs/backend/src/*"]
+      "@gestao-casa/shared-logic/*": ["../../libs/shared-logic/src/*"],
+      "@gestao-casa/backend/db": ["../../libs/backend/src/db/schema.ts"],
+      "@gestao-casa/backend/*": ["../../libs/backend/src/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

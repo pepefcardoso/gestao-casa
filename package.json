@@ -5,7 +5,8 @@
   "scripts": {
     "db:migrate": "tsx --env-file=.env libs/backend/src/db/run-migrations.ts",
     "db:check": "tsx --env-file=.env libs/backend/src/db/validate-connection.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "gen:api": "tsx --env-file=.env scripts/generate-openapi.ts && openapi-typescript docs/openapi.json -o libs/shared-logic/src/api-client/openapi.d.ts"
   },
   "private": true,
   "dependencies": {
@@ -46,6 +47,7 @@
     "babel-preset-expo": "~12.0.6",
     "drizzle-kit": "^0.31.10",
     "nx": "^22.6.5",
+    "openapi-typescript": "^7.1.0",
     "pg": "^8.21.0",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.0",

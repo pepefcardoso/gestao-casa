@@ -1,3 +1,4 @@
+import { apiClient } from "@gestao-casa/shared-logic/api-client/index";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type React from "react";
 import { useState } from "react";
@@ -17,8 +18,6 @@ import {
 import { z } from "zod";
 import { Lucide } from "../../components/LucideIcon";
 import { useMobileUser } from "../globalState";
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 const COLOR_PRESETS = [
   { name: "Emerald", hex: "#10B981" },
@@ -56,7 +55,7 @@ interface FormErrors {
 
 export default function NewRoomScreen(): React.JSX.Element {
   const router = useRouter();
-  const { userId, role } = useMobileUser();
+  const { role } = useMobileUser();
   const { houseId } = useLocalSearchParams<{ houseId: string }>();
 
   const [name, setName] = useState<string>("");
@@ -102,31 +101,14 @@ export default function NewRoomScreen(): React.JSX.Element {
     const activeHouseId = houseId || "9519c5f5-e74b-49dc-88d9-e484fda2c3c2";
 
     try {
-      const payload = {
-        name: validatedData.name,
-        area: validatedData.area,
-        colorCode,
-        houseId: activeHouseId,
-      };
-
-      const response = await fetch(`${API_URL}/rooms`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": userId,
+      await apiClient.post("/api/rooms", {
+        body: {
+          name: validatedData.name,
+          area: validatedData.area,
+          colorCode,
+          houseId: activeHouseId,
         },
-        body: JSON.stringify(payload),
       });
-
-      const responseData: unknown = await response.json();
-
-      if (!response.ok) {
-        const errorMsg =
-          responseData && typeof responseData === "object" && "error" in responseData
-            ? String((responseData as { error: unknown }).error)
-            : "Falha ao salvar cômodo.";
-        throw new Error(errorMsg);
-      }
 
       router.back();
     } catch (err: unknown) {

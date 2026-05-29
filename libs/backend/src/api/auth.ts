@@ -4,6 +4,7 @@ import { createMiddleware } from "hono/factory";
 import { verify } from "hono/jwt";
 import { db } from "../db";
 import { houseMemberships } from "../db/schema";
+import { unauthorized } from "./errors";
 
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key-12345";
 
@@ -51,7 +52,7 @@ export const authMiddleware = createMiddleware<{ Variables: { userId: string } }
     }
 
     // 3. Reject if not authenticated
-    return c.json({ error: "Sessão expirada ou não autenticada" }, 401);
+    return c.json(unauthorized("Sessão expirada ou não autenticada"), 401);
   },
 );
 

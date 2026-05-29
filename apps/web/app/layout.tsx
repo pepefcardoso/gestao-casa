@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type React from "react";
 import "./globals.css";
-import Header from "./components/Header";
+import { Header } from "./components/Header";
 import { UserProvider } from "./components/UserContext";
 
 export const metadata: Metadata = {

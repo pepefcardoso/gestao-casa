@@ -9,6 +9,12 @@
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@gestao-casa/shared-logic/*": ["libs/shared-logic/src/*"],
+      "@gestao-casa/backend/db": ["libs/backend/src/db/schema.ts"],
+      "@gestao-casa/backend/*": ["libs/backend/src/*"]
+    }
   }
 }
